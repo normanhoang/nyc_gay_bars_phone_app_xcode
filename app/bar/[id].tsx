@@ -1,6 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import BadgeToast from "../../components/BadgeToast";
 import DrinkLogger from "../../components/DrinkLogger";
 import { getBarById } from "../../lib/bars";
 import {
@@ -9,6 +19,53 @@ import {
   getDrinkTotal,
   useVisits,
 } from "../../lib/VisitsContext";
+
+function NotesSection({
+  note,
+  editable,
+  onCommit,
+}: {
+  note: string | undefined;
+  /** False until a drink has been logged for the day (notes need a visit). */
+  editable: boolean;
+  onCommit: (note: string) => void;
+}) {
+  const [draft, setDraft] = useState(note ?? "");
+  // Commit on unmount too — the modal can be swiped away without blurring.
+  const latest = useRef({ draft, editable, onCommit });
+  latest.current = { draft, editable, onCommit };
+  useEffect(
+    () => () => {
+      const { draft, editable, onCommit } = latest.current;
+      if (editable) onCommit(draft);
+    },
+    [],
+  );
+
+  return (
+    <View className="mt-5">
+      <Text className="mb-3 text-base font-bold text-white">Notes</Text>
+      {editable ? (
+        <TextInput
+          value={draft}
+          onChangeText={setDraft}
+          onEndEditing={() => onCommit(draft)}
+          onBlur={() => onCommit(draft)}
+          placeholder="How was the night?…"
+          placeholderTextColor="#6b7280"
+          multiline
+          className="min-h-[80px] rounded-2xl bg-ink-card px-4 py-3 text-base text-white"
+        />
+      ) : (
+        <View className="rounded-2xl bg-ink-card px-4 py-3">
+          <Text className="text-sm text-gray-500">
+            Log a drink to add a note about this visit.
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
 
 export default function BarDetailScreen() {
   const { id, day } = useLocalSearchParams<{ id: string; day?: string }>();
@@ -20,6 +77,7 @@ export default function BarDetailScreen() {
     getVisitFor,
     logDrink,
     removeDrink,
+    setVisitNote,
     isVisited,
     setVisited,
     getVisitsForBar,
@@ -27,9 +85,21 @@ export default function BarDetailScreen() {
 
   if (!bar) {
     return (
-      <View className="flex-1 items-center justify-center bg-ink px-8">
-        <Stack.Screen options={{ title: "Not found" }} />
-        <Text className="text-base text-white">Bar not found.</Text>
+      <View className="flex-1 bg-ink">
+        <View className="flex-row justify-end px-4 pt-4">
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+            className="h-9 w-9 items-center justify-center rounded-full bg-ink-card active:opacity-60"
+          >
+            <Ionicons name="close" size={20} color="#ffffff" />
+          </Pressable>
+        </View>
+        <View className="flex-1 items-center justify-center px-8">
+          <Text className="text-base text-white">Bar not found.</Text>
+        </View>
       </View>
     );
   }
@@ -79,30 +149,35 @@ export default function BarDetailScreen() {
 
   return (
     <View className="flex-1 bg-ink">
-      <Stack.Screen
-        options={{
-          title: bar.name,
-          headerRight: () => (
-            <Pressable
-              onPress={() => router.back()}
-              hitSlop={12}
-              className="active:opacity-60"
-            >
-              <Ionicons
-                name="close"
-                size={24}
-                color="#ffffff"
-                style={{ marginLeft: 5 }}
-              />
-            </Pressable>
-          ),
-        }}
-      />
+      <View className="flex-row justify-end px-4 pt-4">
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          className="h-9 w-9 items-center justify-center rounded-full bg-ink-card active:opacity-60"
+        >
+          <Ionicons name="close" size={20} color="#ffffff" />
+        </Pressable>
+      </View>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
         <Text className="text-2xl font-extrabold text-white">{bar.name}</Text>
         <Text className="mt-1 text-sm font-semibold text-primary">
           {bar.neighborhood}
         </Text>
+
+        {bar.tags?.length ? (
+          <View className="mt-2 flex-row flex-wrap">
+            {bar.tags.map((tag) => (
+              <View
+                key={tag}
+                className="mb-1 mr-2 rounded-full bg-ink-soft px-3 py-1"
+              >
+                <Text className="text-xs font-medium text-gray-300">{tag}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         <Pressable
           onPress={openDirections}
@@ -122,6 +197,9 @@ export default function BarDetailScreen() {
 
         <Pressable
           onPress={toggleVisited}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: visited }}
+          accessibilityLabel="Visited"
           className="mt-5 flex-row items-center justify-between rounded-2xl bg-ink-card px-4 py-3 active:opacity-80"
         >
           <View className="flex-1 pr-3">
@@ -152,7 +230,17 @@ export default function BarDetailScreen() {
           onLog={(type) => logDrink(bar.id, type, targetDay)}
           onRemove={(type) => removeDrink(bar.id, type, targetDay)}
         />
+
+        <NotesSection
+          // Remount when the visit appears/disappears so the draft resets.
+          key={visit?.id ?? "no-visit"}
+          note={visit?.note}
+          editable={visit !== undefined}
+          onCommit={(note) => setVisitNote(bar.id, targetDay, note)}
+        />
       </ScrollView>
+      {/* The modal covers the root layout's toast, so mount one here too. */}
+      <BadgeToast />
     </View>
   );
 }

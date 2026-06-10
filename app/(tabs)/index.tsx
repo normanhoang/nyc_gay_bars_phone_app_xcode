@@ -27,10 +27,14 @@ type SortMode = "name" | "nearest";
 
 const ALL = "All";
 
-function visitMessage(visited: number, total: number): string {
+function visitMessage(visited: number, total: number, isAll: boolean): string {
   if (total === 0) return "";
   if (visited === 0) return "Never been — time to explore!";
-  if (visited === total) return "You've conquered the scene! 👑";
+  if (visited === total) {
+    return isAll
+      ? "You've conquered the scene! 👑"
+      : "You've conquered the neighborhood! 👑";
+  }
   const pct = visited / total;
   if (pct <= 0.25) return "Just getting started...";
   if (pct <= 0.5) return "Making the rounds!";
@@ -107,7 +111,9 @@ export default function ExploreScreen() {
       if (neighborhood !== ALL && b.neighborhood !== neighborhood) return false;
       if (
         q &&
-        !`${b.name} ${b.neighborhood} ${b.address}`.toLowerCase().includes(q)
+        !`${b.name} ${b.neighborhood} ${b.address} ${b.tags?.join(" ") ?? ""}`
+          .toLowerCase()
+          .includes(q)
       ) {
         return false;
       }
@@ -168,7 +174,12 @@ export default function ExploreScreen() {
             className="flex-1 px-2 py-3 text-base text-white"
           />
           {query.length > 0 ? (
-            <Pressable onPress={() => setQuery("")} hitSlop={8}>
+            <Pressable
+              onPress={() => setQuery("")}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
+            >
               <Ionicons name="close-circle" size={18} color="#6b7280" />
             </Pressable>
           ) : null}
@@ -208,7 +219,11 @@ export default function ExploreScreen() {
           </Text>
           <Text className="text-xs text-gray-500"> visited · </Text>
           <Text className="text-xs text-gray-400">
-            {visitMessage(visitedCount, neighborhoodBars.length)}
+            {visitMessage(
+              visitedCount,
+              neighborhoodBars.length,
+              neighborhood === ALL,
+            )}
           </Text>
         </View>
         {mode === "list" && distances ? (

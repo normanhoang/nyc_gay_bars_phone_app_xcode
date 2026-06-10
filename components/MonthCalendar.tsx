@@ -61,6 +61,8 @@ export default function MonthCalendar({
         <Pressable
           onPress={() => shiftMonth(-1)}
           hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel="Previous month"
           className="h-8 w-8 items-center justify-center rounded-full active:opacity-60"
         >
           <Ionicons name="chevron-back" size={20} color="#ffffff" />
@@ -71,6 +73,8 @@ export default function MonthCalendar({
         <Pressable
           onPress={() => shiftMonth(1)}
           hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel="Next month"
           className="h-8 w-8 items-center justify-center rounded-full active:opacity-60"
         >
           <Ionicons name="chevron-forward" size={20} color="#ffffff" />

@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { drinkEmoji, PRESET_DRINKS } from "../lib/drinks";
+import { lightTap } from "../lib/haptics";
 import type { Visit } from "../lib/types";
 
 type Props = {
@@ -38,8 +39,13 @@ function DrinkRow({
 
       <View className="flex-row items-center">
         <Pressable
-          onPress={onRemove}
+          onPress={() => {
+            lightTap();
+            onRemove();
+          }}
           disabled={count === 0}
+          accessibilityRole="button"
+          accessibilityLabel={`Remove ${type}`}
           className={
             count === 0
               ? "h-9 w-9 items-center justify-center rounded-full bg-ink-soft opacity-40"
@@ -54,7 +60,12 @@ function DrinkRow({
         </Text>
 
         <Pressable
-          onPress={onLog}
+          onPress={() => {
+            lightTap();
+            onLog();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={`Add ${type}`}
           className="h-9 w-9 items-center justify-center rounded-full bg-primary active:opacity-70"
         >
           <Ionicons name="add" size={20} color="#ffffff" />
@@ -78,6 +89,7 @@ export default function DrinkLogger({ visit, onLog, onRemove }: Props) {
   const addCustom = () => {
     const name = custom.trim();
     if (!name) return;
+    lightTap();
     onLog(name);
     setCustom("");
   };

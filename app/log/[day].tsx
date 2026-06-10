@@ -26,7 +26,9 @@ export default function LogDayScreen() {
     return BARS.filter(
       (b) =>
         !q ||
-        `${b.name} ${b.neighborhood} ${b.address}`.toLowerCase().includes(q),
+        `${b.name} ${b.neighborhood} ${b.address} ${b.tags?.join(" ") ?? ""}`
+          .toLowerCase()
+          .includes(q),
     ).sort((a, b) => a.name.localeCompare(b.name));
   }, [query]);
 
@@ -52,7 +54,12 @@ export default function LogDayScreen() {
             className="flex-1 px-2 py-3 text-base text-white"
           />
           {query.length > 0 ? (
-            <Pressable onPress={() => setQuery("")} hitSlop={8}>
+            <Pressable
+              onPress={() => setQuery("")}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
+            >
               <Ionicons name="close-circle" size={18} color="#6b7280" />
             </Pressable>
           ) : null}

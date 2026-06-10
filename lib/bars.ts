@@ -13,7 +13,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Chelsea",
     "address": "554 W 28th St, New York",
     "latitude": 40.751501,
-    "longitude": -74.003629
+    "longitude": -74.003629,
+    "tags": [
+      "leather",
+      "dance"
+    ]
   },
   {
     "id": "the-monster",
@@ -21,7 +25,12 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "80 Grove St, New York",
     "latitude": 40.733295,
-    "longitude": -74.00261
+    "longitude": -74.00261,
+    "tags": [
+      "piano",
+      "dance",
+      "drag"
+    ]
   },
   {
     "id": "boxers-nyc",
@@ -29,7 +38,10 @@ export const BARS: Bar[] = [
     "neighborhood": "Chelsea",
     "address": "37 W 20th St, New York",
     "latitude": 40.740227,
-    "longitude": -73.99211
+    "longitude": -73.99211,
+    "tags": [
+      "sports"
+    ]
   },
   {
     "id": "the-stonewall-inn",
@@ -37,7 +49,12 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "53 Christopher St, New York",
     "latitude": 40.733743,
-    "longitude": -74.002311
+    "longitude": -74.002311,
+    "tags": [
+      "historic",
+      "dance",
+      "drag"
+    ]
   },
   {
     "id": "the-cock",
@@ -45,7 +62,11 @@ export const BARS: Bar[] = [
     "neighborhood": "East Village",
     "address": "93 2nd Ave, New York",
     "latitude": 40.727089,
-    "longitude": -73.988855
+    "longitude": -73.988855,
+    "tags": [
+      "dive",
+      "dance"
+    ]
   },
   {
     "id": "gym-sportsbar",
@@ -53,7 +74,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Chelsea",
     "address": "167 8th Ave, New York",
     "latitude": 40.742539,
-    "longitude": -74.000581
+    "longitude": -74.000581,
+    "tags": [
+      "sports",
+      "dive"
+    ]
   },
   {
     "id": "industry-bar",
@@ -61,7 +86,12 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "355 West 52nd Street, New York",
     "latitude": 40.764246,
-    "longitude": -73.986713
+    "longitude": -73.986713,
+    "tags": [
+      "lounge",
+      "drag",
+      "dance"
+    ]
   },
   {
     "id": "club-cumming",
@@ -69,7 +99,12 @@ export const BARS: Bar[] = [
     "neighborhood": "East Village",
     "address": "505 E 6th St, New York",
     "latitude": 40.725454,
-    "longitude": -73.983766
+    "longitude": -73.983766,
+    "tags": [
+      "cabaret",
+      "drag",
+      "dive"
+    ]
   },
   {
     "id": "tys-bar-nyc",
@@ -77,7 +112,11 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "114 Christopher St, New York",
     "latitude": 40.733166,
-    "longitude": -74.005352
+    "longitude": -74.005352,
+    "tags": [
+      "dive",
+      "bear"
+    ]
   },
   {
     "id": "henrietta-hudson",
@@ -85,7 +124,11 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "438 Hudson St, New York",
     "latitude": 40.730775,
-    "longitude": -74.006691
+    "longitude": -74.006691,
+    "tags": [
+      "lesbian",
+      "dance"
+    ]
   },
   {
     "id": "ritz-bar-and-lounge",
@@ -93,7 +136,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "369 West 46th Street, New York",
     "latitude": 40.760718,
-    "longitude": -73.989961
+    "longitude": -73.989961,
+    "tags": [
+      "dance",
+      "lounge"
+    ]
   },
   {
     "id": "nowhere-bar",
@@ -101,7 +148,10 @@ export const BARS: Bar[] = [
     "neighborhood": "East Village",
     "address": "322 E 14th St, New York",
     "latitude": 40.732059,
-    "longitude": -73.984406
+    "longitude": -73.984406,
+    "tags": [
+      "dive"
+    ]
   },
   {
     "id": "pieces",
@@ -109,7 +159,11 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "8 Christopher St, New York",
     "latitude": 40.733959,
-    "longitude": -74.000047
+    "longitude": -74.000047,
+    "tags": [
+      "drag",
+      "karaoke"
+    ]
   },
   {
     "id": "the-boiler-room",
@@ -117,7 +171,10 @@ export const BARS: Bar[] = [
     "neighborhood": "East Village",
     "address": "45 2nd Ave, New York",
     "latitude": 40.725285,
-    "longitude": -73.990174
+    "longitude": -73.990174,
+    "tags": [
+      "dive"
+    ]
   },
   {
     "id": "phoenix-bar",
@@ -125,7 +182,10 @@ export const BARS: Bar[] = [
     "neighborhood": "East Village",
     "address": "447 E 13th St, New York",
     "latitude": 40.730271,
-    "longitude": -73.981994
+    "longitude": -73.981994,
+    "tags": [
+      "dive"
+    ]
   },
   {
     "id": "cubbyhole",
@@ -133,7 +193,11 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "281 W 12th St, New York",
     "latitude": 40.737608,
-    "longitude": -74.003797
+    "longitude": -74.003797,
+    "tags": [
+      "lesbian",
+      "dive"
+    ]
   },
   {
     "id": "maries-crisis",
@@ -141,7 +205,12 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "59 Grove St, New York",
     "latitude": 40.733039,
-    "longitude": -74.003775
+    "longitude": -74.003775,
+    "tags": [
+      "piano",
+      "cabaret",
+      "historic"
+    ]
   },
   {
     "id": "julius",
@@ -149,7 +218,11 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "159 W 10th St, New York",
     "latitude": 40.734508,
-    "longitude": -74.001646
+    "longitude": -74.001646,
+    "tags": [
+      "historic",
+      "dive"
+    ]
   },
   {
     "id": "rockbar-nyc",
@@ -157,7 +230,11 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "185 Christopher St, New York",
     "latitude": 40.732589,
-    "longitude": -74.009362
+    "longitude": -74.009362,
+    "tags": [
+      "dive",
+      "bear"
+    ]
   },
   {
     "id": "9th-avenue-saloon",
@@ -165,7 +242,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "656 9th Ave, New York",
     "latitude": 40.760806,
-    "longitude": -73.990812
+    "longitude": -73.990812,
+    "tags": [
+      "dive",
+      "karaoke"
+    ]
   },
   {
     "id": "flaming-saddles-saloon",
@@ -173,7 +254,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "793 Ninth Avenue, New York",
     "latitude": 40.765166,
-    "longitude": -73.987807
+    "longitude": -73.987807,
+    "tags": [
+      "country",
+      "dance"
+    ]
   },
   {
     "id": "friends-tavern",
@@ -181,7 +266,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Queens",
     "address": "78-11 Roosevelt Ave, Jackson Heights",
     "latitude": 40.747321,
-    "longitude": -73.8875
+    "longitude": -73.8875,
+    "tags": [
+      "latin",
+      "dance"
+    ]
   },
   {
     "id": "metropolitan",
@@ -189,7 +278,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "559 Lorimer St, Brooklyn",
     "latitude": 40.713656,
-    "longitude": -73.949379
+    "longitude": -73.949379,
+    "tags": [
+      "dive",
+      "dance"
+    ]
   },
   {
     "id": "hardware",
@@ -197,7 +290,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "697 10th Ave, New York",
     "latitude": 40.763248,
-    "longitude": -73.992922
+    "longitude": -73.992922,
+    "tags": [
+      "drag",
+      "lounge"
+    ]
   },
   {
     "id": "the-toolbox-bar",
@@ -205,7 +302,10 @@ export const BARS: Bar[] = [
     "neighborhood": "Upper East Side",
     "address": "1742 2nd Ave., New York",
     "latitude": 40.780833,
-    "longitude": -73.949502
+    "longitude": -73.949502,
+    "tags": [
+      "dive"
+    ]
   },
   {
     "id": "hk-hall",
@@ -213,7 +313,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "605 W 48th Street, New York",
     "latitude": 40.764739,
-    "longitude": -73.995652
+    "longitude": -73.995652,
+    "tags": [
+      "drag",
+      "cabaret"
+    ]
   },
   {
     "id": "suite",
@@ -221,7 +325,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Upper West Side",
     "address": "992 Amsterdam Ave, New York",
     "latitude": 40.802452,
-    "longitude": -73.964331
+    "longitude": -73.964331,
+    "tags": [
+      "karaoke",
+      "drag"
+    ]
   },
   {
     "id": "gingers-bar",
@@ -229,7 +337,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "363 5th Ave, Brooklyn",
     "latitude": 40.671414,
-    "longitude": -73.984348
+    "longitude": -73.984348,
+    "tags": [
+      "lesbian",
+      "dive"
+    ]
   },
   {
     "id": "hombres-lounge",
@@ -237,7 +349,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Queens",
     "address": "85-28 37th Avenue, Jackson Heights",
     "latitude": 40.750014,
-    "longitude": -73.881213
+    "longitude": -73.881213,
+    "tags": [
+      "latin",
+      "dance"
+    ]
   },
   {
     "id": "atlas-social-club",
@@ -245,7 +361,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "753 9th Ave, New York",
     "latitude": 40.763953,
-    "longitude": -73.988689
+    "longitude": -73.988689,
+    "tags": [
+      "sports",
+      "lounge"
+    ]
   },
   {
     "id": "icon-bar",
@@ -253,7 +373,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Queens",
     "address": "31-84 33rd St, Astoria",
     "latitude": 40.761626,
-    "longitude": -73.923553
+    "longitude": -73.923553,
+    "tags": [
+      "drag",
+      "dance"
+    ]
   },
   {
     "id": "g-lounge",
@@ -261,7 +385,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Chelsea",
     "address": "225 W 19th St, New York",
     "latitude": 40.741999,
-    "longitude": -73.998129
+    "longitude": -73.998129,
+    "tags": [
+      "lounge",
+      "dance"
+    ]
   },
   {
     "id": "albatross-bar",
@@ -269,7 +397,12 @@ export const BARS: Bar[] = [
     "neighborhood": "Queens",
     "address": "36-19 24th Ave, Astoria",
     "latitude": 40.77045,
-    "longitude": -73.912675
+    "longitude": -73.912675,
+    "tags": [
+      "dive",
+      "drag",
+      "karaoke"
+    ]
   },
   {
     "id": "rise-bar",
@@ -277,7 +410,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "859 9th Ave, New York",
     "latitude": 40.767171,
-    "longitude": -73.986345
+    "longitude": -73.986345,
+    "tags": [
+      "lounge",
+      "drag"
+    ]
   },
   {
     "id": "uncle-charlies-piano-lounge",
@@ -285,7 +422,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Midtown East",
     "address": "139 East 45th Street, New York",
     "latitude": 40.753151,
-    "longitude": -73.973975
+    "longitude": -73.973975,
+    "tags": [
+      "piano",
+      "lounge"
+    ]
   },
   {
     "id": "branded-saloon",
@@ -293,7 +434,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "603 Vanderbilt Ave, Brooklyn",
     "latitude": 40.679354,
-    "longitude": -73.968173
+    "longitude": -73.968173,
+    "tags": [
+      "country",
+      "dive"
+    ]
   },
   {
     "id": "good-judy",
@@ -301,7 +446,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "563 5th Avenue, Brooklyn",
     "latitude": 40.665317,
-    "longitude": -73.989429
+    "longitude": -73.989429,
+    "tags": [
+      "drag",
+      "dance"
+    ]
   },
   {
     "id": "alibi-lounge",
@@ -309,7 +458,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Harlem",
     "address": "2376 Clayton Powell Jr Blvd, New York",
     "latitude": 40.817764,
-    "longitude": -73.941988
+    "longitude": -73.941988,
+    "tags": [
+      "lounge",
+      "cocktails"
+    ]
   },
   {
     "id": "animal",
@@ -317,7 +470,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "307 Meeker Ave",
     "latitude": 40.718649,
-    "longitude": -73.947183
+    "longitude": -73.947183,
+    "tags": [
+      "dive",
+      "dance"
+    ]
   },
   {
     "id": "marys",
@@ -325,7 +482,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Lower East Side",
     "address": "146 Orchard St, New York",
     "latitude": 40.720425,
-    "longitude": -73.988976
+    "longitude": -73.988976,
+    "tags": [
+      "cocktails",
+      "lounge"
+    ]
   },
   {
     "id": "so-sos-neighborhood-piano-bar",
@@ -333,7 +494,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "302 W 52nd St, New York",
     "latitude": 40.76354,
-    "longitude": -73.98535
+    "longitude": -73.98535,
+    "tags": [
+      "piano",
+      "cabaret"
+    ]
   },
   {
     "id": "the-red-stache",
@@ -341,7 +506,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "401 W 52nd St, New York",
     "latitude": 40.764814,
-    "longitude": -73.98806
+    "longitude": -73.98806,
+    "tags": [
+      "cocktails",
+      "lounge"
+    ]
   },
   {
     "id": "bar-nine",
@@ -349,7 +518,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "807 9th Ave, New York",
     "latitude": 40.765667,
-    "longitude": -73.987443
+    "longitude": -73.987443,
+    "tags": [
+      "lounge",
+      "cabaret"
+    ]
   },
   {
     "id": "vv-bar-kitchen",
@@ -357,7 +530,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "325 W 51st St, New York",
     "latitude": 40.763387,
-    "longitude": -73.986609
+    "longitude": -73.986609,
+    "tags": [
+      "cocktails",
+      "lounge"
+    ]
   },
   {
     "id": "its-him",
@@ -365,7 +542,10 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "692 10th Ave, New York",
     "latitude": 40.763806,
-    "longitude": -73.992342
+    "longitude": -73.992342,
+    "tags": [
+      "lounge"
+    ]
   },
   {
     "id": "dbl",
@@ -373,7 +553,10 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "667 10th Ave, New York",
     "latitude": 40.762566,
-    "longitude": -73.993418
+    "longitude": -73.993418,
+    "tags": [
+      "dive"
+    ]
   },
   {
     "id": "adonis-lounge",
@@ -381,7 +564,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "500 W 48th St, New York",
     "latitude": 40.763409,
-    "longitude": -73.992805
+    "longitude": -73.992805,
+    "tags": [
+      "dance",
+      "lounge"
+    ]
   },
   {
     "id": "upstairs-cocktail-bar",
@@ -389,7 +576,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Queens",
     "address": "7122 Roosevelt Ave",
     "latitude": 40.748902,
-    "longitude": -73.871882
+    "longitude": -73.871882,
+    "tags": [
+      "cocktails",
+      "latin"
+    ]
   },
   {
     "id": "red-eye-ny",
@@ -397,7 +588,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "355 W 41st St, New York",
     "latitude": 40.757304,
-    "longitude": -73.991771
+    "longitude": -73.991771,
+    "tags": [
+      "dance",
+      "drag"
+    ]
   },
   {
     "id": "balcon-salon",
@@ -405,7 +600,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "674 9th Ave, New York",
     "latitude": 40.761398,
-    "longitude": -73.99038
+    "longitude": -73.99038,
+    "tags": [
+      "cocktails",
+      "lounge"
+    ]
   },
   {
     "id": "the-highwater",
@@ -413,7 +612,10 @@ export const BARS: Bar[] = [
     "neighborhood": "Queens",
     "address": "34-20 Broadway",
     "latitude": 40.760373,
-    "longitude": -73.922446
+    "longitude": -73.922446,
+    "tags": [
+      "dive"
+    ]
   },
   {
     "id": "the-red-pavilion",
@@ -421,7 +623,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "1241 Flushing Ave",
     "latitude": 40.70813,
-    "longitude": -73.923433
+    "longitude": -73.923433,
+    "tags": [
+      "cabaret",
+      "cocktails"
+    ]
   },
   {
     "id": "the-bush",
@@ -429,7 +635,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "333 Troutman St, Brooklyn",
     "latitude": 40.704952,
-    "longitude": -73.924553
+    "longitude": -73.924553,
+    "tags": [
+      "dive",
+      "dance"
+    ]
   },
   {
     "id": "the-rosemont",
@@ -437,7 +647,12 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "63 Montrose Ave",
     "latitude": 40.706976,
-    "longitude": -73.947465
+    "longitude": -73.947465,
+    "tags": [
+      "dive",
+      "dance",
+      "drag"
+    ]
   },
   {
     "id": "happyfun-hideaway",
@@ -445,7 +660,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "1211 Myrtle Ave",
     "latitude": 40.697419,
-    "longitude": -73.931849
+    "longitude": -73.931849,
+    "tags": [
+      "dive",
+      "dance"
+    ]
   },
   {
     "id": "basement-ny",
@@ -453,7 +672,10 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "52-19 Flushing Ave, Maspeth",
     "latitude": 40.714558,
-    "longitude": -73.914144
+    "longitude": -73.914144,
+    "tags": [
+      "dance"
+    ]
   },
   {
     "id": "flex",
@@ -461,7 +683,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "405 W 51st St, New York",
     "latitude": 40.764231,
-    "longitude": -73.98863
+    "longitude": -73.98863,
+    "tags": [
+      "lounge",
+      "drag"
+    ]
   },
   {
     "id": "diamond-dogs",
@@ -469,7 +695,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Queens",
     "address": "34-04 31st Ave",
     "latitude": 40.763008,
-    "longitude": -73.920978
+    "longitude": -73.920978,
+    "tags": [
+      "cocktails",
+      "dive"
+    ]
   },
   {
     "id": "kween",
@@ -477,7 +707,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Queens",
     "address": "34-10 30th Ave.",
     "latitude": 40.765445,
-    "longitude": -73.918761
+    "longitude": -73.918761,
+    "tags": [
+      "drag",
+      "dance"
+    ]
   },
   {
     "id": "viva-la-heights",
@@ -485,7 +719,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Queens",
     "address": "78-13 Roosevelt Ave",
     "latitude": 40.747501,
-    "longitude": -73.887111
+    "longitude": -73.887111,
+    "tags": [
+      "latin",
+      "drag"
+    ]
   },
   {
     "id": "the-dickens",
@@ -493,7 +731,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "783 8th Ave, New York",
     "latitude": 40.760838,
-    "longitude": -73.987245
+    "longitude": -73.987245,
+    "tags": [
+      "lounge",
+      "cabaret"
+    ]
   },
   {
     "id": "pink-metal",
@@ -501,7 +743,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "253 Bushwick Ave, Brooklyn",
     "latitude": 40.707324,
-    "longitude": -73.939705
+    "longitude": -73.939705,
+    "tags": [
+      "dive",
+      "dance"
+    ]
   },
   {
     "id": "hush",
@@ -509,7 +755,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "348 W 52nd St, New York",
     "latitude": 40.764076,
-    "longitude": -73.98662
+    "longitude": -73.98662,
+    "tags": [
+      "dance",
+      "drag"
+    ]
   },
   {
     "id": "vers",
@@ -517,7 +767,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Hell's Kitchen",
     "address": "714 9th Ave, New York",
     "latitude": 40.762666,
-    "longitude": -73.989455
+    "longitude": -73.989455,
+    "tags": [
+      "cocktails",
+      "lounge"
+    ]
   },
   {
     "id": "the-townhouse-of-new-york",
@@ -525,7 +779,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Midtown East",
     "address": "236 E 58th St, New York",
     "latitude": 40.760524,
-    "longitude": -73.966239
+    "longitude": -73.966239,
+    "tags": [
+      "piano",
+      "lounge"
+    ]
   },
   {
     "id": "lambda-lounge",
@@ -533,7 +791,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Harlem",
     "address": "2256 Adam Clayton Powell Jr Blvd, New York",
     "latitude": 40.813863,
-    "longitude": -73.94484
+    "longitude": -73.94484,
+    "tags": [
+      "lounge",
+      "dance"
+    ]
   },
   {
     "id": "cmon-everybody",
@@ -541,7 +803,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "325 Franklin Ave, Brooklyn",
     "latitude": 40.689679,
-    "longitude": -73.957019
+    "longitude": -73.957019,
+    "tags": [
+      "dance",
+      "cabaret"
+    ]
   },
   {
     "id": "3-dollar-bill",
@@ -549,7 +815,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "260 Meserole St, Brooklyn",
     "latitude": 40.708506,
-    "longitude": -73.93814
+    "longitude": -73.93814,
+    "tags": [
+      "dance",
+      "drag"
+    ]
   },
   {
     "id": "playhouse",
@@ -557,7 +827,11 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "100A 7th Ave S, New York",
     "latitude": 40.733185,
-    "longitude": -74.003132
+    "longitude": -74.003132,
+    "tags": [
+      "drag",
+      "dance"
+    ]
   },
   {
     "id": "house-of-yes",
@@ -565,7 +839,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Brooklyn",
     "address": "2 Wyckoff Ave, Brooklyn",
     "latitude": 40.706947,
-    "longitude": -73.92358
+    "longitude": -73.92358,
+    "tags": [
+      "dance",
+      "cabaret"
+    ]
   },
   {
     "id": "mb-bar-boutique-closed-temporarily",
@@ -573,7 +851,11 @@ export const BARS: Bar[] = [
     "neighborhood": "Queens",
     "address": "40-08 74th Street, Jackson Heights",
     "latitude": 40.7466,
-    "longitude": -73.8916
+    "longitude": -73.8916,
+    "tags": [
+      "latin",
+      "lounge"
+    ]
   },
   {
     "id": "the-duplex-closed-temporarily",
@@ -581,7 +863,11 @@ export const BARS: Bar[] = [
     "neighborhood": "West Village",
     "address": "61 Christopher St, New York",
     "latitude": 40.733715,
-    "longitude": -74.002498
+    "longitude": -74.002498,
+    "tags": [
+      "piano",
+      "cabaret"
+    ]
   }
 ];
 

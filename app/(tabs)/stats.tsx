@@ -220,9 +220,11 @@ export default function StatsScreen() {
             <Pressable
               onPress={() => setShowAllBadges(false)}
               hitSlop={12}
-              className="active:opacity-60"
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              className="h-9 w-9 items-center justify-center rounded-full bg-ink-card active:opacity-60"
             >
-              <Ionicons name="close" size={24} color="#ffffff" />
+              <Ionicons name="close" size={20} color="#ffffff" />
             </Pressable>
           </View>
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>

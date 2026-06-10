@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -32,9 +32,10 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Used to preselect the gay-bar neighborhood nearest you."
+          "locationWhenInUsePermission": "Used to show your distance to bars and sort them by proximity."
         }
-      ]
+      ],
+      "expo-secure-store"
     ]
   }
 }

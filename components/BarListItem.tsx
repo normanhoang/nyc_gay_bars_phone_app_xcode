@@ -47,6 +47,20 @@ export default function BarListItem({
         <Text className="mt-1 text-xs text-gray-400" numberOfLines={1}>
           {bar.address}
         </Text>
+        {bar.tags?.length ? (
+          <View className="mt-1.5 flex-row">
+            {bar.tags.slice(0, 3).map((tag) => (
+              <View
+                key={tag}
+                className="mr-1.5 rounded-full bg-ink-soft px-2 py-0.5"
+              >
+                <Text className="text-[10px] font-medium text-gray-400">
+                  {tag}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
       </View>
 
       {todayCount > 0 ? (

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
 import MonthCalendar from "../../components/MonthCalendar";
 import VisitCard from "../../components/VisitCard";
+import { supabase } from "../../lib/supabase";
 import {
   dayKey,
   dayKeyToDate,
@@ -27,18 +28,33 @@ export default function HistoryScreen() {
   );
 
   const confirmClear = () => {
-    Alert.alert("Clear all history?", "This can't be undone. Choose what to clear:", [
-      {
-        text: "Drink history only",
-        style: "destructive",
-        onPress: () => clearHistory(false),
-      },
-      {
-        text: "Full reset (incl. visited)",
-        style: "destructive",
-        onPress: () => clearHistory(true),
-      },
+    Alert.alert(
+      "Clear all history?",
+      "This can't be undone. Choose what to clear:",
+      [
+        {
+          text: "Drink history only",
+          style: "destructive",
+          onPress: () => clearHistory(false),
+        },
+        {
+          text: "Full reset (incl. visited)",
+          style: "destructive",
+          onPress: () => clearHistory(true),
+        },
+        { text: "Cancel", style: "cancel" },
+      ],
+    );
+  };
+
+  const confirmSignOut = () => {
+    Alert.alert("Sign out?", "You'll need to sign back in to access your data.", [
       { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: () => supabase.auth.signOut(),
+      },
     ]);
   };
 
@@ -97,17 +113,28 @@ export default function HistoryScreen() {
           </View>
         }
         ListFooterComponent={
-          visits.length > 0 ? (
+          <View className="mt-6">
+            {visits.length > 0 ? (
+              <Pressable
+                onPress={confirmClear}
+                className="mb-3 flex-row items-center justify-center rounded-2xl border border-red-500/40 bg-red-500/15 px-4 py-3 active:opacity-70"
+              >
+                <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                <Text className="ml-2 text-base font-semibold text-red-500">
+                  Clear History
+                </Text>
+              </Pressable>
+            ) : null}
             <Pressable
-              onPress={confirmClear}
-              className="mt-6 flex-row items-center justify-center rounded-2xl border border-red-500/40 bg-red-500/15 px-4 py-3 active:opacity-70"
+              onPress={confirmSignOut}
+              className="flex-row items-center justify-center rounded-2xl bg-ink-card px-4 py-3 active:opacity-70"
             >
-              <Ionicons name="trash-outline" size={18} color="#ef4444" />
-              <Text className="ml-2 text-base font-semibold text-red-500">
-                Clear History
+              <Ionicons name="log-out-outline" size={18} color="#9ca3af" />
+              <Text className="ml-2 text-base font-semibold text-gray-300">
+                Sign Out
               </Text>
             </Pressable>
-          ) : null
+          </View>
         }
         renderItem={({ item }) => (
           <VisitCard visit={item} onDelete={() => clearVisit(item.id)} />

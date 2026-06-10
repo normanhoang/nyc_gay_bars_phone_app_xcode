@@ -7,6 +7,8 @@ export type Bar = {
   latitude: number;
   longitude: number;
   description?: string;
+  /** Curated vibe tags, e.g. "dive", "drag", "leather", "piano". */
+  tags?: string[];
 };
 
 /** A drink type and how many of it were had during a visit. */
@@ -23,4 +25,6 @@ export type Visit = {
   /** ISO date-time of when the visit was first logged. */
   date: string;
   drinks: DrinkEntry[];
+  /** Free-form note about the night. */
+  note?: string;
 };

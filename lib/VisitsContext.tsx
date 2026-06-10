@@ -5,24 +5,31 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { supabase } from "./supabase";
 import type { Visit } from "./types";
 
-const STORAGE_KEY = "@gaybars/visits";
-const VISITED_KEY = "@gaybars/visited";
+// Legacy AsyncStorage keys — only used once to migrate pre-Supabase installs.
+const LEGACY_VISITS_KEY = "@gaybars/visits";
+const LEGACY_VISITED_KEY = "@gaybars/visited";
 
 type VisitsContextValue = {
   /** All visits, most recent first. */
   visits: Visit[];
-  /** True until the persisted state has been loaded from storage. */
+  /** Bars manually marked "I've been here" (drink-logged bars not included). */
+  visitedBars: string[];
+  /** True until the persisted state has been loaded from Supabase. */
   hydrated: boolean;
   /** Log a drink at a bar. `day` is a dayKey; defaults to today. */
   logDrink: (barId: string, type: string, day?: string) => void;
   removeDrink: (barId: string, type: string, day?: string) => void;
   /** A bar's visit on a given day (default today), or undefined if none. */
   getVisitFor: (barId: string, day?: string) => Visit | undefined;
+  /** Set/clear the note on a bar's visit for a day; no-op without a visit. */
+  setVisitNote: (barId: string, day: string, note: string) => void;
   getVisitsForBar: (barId: string) => Visit[];
   /** All visits on a given local day (see dayKey), most recent first. */
   getVisitsForDay: (day: string) => Visit[];
@@ -67,66 +74,133 @@ function makeId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function VisitsProvider({ children }: { children: ReactNode }) {
+function rowToVisit(row: Record<string, unknown>): Visit {
+  return {
+    id: row.id as string,
+    barId: row.bar_id as string,
+    date: row.date as string,
+    drinks: row.drinks as Visit["drinks"],
+    ...(row.note ? { note: row.note as string } : {}),
+  };
+}
+
+export function VisitsProvider({
+  children,
+  userId,
+}: {
+  children: ReactNode;
+  userId: string;
+}) {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [visitedBars, setVisitedBars] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  // Load persisted state once on mount.
+  // Refs let callbacks read current state without stale closures.
+  const visitsRef = useRef<Visit[]>([]);
+  visitsRef.current = visits;
+  const visitedBarsRef = useRef<string[]>([]);
+  visitedBarsRef.current = visitedBars;
+
+  // Load from Supabase. If Supabase is empty and AsyncStorage has data from a
+  // pre-Supabase install, auto-migrate it then clear the legacy storage.
   useEffect(() => {
     let active = true;
+    setHydrated(false);
+    setVisits([]);
+    setVisitedBars([]);
+
     (async () => {
       try {
-        const [rawVisits, rawVisited] = await AsyncStorage.multiGet([
-          STORAGE_KEY,
-          VISITED_KEY,
-        ]).then((pairs) => pairs.map(([, v]) => v));
-        if (active && rawVisits) {
-          const parsed = JSON.parse(rawVisits) as Visit[];
-          if (Array.isArray(parsed)) setVisits(parsed);
-        }
-        if (active && rawVisited) {
-          const parsed = JSON.parse(rawVisited) as string[];
-          if (Array.isArray(parsed)) setVisitedBars(parsed);
+        const [{ data: remoteVisits }, { data: remoteVisited }] =
+          await Promise.all([
+            supabase
+              .from("visits")
+              .select("*")
+              .eq("user_id", userId)
+              .order("date", { ascending: false }),
+            supabase
+              .from("visited_bars")
+              .select("bar_id")
+              .eq("user_id", userId),
+          ]);
+
+        if (!active) return;
+
+        const hasRemote =
+          (remoteVisits?.length ?? 0) > 0 ||
+          (remoteVisited?.length ?? 0) > 0;
+
+        if (hasRemote) {
+          setVisits((remoteVisits ?? []).map(rowToVisit));
+          setVisitedBars((remoteVisited ?? []).map((r) => r.bar_id as string));
+        } else {
+          // First-time sign-in: migrate any locally stored data to Supabase.
+          const [rawVisits, rawVisited] = await AsyncStorage.multiGet([
+            LEGACY_VISITS_KEY,
+            LEGACY_VISITED_KEY,
+          ]).then((pairs) => pairs.map(([, v]) => v));
+
+          const localVisits: Visit[] = rawVisits
+            ? (JSON.parse(rawVisits) as Visit[])
+            : [];
+          const localVisited: string[] = rawVisited
+            ? (JSON.parse(rawVisited) as string[])
+            : [];
+
+          if (localVisits.length > 0) {
+            await supabase.from("visits").insert(
+              localVisits.map((v) => ({
+                id: v.id,
+                user_id: userId,
+                bar_id: v.barId,
+                date: v.date,
+                drinks: v.drinks,
+                note: v.note ?? null,
+              })),
+            );
+          }
+          if (localVisited.length > 0) {
+            await supabase.from("visited_bars").insert(
+              localVisited.map((barId) => ({ user_id: userId, bar_id: barId })),
+            );
+          }
+          if (localVisits.length > 0 || localVisited.length > 0) {
+            await AsyncStorage.multiRemove([
+              LEGACY_VISITS_KEY,
+              LEGACY_VISITED_KEY,
+            ]);
+          }
+
+          if (!active) return;
+          setVisits(localVisits);
+          setVisitedBars(localVisited);
         }
       } catch (e) {
-        console.warn("Failed to load state from storage", e);
+        console.warn("Failed to load visits from Supabase", e);
       } finally {
         if (active) setHydrated(true);
       }
     })();
+
     return () => {
       active = false;
     };
-  }, []);
+  }, [userId]);
 
-  // Persist on every change, but only after the initial load so we don't
-  // overwrite stored data with the empty initial state.
-  useEffect(() => {
-    if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(visits)).catch((e) =>
-      console.warn("Failed to save visits to storage", e),
-    );
-  }, [visits, hydrated]);
+  const logDrink = useCallback(
+    (barId: string, rawType: string, day?: string) => {
+      const type = rawType.trim();
+      if (!type) return;
+      const targetDay = day ?? dayKey();
+      if (isFutureDay(targetDay)) return;
 
-  useEffect(() => {
-    if (!hydrated) return;
-    AsyncStorage.setItem(VISITED_KEY, JSON.stringify(visitedBars)).catch((e) =>
-      console.warn("Failed to save visited bars to storage", e),
-    );
-  }, [visitedBars, hydrated]);
-
-  const logDrink = useCallback((barId: string, rawType: string, day?: string) => {
-    const type = rawType.trim();
-    if (!type) return;
-    const targetDay = day ?? dayKey();
-    if (isFutureDay(targetDay)) return;
-    setVisits((prev) => {
-      const idx = prev.findIndex(
+      const existing = visitsRef.current.find(
         (v) => v.barId === barId && dayKey(v.date) === targetDay,
       );
-      if (idx === -1) {
-        const visit: Visit = {
+
+      let newVisit: Visit;
+      if (!existing) {
+        newVisit = {
           id: makeId(),
           barId,
           date:
@@ -135,56 +209,130 @@ export function VisitsProvider({ children }: { children: ReactNode }) {
               : dayKeyToDate(targetDay).toISOString(),
           drinks: [{ type, count: 1 }],
         };
-        return [visit, ...prev];
+        setVisits((prev) => [newVisit, ...prev]);
+      } else {
+        const drinks = [...existing.drinks];
+        const di = drinks.findIndex(
+          (d) => d.type.toLowerCase() === type.toLowerCase(),
+        );
+        if (di === -1) drinks.push({ type, count: 1 });
+        else drinks[di] = { ...drinks[di], count: drinks[di].count + 1 };
+        newVisit = { ...existing, drinks };
+        setVisits((prev) =>
+          prev.map((v) => (v.id === existing.id ? newVisit : v)),
+        );
       }
-      const visit = prev[idx];
-      const drinks = [...visit.drinks];
-      const di = drinks.findIndex(
-        (d) => d.type.toLowerCase() === type.toLowerCase(),
-      );
-      if (di === -1) drinks.push({ type, count: 1 });
-      else drinks[di] = { ...drinks[di], count: drinks[di].count + 1 };
-      const updated = { ...visit, drinks };
-      const next = [...prev];
-      next[idx] = updated;
-      return next;
-    });
-  }, []);
 
-  const removeDrink = useCallback((barId: string, rawType: string, day?: string) => {
-    const type = rawType.trim();
-    if (!type) return;
-    const targetDay = day ?? dayKey();
-    setVisits((prev) => {
-      const idx = prev.findIndex(
+      supabase
+        .from("visits")
+        .upsert({
+          id: newVisit.id,
+          user_id: userId,
+          bar_id: newVisit.barId,
+          date: newVisit.date,
+          drinks: newVisit.drinks,
+          note: newVisit.note ?? null,
+        })
+        .then(({ error }) => {
+          if (error) console.warn("Failed to sync visit", error);
+        });
+    },
+    [userId],
+  );
+
+  const removeDrink = useCallback(
+    (barId: string, rawType: string, day?: string) => {
+      const type = rawType.trim();
+      if (!type) return;
+      const targetDay = day ?? dayKey();
+
+      const existing = visitsRef.current.find(
         (v) => v.barId === barId && dayKey(v.date) === targetDay,
       );
-      if (idx === -1) return prev;
-      const visit = prev[idx];
-      const di = visit.drinks.findIndex(
+      if (!existing) return;
+
+      const di = existing.drinks.findIndex(
         (d) => d.type.toLowerCase() === type.toLowerCase(),
       );
-      if (di === -1) return prev;
-      const drinks = [...visit.drinks];
+      if (di === -1) return;
+
+      const drinks = [...existing.drinks];
       const nextCount = drinks[di].count - 1;
       if (nextCount <= 0) drinks.splice(di, 1);
       else drinks[di] = { ...drinks[di], count: nextCount };
 
-      const next = [...prev];
       if (drinks.length === 0) {
-        // No drinks left — drop the visit entirely.
-        next.splice(idx, 1);
+        setVisits((prev) => prev.filter((v) => v.id !== existing.id));
+        supabase
+          .from("visits")
+          .delete()
+          .eq("id", existing.id)
+          .then(({ error }) => {
+            if (error) console.warn("Failed to delete visit", error);
+          });
       } else {
-        next[idx] = { ...visit, drinks };
+        const updated = { ...existing, drinks };
+        setVisits((prev) =>
+          prev.map((v) => (v.id === existing.id ? updated : v)),
+        );
+        supabase
+          .from("visits")
+          .upsert({
+            id: updated.id,
+            user_id: userId,
+            bar_id: updated.barId,
+            date: updated.date,
+            drinks: updated.drinks,
+            note: updated.note ?? null,
+          })
+          .then(({ error }) => {
+            if (error) console.warn("Failed to sync visit", error);
+          });
       }
-      return next;
-    });
-  }, []);
+    },
+    [userId],
+  );
 
   const getVisitFor = useCallback(
     (barId: string, day: string = dayKey()) =>
       visits.find((v) => v.barId === barId && dayKey(v.date) === day),
     [visits],
+  );
+
+  const setVisitNote = useCallback(
+    (barId: string, day: string, rawNote: string) => {
+      const note = rawNote.trim();
+      const existing = visitsRef.current.find(
+        (v) => v.barId === barId && dayKey(v.date) === day,
+      );
+      if (!existing) return;
+      if ((existing.note ?? "") === note) return;
+
+      let updated: Visit;
+      if (note) {
+        updated = { ...existing, note };
+      } else {
+        const { note: _removed, ...rest } = existing;
+        updated = rest;
+      }
+      setVisits((prev) =>
+        prev.map((v) => (v.id === existing.id ? updated : v)),
+      );
+      supabase
+        .from("visits")
+        .upsert({
+          id: updated.id,
+          user_id: userId,
+          bar_id: updated.barId,
+          date: updated.date,
+          drinks: updated.drinks,
+          note: updated.note ?? null,
+        })
+        .then(({ error }) => {
+          if (error) console.warn("Failed to sync visit note", error);
+        });
+    },
+    [userId],
   );
 
   const getVisitsForBar = useCallback(
@@ -197,40 +345,97 @@ export function VisitsProvider({ children }: { children: ReactNode }) {
     [visits],
   );
 
-  const clearVisit = useCallback((visitId: string) => {
-    setVisits((prev) => prev.filter((v) => v.id !== visitId));
-  }, []);
+  const clearVisit = useCallback(
+    (visitId: string) => {
+      setVisits((prev) => prev.filter((v) => v.id !== visitId));
+      supabase
+        .from("visits")
+        .delete()
+        .eq("id", visitId)
+        .then(({ error }) => {
+          if (error) console.warn("Failed to delete visit", error);
+        });
+    },
+    [],
+  );
 
-  const clearHistory = useCallback((includeVisited: boolean) => {
-    setVisits([]);
-    if (includeVisited) setVisitedBars([]);
-  }, []);
+  const clearHistory = useCallback(
+    (includeVisited: boolean) => {
+      setVisits([]);
+      supabase
+        .from("visits")
+        .delete()
+        .eq("user_id", userId)
+        .then(({ error }) => {
+          if (error) console.warn("Failed to clear visits", error);
+        });
+      if (includeVisited) {
+        setVisitedBars([]);
+        supabase
+          .from("visited_bars")
+          .delete()
+          .eq("user_id", userId)
+          .then(({ error }) => {
+            if (error) console.warn("Failed to clear visited bars", error);
+          });
+      }
+    },
+    [userId],
+  );
 
+  // Closes over state (not the refs) so its identity changes with the data —
+  // consumers memoize computeVisitedIds(isVisited) keyed on this function.
   const isVisited = useCallback(
     (barId: string) =>
       visitedBars.includes(barId) || visits.some((v) => v.barId === barId),
     [visitedBars, visits],
   );
 
-  const setVisited = useCallback((barId: string, visited: boolean) => {
-    if (visited) {
-      setVisitedBars((prev) =>
-        prev.includes(barId) ? prev : [...prev, barId],
-      );
-    } else {
-      // "Never been here": clear the manual mark and any logged drink-days.
-      setVisitedBars((prev) => prev.filter((id) => id !== barId));
-      setVisits((prev) => prev.filter((v) => v.barId !== barId));
-    }
-  }, []);
+  const setVisited = useCallback(
+    (barId: string, visited: boolean) => {
+      if (visited) {
+        setVisitedBars((prev) =>
+          prev.includes(barId) ? prev : [...prev, barId],
+        );
+        supabase
+          .from("visited_bars")
+          .upsert({ user_id: userId, bar_id: barId })
+          .then(({ error }) => {
+            if (error) console.warn("Failed to set visited", error);
+          });
+      } else {
+        setVisitedBars((prev) => prev.filter((id) => id !== barId));
+        setVisits((prev) => prev.filter((v) => v.barId !== barId));
+        supabase
+          .from("visited_bars")
+          .delete()
+          .eq("user_id", userId)
+          .eq("bar_id", barId)
+          .then(({ error }) => {
+            if (error) console.warn("Failed to unset visited", error);
+          });
+        supabase
+          .from("visits")
+          .delete()
+          .eq("user_id", userId)
+          .eq("bar_id", barId)
+          .then(({ error }) => {
+            if (error) console.warn("Failed to delete bar visits", error);
+          });
+      }
+    },
+    [userId],
+  );
 
   const value = useMemo<VisitsContextValue>(
     () => ({
       visits,
+      visitedBars,
       hydrated,
       logDrink,
       removeDrink,
       getVisitFor,
+      setVisitNote,
       getVisitsForBar,
       getVisitsForDay,
       clearVisit,
@@ -240,10 +445,12 @@ export function VisitsProvider({ children }: { children: ReactNode }) {
     }),
     [
       visits,
+      visitedBars,
       hydrated,
       logDrink,
       removeDrink,
       getVisitFor,
+      setVisitNote,
       getVisitsForBar,
       getVisitsForDay,
       clearVisit,

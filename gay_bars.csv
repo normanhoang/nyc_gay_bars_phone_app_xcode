@@ -1,73 +1,73 @@
-name,neighborhood,address
-Eagle NYC,Chelsea,"554 W 28th St, New York"
-The Monster,West Village,"80 Grove St, New York"
-Boxers NYC,Chelsea,"37 W 20th St, New York"
-The Stonewall Inn,West Village,"53 Christopher St, New York"
-The Cock,East Village,"93 2nd Ave, New York"
-Gym Sportsbar,Chelsea,"167 8th Ave, New York"
-Industry Bar,Hell's Kitchen,"355 West 52nd Street, New York"
-Club Cumming,East Village,"505 E 6th St, New York"
-Ty's Bar NYC,West Village,"114 Christopher St, New York"
-Henrietta Hudson,West Village,"438 Hudson St, New York"
-Ritz Bar and Lounge,Hell's Kitchen,"369 West 46th Street, New York"
-Nowhere Bar,East Village,"322 E 14th St, New York"
-Pieces,West Village,"8 Christopher St, New York"
-The Boiler Room,East Village,"45 2nd Ave, New York"
-Phoenix Bar,East Village,"447 E 13th St, New York"
-Cubbyhole,West Village,"281 W 12th St, New York"
-Marie's Crisis,West Village,"59 Grove St, New York"
-Julius',West Village,"159 W 10th St, New York"
-Rockbar NYC,West Village,"185 Christopher St, New York"
-9th Avenue Saloon,Hell's Kitchen,"656 9th Ave, New York"
-Flaming Saddles Saloon,Hell's Kitchen,"793 Ninth Avenue, New York"
-Friend's Tavern,Queens,"78-11 Roosevelt Ave, Jackson Heights"
-Metropolitan,Brooklyn,"559 Lorimer St, Brooklyn"
-Hardware,Hell's Kitchen,"697 10th Ave, New York"
-The Toolbox Bar,Upper East Side,"1742 2nd Ave., New York"
-HK Hall,Hell's Kitchen,"605 W 48th Street, New York"
-Suite,Upper West Side,"992 Amsterdam Ave, New York"
-Ginger's Bar,Brooklyn,"363 5th Ave, Brooklyn"
-Hombres Lounge,Queens,"85-28 37th Avenue, Jackson Heights"
-Atlas Social Club,Hell's Kitchen,"753 9th Ave, New York"
-Icon Bar,Queens,"31-84 33rd St, Astoria"
-G Lounge,Chelsea,"225 W 19th St, New York"
-Albatross Bar,Queens,"36-19 24th Ave, Astoria"
-Rise Bar,Hell's Kitchen,"859 9th Ave, New York"
-Uncle Charlie's Piano Lounge,Midtown East,"139 East 45th Street, New York"
-Branded Saloon,Brooklyn,"603 Vanderbilt Ave, Brooklyn"
-Good Judy,Brooklyn,"563 5th Avenue, Brooklyn"
-Alibi Lounge,Harlem,"2376 Clayton Powell Jr Blvd, New York"
-ANIMAL,Brooklyn,307 Meeker Ave
-Mary's,Lower East Side,"146 Orchard St, New York"
-So & So's Neighborhood Piano Bar,Hell's Kitchen,"302 W 52nd St, New York"
-The Red Stache,Hell's Kitchen,"401 W 52nd St, New York"
-Bar Nine,Hell's Kitchen,"807 9th Ave, New York"
-VV Bar & Kitchen,Hell's Kitchen,"325 W 51st St, New York"
-It's Him,Hell's Kitchen,"692 10th Ave, New York"
-DBL,Hell's Kitchen,"667 10th Ave, New York"
-Adonis Lounge,Hell's Kitchen,"500 W 48th St, New York"
-Upstairs Cocktail Bar,Queens,7122 Roosevelt Ave
-Red Eye NY,Hell's Kitchen,"355 W 41st St, New York"
-Balcon Salon,Hell's Kitchen,"674 9th Ave, New York"
-The Highwater,Queens,34-20 Broadway
-The Red Pavilion,Brooklyn,1241 Flushing Ave
-The Bush,Brooklyn,"333 Troutman St, Brooklyn"
-The Rosemont,Brooklyn,63 Montrose Ave
-Happyfun Hideaway,Brooklyn,1211 Myrtle Ave
-BASEMENT NY,Brooklyn,"52-19 Flushing Ave, Maspeth"
-FLEX,Hell's Kitchen,"405 W 51st St, New York"
-Diamond Dogs,Queens,34-04 31st Ave
-Kween,Queens,34-10 30th Ave.
-Viva La Heights,Queens,78-13 Roosevelt Ave
-The Dickens,Hell's Kitchen,"783 8th Ave, New York"
-Pink Metal,Brooklyn,"253 Bushwick Ave, Brooklyn"
-HUSH,Hell's Kitchen,"348 W 52nd St, New York"
-VERS,Hell's Kitchen,"714 9th Ave, New York"
-The Townhouse of New York,Midtown East,"236 E 58th St, New York"
-Lambda Lounge,Harlem,"2256 Adam Clayton Powell Jr Blvd, New York"
-C'mon Everybody,Brooklyn,"325 Franklin Ave, Brooklyn"
-3 Dollar Bill,Brooklyn,"260 Meserole St, Brooklyn"
-Playhouse,West Village,"100A 7th Ave S, New York"
-House of YES,Brooklyn,"2 Wyckoff Ave, Brooklyn"
-MB Bar Boutique (Closed Temporarily),Queens,"40-08 74th Street, Jackson Heights"
-The Duplex (Closed Temporarily),West Village,"61 Christopher St, New York"
+name,neighborhood,address,tags
+Eagle NYC,Chelsea,"554 W 28th St, New York",leather;dance
+The Monster,West Village,"80 Grove St, New York",piano;dance;drag
+Boxers NYC,Chelsea,"37 W 20th St, New York",sports
+The Stonewall Inn,West Village,"53 Christopher St, New York",historic;dance;drag
+The Cock,East Village,"93 2nd Ave, New York",dive;dance
+Gym Sportsbar,Chelsea,"167 8th Ave, New York",sports;dive
+Industry Bar,Hell's Kitchen,"355 West 52nd Street, New York",lounge;drag;dance
+Club Cumming,East Village,"505 E 6th St, New York",cabaret;drag;dive
+Ty's Bar NYC,West Village,"114 Christopher St, New York",dive;bear
+Henrietta Hudson,West Village,"438 Hudson St, New York",lesbian;dance
+Ritz Bar and Lounge,Hell's Kitchen,"369 West 46th Street, New York",dance;lounge
+Nowhere Bar,East Village,"322 E 14th St, New York",dive
+Pieces,West Village,"8 Christopher St, New York",drag;karaoke
+The Boiler Room,East Village,"45 2nd Ave, New York",dive
+Phoenix Bar,East Village,"447 E 13th St, New York",dive
+Cubbyhole,West Village,"281 W 12th St, New York",lesbian;dive
+Marie's Crisis,West Village,"59 Grove St, New York",piano;cabaret;historic
+Julius',West Village,"159 W 10th St, New York",historic;dive
+Rockbar NYC,West Village,"185 Christopher St, New York",dive;bear
+9th Avenue Saloon,Hell's Kitchen,"656 9th Ave, New York",dive;karaoke
+Flaming Saddles Saloon,Hell's Kitchen,"793 Ninth Avenue, New York",country;dance
+Friend's Tavern,Queens,"78-11 Roosevelt Ave, Jackson Heights",latin;dance
+Metropolitan,Brooklyn,"559 Lorimer St, Brooklyn",dive;dance
+Hardware,Hell's Kitchen,"697 10th Ave, New York",drag;lounge
+The Toolbox Bar,Upper East Side,"1742 2nd Ave., New York",dive
+HK Hall,Hell's Kitchen,"605 W 48th Street, New York",drag;cabaret
+Suite,Upper West Side,"992 Amsterdam Ave, New York",karaoke;drag
+Ginger's Bar,Brooklyn,"363 5th Ave, Brooklyn",lesbian;dive
+Hombres Lounge,Queens,"85-28 37th Avenue, Jackson Heights",latin;dance
+Atlas Social Club,Hell's Kitchen,"753 9th Ave, New York",sports;lounge
+Icon Bar,Queens,"31-84 33rd St, Astoria",drag;dance
+G Lounge,Chelsea,"225 W 19th St, New York",lounge;dance
+Albatross Bar,Queens,"36-19 24th Ave, Astoria",dive;drag;karaoke
+Rise Bar,Hell's Kitchen,"859 9th Ave, New York",lounge;drag
+Uncle Charlie's Piano Lounge,Midtown East,"139 East 45th Street, New York",piano;lounge
+Branded Saloon,Brooklyn,"603 Vanderbilt Ave, Brooklyn",country;dive
+Good Judy,Brooklyn,"563 5th Avenue, Brooklyn",drag;dance
+Alibi Lounge,Harlem,"2376 Clayton Powell Jr Blvd, New York",lounge;cocktails
+ANIMAL,Brooklyn,307 Meeker Ave,dive;dance
+Mary's,Lower East Side,"146 Orchard St, New York",cocktails;lounge
+So & So's Neighborhood Piano Bar,Hell's Kitchen,"302 W 52nd St, New York",piano;cabaret
+The Red Stache,Hell's Kitchen,"401 W 52nd St, New York",cocktails;lounge
+Bar Nine,Hell's Kitchen,"807 9th Ave, New York",lounge;cabaret
+VV Bar & Kitchen,Hell's Kitchen,"325 W 51st St, New York",cocktails;lounge
+It's Him,Hell's Kitchen,"692 10th Ave, New York",lounge
+DBL,Hell's Kitchen,"667 10th Ave, New York",dive
+Adonis Lounge,Hell's Kitchen,"500 W 48th St, New York",dance;lounge
+Upstairs Cocktail Bar,Queens,7122 Roosevelt Ave,cocktails;latin
+Red Eye NY,Hell's Kitchen,"355 W 41st St, New York",dance;drag
+Balcon Salon,Hell's Kitchen,"674 9th Ave, New York",cocktails;lounge
+The Highwater,Queens,34-20 Broadway,dive
+The Red Pavilion,Brooklyn,1241 Flushing Ave,cabaret;cocktails
+The Bush,Brooklyn,"333 Troutman St, Brooklyn",dive;dance
+The Rosemont,Brooklyn,63 Montrose Ave,dive;dance;drag
+Happyfun Hideaway,Brooklyn,1211 Myrtle Ave,dive;dance
+BASEMENT NY,Brooklyn,"52-19 Flushing Ave, Maspeth",dance
+FLEX,Hell's Kitchen,"405 W 51st St, New York",lounge;drag
+Diamond Dogs,Queens,34-04 31st Ave,cocktails;dive
+Kween,Queens,34-10 30th Ave.,drag;dance
+Viva La Heights,Queens,78-13 Roosevelt Ave,latin;drag
+The Dickens,Hell's Kitchen,"783 8th Ave, New York",lounge;cabaret
+Pink Metal,Brooklyn,"253 Bushwick Ave, Brooklyn",dive;dance
+HUSH,Hell's Kitchen,"348 W 52nd St, New York",dance;drag
+VERS,Hell's Kitchen,"714 9th Ave, New York",cocktails;lounge
+The Townhouse of New York,Midtown East,"236 E 58th St, New York",piano;lounge
+Lambda Lounge,Harlem,"2256 Adam Clayton Powell Jr Blvd, New York",lounge;dance
+C'mon Everybody,Brooklyn,"325 Franklin Ave, Brooklyn",dance;cabaret
+3 Dollar Bill,Brooklyn,"260 Meserole St, Brooklyn",dance;drag
+Playhouse,West Village,"100A 7th Ave S, New York",drag;dance
+House of YES,Brooklyn,"2 Wyckoff Ave, Brooklyn",dance;cabaret
+MB Bar Boutique (Closed Temporarily),Queens,"40-08 74th Street, Jackson Heights",latin;lounge
+The Duplex (Closed Temporarily),West Village,"61 Christopher St, New York",piano;cabaret

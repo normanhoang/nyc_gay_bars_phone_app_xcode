@@ -77,6 +77,12 @@ export default function VisitCard({ visit, onDelete }: Props) {
         ))}
       </View>
 
+      {visit.note ? (
+        <Text className="mb-2 text-sm italic text-gray-400">
+          “{visit.note}”
+        </Text>
+      ) : null}
+
       <Pressable
         onPress={confirmDelete}
         className="mt-1 flex-row items-center self-start active:opacity-60"

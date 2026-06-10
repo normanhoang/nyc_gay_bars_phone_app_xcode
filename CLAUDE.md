@@ -15,10 +15,11 @@ npm run android    # Start with Android emulator
 npm run web        # Start for browser
 ```
 
-There is no lint or test script configured. To verify changes:
+There is no lint script configured. To verify changes:
 
 ```bash
 npx tsc --noEmit                          # type-check (strict mode)
+npm test                                  # Jest (jest-expo) unit tests for lib/ (run one: npx jest stats)
 npx expo export --platform ios --output-dir /tmp/exp   # full bundle compile — catches Metro/Babel/resolution errors tsc can't
 ```
 
@@ -34,35 +35,40 @@ When adding new Expo/React Native packages, always use `npx expo install <packag
 
 ## What this app is
 
-A tracker for **NYC gay bars**: browse bars in a list or map view, log how many (and what kind of) drinks you've had at each bar, and review a history of past visits. The bar list is a curated static dataset (gaycities.com blocks scraping).
+A tracker for **NYC gay bars**: browse bars in a list or map view, log how many (and what kind of) drinks you've had at each bar (today or backdated to a past day), and review history, stats, and earned badges. The bar list is a curated static dataset — gaycities.com blocks scraping (Cloudflare), and open sources (OSM Overpass, Wikidata) were tested and cover only a fraction of the bars.
 
 ## Architecture
 
 ### Routing (`app/`)
-Expo Router maps files in `app/` to routes automatically. `_layout.tsx` at each level defines the navigator wrapping its siblings. The root layout (`app/_layout.tsx`) mounts `VisitsProvider` (inside `GestureHandlerRootView` + `SafeAreaProvider`) so all screens share state, imports `global.css`, then renders a `<Stack>`.
+Expo Router maps files in `app/` to routes automatically. The root layout (`app/_layout.tsx`) mounts `VisitsProvider` → `BadgesProvider` (inside `GestureHandlerRootView` + `SafeAreaProvider`), imports `global.css`, then renders a `<Stack>`.
 
-- `app/(tabs)/` is a bottom-tab group with two tabs: `index.tsx` (**Explore** — List/Map toggle) and `history.tsx` (**History**).
-- `app/bar/[id].tsx` is a stack screen presented as a **modal** for logging drinks at a single bar.
+- `app/(tabs)/` — bottom tabs, in order: `index.tsx` (**Explore** — List/Map toggle), `stats.tsx` (**Stats** — totals, stat cards, recent badges + all-badges Modal), `history.tsx` (**History** — month calendar; resets to today on tab focus).
+- `app/bar/[id].tsx` — **modal** stack screen for logging drinks at one bar. Accepts an optional `?day=<dayKey>` param to log against a past day instead of today.
+- `app/log/[day].tsx` — modal bar picker reached from History's "Add drinks for this day"; it `router.replace`s into `bar/[id]?day=` so closing the logger returns to History.
 
-New screens are created by adding files to `app/`. Nested layouts work by adding a subdirectory with its own `_layout.tsx`.
-
-### Data (`lib/`)
+### Data (`lib/` + generated files)
 - `lib/types.ts` — `Bar`, `Visit`, `DrinkEntry`.
-- `lib/bars.ts` — the curated `BARS` array (name, neighborhood, address, lat/lng), `NYC_REGION`, and `getBarById`.
+- `lib/bars.ts` (the `BARS` array, `NYC_REGION`, `NEIGHBORHOODS`, `getBarById`) and `lib/neighborhoods.ts` (outline polygons) are **generated — do not edit by hand**. Edit `gay_bars.csv`, then re-run `node scripts/geocode-bars.mjs` (build-time geocoding; the app needs no map API key or network at runtime) and `node scripts/build-neighborhoods.mjs` (fetches NYC Open Data boundaries, falls back to convex hulls of each neighborhood's bars).
 - `lib/drinks.ts` — `PRESET_DRINKS` and `drinkEmoji`.
+- `lib/geo.ts` — `distanceMiles`, proximity ordering for the filter chips, per-neighborhood bounding boxes, and `fullyVisibleNeighborhoods(region)` used by the map's zoom-out detection.
+- `lib/stats.ts` — pure functions over `visits` (totals, favorite bar, streaks computed from noon-stamped day timestamps) plus `badges()`, which returns exactly **30 badges**.
 
-### State (`lib/VisitsContext.tsx`)
-All app state lives in a single React Context (`VisitsProvider`). It holds `visits: Visit[]` in `useState`, **persisted to AsyncStorage** (`@gaybars/visits`) — hydrated on mount, saved on every change. The context exposes `logDrink`, `removeDrink`, `getTodayVisit`, `getVisitsForBar`, and `clearVisit`. A visit aggregates drinks per type for one calendar day; `logDrink`/`removeDrink` find-or-create today's visit for a bar. `getDrinkTotal(visit)` is exported separately.
+### State (two context providers)
+- `lib/VisitsContext.tsx` — `visits: Visit[]` plus a manual `visitedBars: string[]` "been here" flag list, persisted to AsyncStorage (`@gaybars/visits`, `@gaybars/visited`): hydrated on mount, saved on every change. A visit aggregates drinks per type for one **local calendar day** (`dayKey`). `logDrink`/`removeDrink`/`getVisitFor` take an optional `day` param (defaults to today); backdated visits are stamped **noon local time** so the stored ISO date round-trips `dayKey` across timezones, and future days are refused. Time-of-day badge logic (e.g. Night Owl) relies on this noon-stamping — only live logging can produce small-hours timestamps.
+- `lib/BadgesContext.tsx` — computes badges from visits and persists **first-earned timestamps** (`@gaybars/badgeDates`); newly earned badges get stamped, reverted ones (e.g. after Clear History) get un-stamped. The Stats screen shows the 4 most recently earned.
 
-Screens consume state via the `useVisits()` hook.
+Screens consume state via the `useVisits()` / `useBadges()` hooks.
+
+### Map behavior (`components/BarMap.tsx`) — non-obvious rules
+- Uses `react-native-maps`, which **works in Expo Go on SDK 54** with no native setup (Apple Maps on iOS, no API key). Do not switch to `expo-maps` — it requires a custom dev build and would break the Expo Go target. `MapView` needs explicit dimensions via `style`, not `className`.
+- `onRegionChangeComplete`'s `details.isGesture` is **Google Maps only** — always undefined on Apple Maps. User gestures are distinguished from the component's own `animateToRegion` calls by timestamp (`programmaticMoveAt`, 800ms window).
+- Zooming out far enough to fully contain 2+ neighborhoods **and** 1.2× past the last framed region (the slack matters: Brooklyn's framed region already fully contains three Manhattan neighborhoods) switches the filter to "All" **without moving the camera** (`suppressNextFrame`). The camera only re-frames when the user explicitly re-presses a chip, signalled by the `frameNonce` counter prop from the Explore screen.
+- `BarMap.web.tsx` is a list-based web stand-in (Metro picks it automatically on web); keep its `Props` type in sync with the native one.
 
 ### Styling
 NativeWind lets you use `className` on any React Native core component. The Tailwind config scans `app/**` and `components/**`. All Tailwind directives live in `global.css`, which is imported once in `app/_layout.tsx`.
 
 Do not use `StyleSheet.create` for new code — use `className` instead. Conditional classes must use fully-spelled-out class names in ternaries (not string concatenation), so NativeWind's static scanner can detect them.
-
-### Maps
-The map view uses `react-native-maps`, which **works in Expo Go on SDK 54** with no native setup (Apple Maps on iOS, no API key). Do not switch to `expo-maps` — it requires a custom dev build and would break the Expo Go target. `MapView` needs explicit dimensions via `style`, not `className`.
 
 ### Key config files
 - `babel.config.js` — sets `jsxImportSource: "nativewind"`, includes the `nativewind/babel` preset, and lists `react-native-worklets/plugin` **last** (reanimated v4 moved its babel plugin into `react-native-worklets`)

@@ -37,26 +37,60 @@ function cityHint(neighborhood) {
   return "New York";
 }
 
+// Split one CSV line into fields, honoring double-quoted fields with commas.
+function splitCsvLine(line) {
+  const fields = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') inQuotes = !inQuotes;
+    else if (ch === "," && !inQuotes) {
+      fields.push(cur);
+      cur = "";
+    } else cur += ch;
+  }
+  fields.push(cur);
+  return fields.map((f) => f.trim());
+}
+
 function parseCsv(text) {
   const rows = [];
   const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
   for (let i = 1; i < lines.length; i++) {
-    // name,neighborhood,address — address may be quoted and contain commas.
-    const line = lines[i];
-    const m = line.match(/^([^,]*),([^,]*),(.*)$/);
-    if (!m) continue;
-    let [, name, neighborhood, address] = m;
-    address = address.trim();
-    if (address.startsWith('"') && address.endsWith('"')) {
-      address = address.slice(1, -1);
-    }
+    // name,neighborhood,address,tags — address may be quoted; tags are
+    // semicolon-separated.
+    const [name, neighborhood, address, tags] = splitCsvLine(lines[i]);
+    if (!name) continue;
     rows.push({
-      name: name.trim(),
-      neighborhood: neighborhood.trim(),
-      address: address.trim(),
+      name,
+      neighborhood,
+      address: address ?? "",
+      tags: (tags ?? "")
+        .split(";")
+        .map((t) => t.trim())
+        .filter(Boolean),
     });
   }
   return rows;
+}
+
+// Coordinates already baked into lib/bars.ts, keyed by bar name — reused so
+// re-running this script (e.g. after a tags-only CSV change) needs no network.
+function loadCoordCache() {
+  const cache = new Map();
+  try {
+    const ts = readFileSync(join(ROOT, "lib", "bars.ts"), "utf8");
+    const m = ts.match(/export const BARS:\s*Bar\[\]\s*=\s*(\[[\s\S]*?\]);/);
+    if (m) {
+      for (const bar of JSON.parse(m[1])) {
+        cache.set(bar.name, { lat: bar.latitude, lon: bar.longitude });
+      }
+    }
+  } catch {
+    /* no existing file — geocode everything */
+  }
+  return cache;
 }
 
 function buildQuery(row) {
@@ -126,26 +160,32 @@ async function main() {
   const rows = parseCsv(csv);
   console.log(`Parsed ${rows.length} bars from gay_bars.csv`);
 
+  const coordCache = loadCoordCache();
   const used = new Set();
   const bars = [];
-  const tiers = { census: 0, nominatim: 0, centroid: 0 };
+  const tiers = { cached: 0, census: 0, nominatim: 0, centroid: 0 };
   const centroidNames = [];
 
   for (const row of rows) {
-    const query = buildQuery(row);
-    let coord = await geocodeCensus(query);
-    let tier = "census";
+    let coord = coordCache.get(row.name);
+    let tier = "cached";
 
     if (!coord) {
-      await sleep(1100); // be polite to Nominatim (≈1 req/sec)
-      coord = await geocodeNominatim(query);
-      tier = "nominatim";
-    }
-    if (!coord) {
-      const c = CENTROIDS[row.neighborhood] ?? CENTROIDS["Hell's Kitchen"];
-      coord = { lat: c[0], lon: c[1] };
-      tier = "centroid";
-      centroidNames.push(`${row.name} (${row.neighborhood})`);
+      const query = buildQuery(row);
+      coord = await geocodeCensus(query);
+      tier = "census";
+
+      if (!coord) {
+        await sleep(1100); // be polite to Nominatim (≈1 req/sec)
+        coord = await geocodeNominatim(query);
+        tier = "nominatim";
+      }
+      if (!coord) {
+        const c = CENTROIDS[row.neighborhood] ?? CENTROIDS["Hell's Kitchen"];
+        coord = { lat: c[0], lon: c[1] };
+        tier = "centroid";
+        centroidNames.push(`${row.name} (${row.neighborhood})`);
+      }
     }
 
     tiers[tier]++;
@@ -156,6 +196,7 @@ async function main() {
       address: row.address,
       latitude: Number(coord.lat.toFixed(6)),
       longitude: Number(coord.lon.toFixed(6)),
+      ...(row.tags.length ? { tags: row.tags } : {}),
     });
     console.log(
       `  [${tier.padEnd(9)}] ${row.name} → ${coord.lat.toFixed(5)}, ${coord.lon.toFixed(5)}`,
@@ -193,6 +234,7 @@ export function getBarById(id: string): Bar | undefined {
   writeFileSync(join(ROOT, "lib", "bars.ts"), fileBody);
 
   console.log("\n=== Summary ===");
+  console.log(`Cached:    ${tiers.cached}`);
   console.log(`Census:    ${tiers.census}`);
   console.log(`Nominatim: ${tiers.nominatim}`);
   console.log(`Centroid:  ${tiers.centroid}`);
