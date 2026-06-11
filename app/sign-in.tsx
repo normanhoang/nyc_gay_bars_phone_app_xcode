@@ -57,7 +57,7 @@ export default function SignInScreen() {
         // height fluctuates per keystroke (QuickType/autofill bar), and a
         // centered layout re-centers on every fluctuation — visible jiggle.
         contentContainerStyle={{
-          paddingTop: insets.top + 80,
+          paddingTop: insets.top + 40,
           paddingBottom: insets.bottom + 24,
           paddingHorizontal: 32,
         }}
@@ -65,7 +65,7 @@ export default function SignInScreen() {
       >
         <Image
           source={require("../assets/icon.png")}
-          className="mb-4 h-[88px] w-[88px] rounded-2xl"
+          className="mb-4 h-[224px] w-[224px] self-center rounded-[40px]"
           accessibilityLabel="NYC Gay Bars app icon"
         />
         <Text className="mb-1 text-3xl font-extrabold text-white">
