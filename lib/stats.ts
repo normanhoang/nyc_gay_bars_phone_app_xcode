@@ -117,6 +117,22 @@ export type Badge = {
   earned: boolean;
 };
 
+/**
+ * Prestige badges whose unlock warrants a confetti celebration — the hard,
+ * grind-y or completionist achievements rather than the easy early ones.
+ */
+export const MILESTONE_BADGE_IDS = new Set<string>([
+  "full-week",
+  "old-faithful",
+  "nifty-fifty",
+  "century-club",
+  "explorer",
+  "half-the-city",
+  "neighborhood-hero",
+  "grand-tour",
+  "conqueror",
+]);
+
 /** Coarse borough for a neighborhood: the dataset's only non-Manhattan
  * neighborhoods are Brooklyn and Queens. */
 function borough(neighborhood: string): string {

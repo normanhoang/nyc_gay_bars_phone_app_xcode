@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Alert, FlatList, Pressable, Text, View } from "react-native";
+import { Alert, FlatList, Text, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Glass from "../../components/Glass";
+import PressableScale from "../../components/PressableScale";
 import MonthCalendar from "../../components/MonthCalendar";
 import VisitCard from "../../components/VisitCard";
 import { supabase } from "../../lib/supabase";
@@ -16,7 +18,8 @@ import {
 } from "../../lib/VisitsContext";
 
 export default function HistoryScreen() {
-  const { visits, getVisitsForDay, clearVisit, clearHistory } = useVisits();
+  const { visits, getVisitsForDay, clearVisit, clearHistory, hydrated } =
+    useVisits();
   const [selectedDay, setSelectedDay] = useState<string>(dayKey());
   const listRef = useRef<FlatList>(null);
   const router = useRouter();
@@ -71,8 +74,12 @@ export default function HistoryScreen() {
   const isFutureDay =
     dayKeyToDate(selectedDay).getTime() > dayKeyToDate(dayKey()).getTime();
 
+  // Blank over the gradient until data loads, so the calendar/visits don't
+  // flash empty before they arrive from Supabase.
+  if (!hydrated) return <View className="flex-1" />;
+
   return (
-    <View className="flex-1">
+    <Animated.View entering={FadeIn.duration(350)} className="flex-1">
       <FlatList
         ref={listRef}
         data={dayVisits}
@@ -80,7 +87,8 @@ export default function HistoryScreen() {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: insets.top + 8,
-          paddingBottom: 16,
+          // Clear the floating tab bar pill.
+          paddingBottom: insets.bottom + 104,
         }}
         ListHeaderComponent={
           <View className="mb-4">
@@ -102,15 +110,18 @@ export default function HistoryScreen() {
               </Text>
             ) : null}
             {!isFutureDay ? (
-              <Pressable
+              <PressableScale
                 onPress={() => router.push(`/log/${selectedDay}`)}
-                className="mt-3 flex-row items-center justify-center rounded-2xl border border-primary/40 bg-primary/15 px-4 py-3 active:opacity-70"
+                className="mt-3 flex-row items-center justify-center rounded-2xl border border-primary/40 bg-primary/15 px-4 py-3"
               >
                 <Ionicons name="add-circle-outline" size={18} color="#e0218a" />
-                <Text className="ml-2 text-base font-semibold text-primary">
+                <Text
+                  numberOfLines={1}
+                  className="ml-2 text-base font-semibold text-primary"
+                >
                   Add drinks for this day
                 </Text>
-              </Pressable>
+              </PressableScale>
             ) : null}
           </View>
         }
@@ -125,30 +136,33 @@ export default function HistoryScreen() {
         ListFooterComponent={
           <View className="mt-6">
             {visits.length > 0 ? (
-              <Pressable
+              <PressableScale
                 onPress={confirmClear}
-                className="mb-3 flex-row items-center justify-center rounded-2xl border border-red-500/40 bg-red-500/15 px-4 py-3 active:opacity-70"
+                className="mb-3 flex-row items-center justify-center rounded-2xl border border-red-500/40 bg-red-500/15 px-4 py-3"
               >
                 <Ionicons name="trash-outline" size={18} color="#ef4444" />
-                <Text className="ml-2 text-base font-semibold text-red-500">
+                <Text
+                  numberOfLines={1}
+                  className="ml-2 text-base font-semibold text-red-500"
+                >
                   Clear History
                 </Text>
-              </Pressable>
+              </PressableScale>
             ) : null}
-            <Pressable onPress={confirmSignOut} className="active:opacity-70">
+            <PressableScale onPress={confirmSignOut}>
               <Glass radius={16} bordered className="flex-row items-center justify-center px-4 py-3">
                 <Ionicons name="log-out-outline" size={18} color="#9ca3af" />
                 <Text className="ml-2 text-base font-semibold text-gray-300">
                   Sign Out
                 </Text>
               </Glass>
-            </Pressable>
+            </PressableScale>
           </View>
         }
         renderItem={({ item }) => (
           <VisitCard visit={item} onDelete={() => clearVisit(item.id)} />
         )}
       />
-    </View>
+    </Animated.View>
   );
 }

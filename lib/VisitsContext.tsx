@@ -38,8 +38,12 @@ type VisitsContextValue = {
   clearHistory: (includeVisited: boolean) => void;
   /** All-time "I've been here" flag (true if marked or any drink logged). */
   isVisited: (barId: string) => boolean;
-  /** Toggle the visited flag. Setting false also clears the bar's drink-days. */
-  setVisited: (barId: string, visited: boolean) => void;
+  /**
+   * Toggle the visited flag. Setting true also records a zero-drink "check-in"
+   * visit for `day` (default today) so the bar shows on that day's calendar
+   * even with no drinks. Setting false clears the bar's drink-days.
+   */
+  setVisited: (barId: string, visited: boolean, day?: string) => void;
 };
 
 const VisitsContext = createContext<VisitsContextValue | undefined>(undefined);
@@ -392,7 +396,7 @@ export function VisitsProvider({
   );
 
   const setVisited = useCallback(
-    (barId: string, visited: boolean) => {
+    (barId: string, visited: boolean, day?: string) => {
       if (visited) {
         setVisitedBars((prev) =>
           prev.includes(barId) ? prev : [...prev, barId],
@@ -403,6 +407,37 @@ export function VisitsProvider({
           .then(({ error }) => {
             if (error) console.warn("Failed to set visited", error);
           });
+
+        // Record a zero-drink check-in so the day shows on the calendar.
+        const targetDay = day ?? dayKey();
+        const existing = visitsRef.current.find(
+          (v) => v.barId === barId && dayKey(v.date) === targetDay,
+        );
+        if (!existing && !isFutureDay(targetDay)) {
+          const checkIn: Visit = {
+            id: makeId(),
+            barId,
+            date:
+              targetDay === dayKey()
+                ? new Date().toISOString()
+                : dayKeyToDate(targetDay).toISOString(),
+            drinks: [],
+          };
+          setVisits((prev) => [checkIn, ...prev]);
+          supabase
+            .from("visits")
+            .upsert({
+              id: checkIn.id,
+              user_id: userId,
+              bar_id: barId,
+              date: checkIn.date,
+              drinks: [],
+              note: null,
+            })
+            .then(({ error }) => {
+              if (error) console.warn("Failed to record check-in", error);
+            });
+        }
       } else {
         setVisitedBars((prev) => prev.filter((id) => id !== barId));
         setVisits((prev) => prev.filter((v) => v.barId !== barId));

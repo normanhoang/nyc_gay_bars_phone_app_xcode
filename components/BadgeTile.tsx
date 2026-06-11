@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 import type { BadgeWithDate } from "../lib/BadgesContext";
+import { MILESTONE_BADGE_IDS } from "../lib/stats";
 
 type Props = {
   badge: BadgeWithDate;
@@ -19,16 +20,22 @@ function formatEarnedAt(iso: string): string {
 /**
  * A badge tile — an award medallion on a soft gradient wash, deliberately
  * not a Glass surface or bordered (those read as buttons). Earned tiles get
- * a magenta→violet glow and an emoji medallion; unearned ones stay muted
- * with dimmed content.
+ * a magenta→violet glow; unearned ones stay muted with dimmed content.
+ * Prestige milestones ([[MILESTONE_BADGE_IDS]]) carry a gold outline (dimmer
+ * while still locked) to mark them as the special ones to chase.
  */
 export default function BadgeTile({ badge, showDate = false }: Props) {
+  const milestone = MILESTONE_BADGE_IDS.has(badge.id);
   return (
     <View
       className={
-        badge.earned
-          ? "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl px-3 py-5"
-          : "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl bg-white/[0.04] px-3 py-5"
+        milestone
+          ? badge.earned
+            ? "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl border-2 border-[#e3b34199] px-3 py-5"
+            : "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl border-2 border-[#e3b3414d] bg-white/[0.04] px-3 py-5"
+          : badge.earned
+            ? "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl px-3 py-5"
+            : "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl bg-white/[0.04] px-3 py-5"
       }
     >
       {badge.earned ? (

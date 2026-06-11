@@ -1,11 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  type ComponentRef,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AppBackground from "../../components/AppBackground";
 import BadgeTile from "../../components/BadgeTile";
 import Glass from "../../components/Glass";
+import PressableScale from "../../components/PressableScale";
+import ProgressBar from "../../components/ProgressBar";
 import { useBadges } from "../../lib/BadgesContext";
 import { drinkEmoji } from "../../lib/drinks";
 import {
@@ -14,12 +23,22 @@ import {
   distinctBarsVisited,
   favoriteBar,
   longestDayStreak,
+  MILESTONE_BADGE_IDS,
   neighborhoodProgress,
   topDrinkType,
   totalDrinkDays,
   totalDrinks,
 } from "../../lib/stats";
 import { formatDayKey, useVisits } from "../../lib/VisitsContext";
+
+// Sink milestones to the end of a group (earned or unearned) so the
+// gold-outlined prestige tiles read as a finale instead of interleaving.
+function milestonesLast<T extends { id: string }>(list: T[]): T[] {
+  return [
+    ...list.filter((b) => !MILESTONE_BADGE_IDS.has(b.id)),
+    ...list.filter((b) => MILESTONE_BADGE_IDS.has(b.id)),
+  ];
+}
 
 function StatCard({
   label,
@@ -44,10 +63,10 @@ function StatCard({
 }
 
 export default function StatsScreen() {
-  const { visits, isVisited } = useVisits();
+  const { visits, isVisited, hydrated } = useVisits();
   const { badges: badgeList } = useBadges();
   const [showAllBadges, setShowAllBadges] = useState(false);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ComponentRef<typeof Animated.ScrollView>>(null);
   const insets = useSafeAreaInsets();
 
   // Opening the tab always shows the top of the page.
@@ -87,26 +106,44 @@ export default function StatsScreen() {
     () => badgeList.filter((b) => !b.earned),
     [badgeList],
   );
+  // All-badges modal order: earned then unearned, milestones last within each.
+  const earnedOrdered = useMemo(
+    () => milestonesLast(earnedBadges),
+    [earnedBadges],
+  );
+  const unearnedOrdered = useMemo(
+    () => milestonesLast(unearnedBadges),
+    [unearnedBadges],
+  );
+
+  // Blank over the gradient until data loads, so the empty state doesn't
+  // flash before the user's visits arrive from Supabase.
+  if (!hydrated) return <View className="flex-1" />;
 
   if (visits.length === 0 && visitedIds.size === 0) {
     return (
-      <View className="flex-1 items-center justify-center px-8">
+      <Animated.View
+        entering={FadeIn.duration(350)}
+        className="flex-1 items-center justify-center px-8"
+      >
         <Text className="text-4xl">📊</Text>
         <Text className="mt-3 text-center text-base text-gray-400">
           Log your first drink to start earning stats and badges.
         </Text>
-      </View>
+      </Animated.View>
     );
   }
 
   return (
-    <ScrollView
+    <Animated.ScrollView
+      entering={FadeIn.duration(350)}
       ref={scrollRef}
       className="flex-1"
       contentContainerStyle={{
         paddingHorizontal: 16,
         paddingTop: insets.top + 8,
-        paddingBottom: 40,
+        // Clear the floating tab bar pill.
+        paddingBottom: insets.bottom + 104,
       }}
     >
       <Text className="mb-4 text-3xl font-extrabold text-white">Stats</Text>
@@ -166,40 +203,47 @@ export default function StatsScreen() {
       <Text className="mb-2 mt-3 text-base font-bold text-white">
         Neighborhoods
       </Text>
-      <View className="rounded-3xl bg-white/[0.05] px-4 py-2">
-        {progress.map((p) => (
-          <View
-            key={p.neighborhood}
-            className="flex-row items-center justify-between py-2"
-          >
-            <Text className="flex-1 pr-3 text-sm text-white">
-              {p.neighborhood}
-            </Text>
-            <Text
-              className={
-                p.visited === p.total
-                  ? "text-sm font-bold text-primary"
-                  : "text-sm font-semibold text-gray-400"
-              }
-            >
-              {p.visited} / {p.total}
-            </Text>
-          </View>
-        ))}
+      <View className="rounded-3xl bg-white/[0.05] px-4 py-3">
+        {progress.map((p, i) => {
+          const complete = p.visited === p.total;
+          return (
+            <View key={p.neighborhood} className="py-2">
+              <View className="mb-1.5 flex-row items-center justify-between">
+                <Text className="flex-1 pr-3 text-sm text-white">
+                  {p.neighborhood}
+                  {complete ? " 👑" : ""}
+                </Text>
+                <Text
+                  className={
+                    complete
+                      ? "text-xs font-bold text-primary"
+                      : "text-xs font-semibold text-gray-400"
+                  }
+                >
+                  {p.visited} / {p.total}
+                </Text>
+              </View>
+              <ProgressBar progress={p.visited / p.total} delay={i * 60} />
+            </View>
+          );
+        })}
       </View>
 
       <View className="mb-2 mt-5 flex-row items-center justify-between">
         <Text className="text-base font-bold text-white">Recent badges</Text>
-        <Pressable
+        <PressableScale
           onPress={() => setShowAllBadges(true)}
           hitSlop={8}
-          className="flex-row items-center active:opacity-60"
+          className="flex-row items-center"
         >
-          <Text className="text-sm font-semibold text-primary">
+          <Text
+            numberOfLines={1}
+            className="text-sm font-semibold text-primary"
+          >
             All badges ({earnedBadges.length}/{badgeList.length})
           </Text>
           <Ionicons name="chevron-forward" size={14} color="#e0218a" />
-        </Pressable>
+        </PressableScale>
       </View>
       {recentBadges.length > 0 ? (
         <View className="flex-row flex-wrap justify-between">
@@ -240,16 +284,16 @@ export default function StatsScreen() {
           </View>
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             <View className="flex-row flex-wrap justify-between">
-              {earnedBadges.map((b) => (
+              {earnedOrdered.map((b) => (
                 <BadgeTile key={b.id} badge={b} showDate />
               ))}
-              {unearnedBadges.map((b) => (
+              {unearnedOrdered.map((b) => (
                 <BadgeTile key={b.id} badge={b} />
               ))}
             </View>
           </ScrollView>
         </View>
       </Modal>
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }

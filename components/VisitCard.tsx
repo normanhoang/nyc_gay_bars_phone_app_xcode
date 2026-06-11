@@ -27,9 +27,13 @@ export default function VisitCard({ visit, onDelete }: Props) {
   const confirmDelete = () => {
     Alert.alert(
       "Delete this entry?",
-      `This will remove ${total} ${total === 1 ? "drink" : "drinks"} logged at ${
-        bar?.name ?? "this bar"
-      } on ${formatDate(visit.date)}.`,
+      total === 0
+        ? `This will remove your check-in at ${
+            bar?.name ?? "this bar"
+          } on ${formatDate(visit.date)}.`
+        : `This will remove ${total} ${
+            total === 1 ? "drink" : "drinks"
+          } logged at ${bar?.name ?? "this bar"} on ${formatDate(visit.date)}.`,
       [
         { text: "Cancel", style: "cancel" },
         { text: "Delete", style: "destructive", onPress: onDelete },
@@ -63,18 +67,26 @@ export default function VisitCard({ visit, onDelete }: Props) {
       </View>
 
       <View className="mt-3 flex-row flex-wrap">
-        {visit.drinks.map((d) => (
-          <View
-            key={d.type}
-            className="mb-2 mr-2 flex-row items-center rounded-full border border-white/10 bg-white/[0.08] px-3 py-1"
-          >
-            <Text className="mr-1 text-sm">{drinkEmoji(d.type)}</Text>
-            <Text className="text-sm text-white">{d.type}</Text>
-            <Text className="ml-1.5 text-sm font-bold text-primary">
-              ×{d.count}
+        {visit.drinks.length > 0 ? (
+          visit.drinks.map((d) => (
+            <View
+              key={d.type}
+              className="mb-2 mr-2 flex-row items-center rounded-full border border-white/10 bg-white/[0.08] px-3 py-1"
+            >
+              <Text className="mr-1 text-sm">{drinkEmoji(d.type)}</Text>
+              <Text className="text-sm text-white">{d.type}</Text>
+              <Text className="ml-1.5 text-sm font-bold text-primary">
+                ×{d.count}
+              </Text>
+            </View>
+          ))
+        ) : (
+          <View className="mb-2 rounded-full bg-white/[0.06] px-3 py-1">
+            <Text className="text-sm text-gray-400">
+              Checked in · no drinks
             </Text>
           </View>
-        ))}
+        )}
       </View>
 
       {visit.note ? (

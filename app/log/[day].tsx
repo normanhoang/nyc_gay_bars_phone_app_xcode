@@ -1,9 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { FlatList, Pressable, Text, TextInput, View } from "react-native";
+import {
+  FlatList,
+  Keyboard,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import Animated, { SlideInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AppBackground from "../../components/AppBackground";
+import BarDetailSheet from "../../components/BarDetailSheet";
 import BarListItem from "../../components/BarListItem";
 import Glass from "../../components/Glass";
 import { BARS } from "../../lib/bars";
@@ -20,6 +30,7 @@ export default function LogDayScreen() {
   const insets = useSafeAreaInsets();
   const { getVisitFor, isVisited } = useVisits();
   const [query, setQuery] = useState("");
+  const [pickedBarId, setPickedBarId] = useState<string | null>(null);
 
   const targetDay = day ?? dayKey();
 
@@ -34,8 +45,13 @@ export default function LogDayScreen() {
     ).sort((a, b) => a.name.localeCompare(b.name));
   }, [query]);
 
-  // Swap the picker for the drink logger so closing it returns to History.
-  const pickBar = (id: string) => router.replace(`/bar/${id}?day=${targetDay}`);
+  // Picking a bar doesn't navigate — the logger slides in over the picker
+  // inside this same modal. One modal means swiping down (or the X) always
+  // lands straight on History, with no stale picker left in the stack.
+  const pickBar = (id: string) => {
+    Keyboard.dismiss();
+    setPickedBarId(id);
+  };
 
   return (
     <View className="flex-1 bg-ink">
@@ -111,6 +127,19 @@ export default function LogDayScreen() {
           );
         }}
       />
+
+      {pickedBarId ? (
+        <Animated.View
+          entering={SlideInDown.duration(320)}
+          style={StyleSheet.absoluteFill}
+        >
+          <BarDetailSheet
+            barId={pickedBarId}
+            day={targetDay}
+            onClose={() => router.back()}
+          />
+        </Animated.View>
+      ) : null}
     </View>
   );
 }

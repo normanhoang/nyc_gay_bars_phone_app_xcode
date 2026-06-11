@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Text, View } from "react-native";
 import MapView, { Marker, Polygon, type Region } from "react-native-maps";
 import { NYC_REGION } from "../lib/bars";
 import { fullyVisibleNeighborhoods } from "../lib/geo";
@@ -56,6 +57,41 @@ function regionForBars(bars: Bar[]): Region {
 }
 
 const NEIGHBORHOOD_ENTRIES = Object.entries(NEIGHBORHOOD_POLYGONS);
+
+/**
+ * A custom glass cocktail marker. Visited bars get a pink-tinted ring, the
+ * rest a dark frosted chip. `tracksViewChanges` is held on only briefly so
+ * the emoji renders, then frozen — otherwise every marker re-rasterises on
+ * each frame, which is costly with dozens of pins.
+ */
+function BarPin({ bar, visited, onSelect }: { bar: Bar; visited: boolean; onSelect: (id: string) => void }) {
+  const [tracks, setTracks] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setTracks(false), 600);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <Marker
+      coordinate={{ latitude: bar.latitude, longitude: bar.longitude }}
+      title={bar.name}
+      description={`${bar.neighborhood} • Tap for details`}
+      onCalloutPress={() => onSelect(bar.id)}
+      tracksViewChanges={tracks}
+      anchor={{ x: 0.5, y: 0.5 }}
+    >
+      <View
+        className={
+          visited
+            ? "h-9 w-9 items-center justify-center rounded-full border-2 border-primary bg-primary/40"
+            : "h-9 w-9 items-center justify-center rounded-full border-2 border-white/50 bg-ink/80"
+        }
+      >
+        <Text style={{ fontSize: 16 }}>🍸</Text>
+      </View>
+    </Marker>
+  );
+}
 
 export default function BarMap({
   bars,
@@ -126,13 +162,11 @@ export default function BarMap({
             />
           ))
         : bars.map((bar) => (
-            <Marker
+            <BarPin
               key={bar.id}
-              coordinate={{ latitude: bar.latitude, longitude: bar.longitude }}
-              title={bar.name}
-              description={`${bar.neighborhood} • Tap for details`}
-              pinColor={visitedIds.has(bar.id) ? "#22c55e" : "#ff4d4f"}
-              onCalloutPress={() => onSelectBar(bar.id)}
+              bar={bar}
+              visited={visitedIds.has(bar.id)}
+              onSelect={onSelectBar}
             />
           ))}
     </MapView>

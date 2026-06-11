@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   InputAccessoryView,
@@ -18,6 +18,7 @@ import BarMap from "../../components/BarMap";
 import FilterChips from "../../components/FilterChips";
 import Glass from "../../components/Glass";
 import SegmentedToggle from "../../components/SegmentedToggle";
+import { useSetTabSwipeEnabled } from "../../components/TabSwipeContext";
 import { BARS, NEIGHBORHOODS } from "../../lib/bars";
 import { distanceMiles, neighborhoodsByProximity } from "../../lib/geo";
 import { computeVisitedIds } from "../../lib/stats";
@@ -57,6 +58,16 @@ export default function ExploreScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { getVisitFor, isVisited } = useVisits();
+  const setTabSwipeEnabled = useSetTabSwipeEnabled();
+
+  // Disable tab paging while the map is showing so the pager doesn't steal the
+  // map's horizontal pan; re-enable on list view and whenever Explore blurs.
+  useFocusEffect(
+    useCallback(() => {
+      setTabSwipeEnabled(mode === "list");
+      return () => setTabSwipeEnabled(true);
+    }, [mode, setTabSwipeEnabled]),
+  );
 
   const openBar = (id: string) => router.push(`/bar/${id}`);
 
@@ -276,7 +287,8 @@ export default function ExploreScreen() {
           keyboardDismissMode="on-drag"
           contentContainerStyle={{
             paddingHorizontal: 16,
-            paddingBottom: insets.bottom + 16,
+            // Clear the floating tab bar pill so the last row scrolls above it.
+            paddingBottom: insets.bottom + 104,
             flexGrow: 1,
           }}
           ListEmptyComponent={

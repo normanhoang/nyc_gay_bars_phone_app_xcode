@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import Glass from "./Glass";
+import PressableScale from "./PressableScale";
 import type { Bar } from "../lib/types";
 
 type Props = {
@@ -26,7 +27,7 @@ export default function BarListItem({
   onPress,
 }: Props) {
   return (
-    <Pressable onPress={onPress} className="mb-3 active:opacity-80">
+    <PressableScale onPress={onPress} className="mb-3">
       <Glass
         radius={24}
         bordered={visited}
@@ -80,6 +81,6 @@ export default function BarListItem({
 
         <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
       </Glass>
-    </Pressable>
+    </PressableScale>
   );
 }
