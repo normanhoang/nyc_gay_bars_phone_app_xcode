@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBadges } from "../lib/BadgesContext";
+import Glass from "./Glass";
 
 /**
  * Top-of-screen banner announcing freshly earned badges, one at a time.
@@ -23,15 +24,17 @@ export default function BadgeToast() {
       <Pressable
         onPress={dismissUnlocked}
         accessibilityRole="alert"
-        className="flex-row items-center rounded-2xl border border-primary/40 bg-ink-card px-4 py-3 shadow-lg active:opacity-80"
+        className="active:opacity-80"
       >
-        <Text className="mr-3 text-2xl">{badge.emoji}</Text>
-        <View className="shrink">
-          <Text className="text-xs uppercase tracking-wide text-gray-400">
-            Badge unlocked
-          </Text>
-          <Text className="text-base font-bold text-white">{badge.title}</Text>
-        </View>
+        <Glass className="flex-row items-center rounded-3xl border border-primary/50 px-4 py-3 shadow-lg">
+          <Text className="mr-3 text-2xl">{badge.emoji}</Text>
+          <View className="shrink">
+            <Text className="text-xs uppercase tracking-wide text-gray-300">
+              Badge unlocked
+            </Text>
+            <Text className="text-base font-bold text-white">{badge.title}</Text>
+          </View>
+        </Glass>
       </Pressable>
     </View>
   );

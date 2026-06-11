@@ -70,6 +70,12 @@ NativeWind lets you use `className` on any React Native core component. The Tail
 
 Do not use `StyleSheet.create` for new code — use `className` instead. Conditional classes must use fully-spelled-out class names in ternaries (not string concatenation), so NativeWind's static scanner can detect them.
 
+### Liquid Glass surfaces — non-obvious rules
+The app uses an Apple "Liquid Glass" look. `components/Glass.tsx` is the one surface primitive: on **iOS 26+** it renders the native `GlassView` (`expo-glass-effect`); everywhere else it falls back to a frosted `BlurView` (`expo-blur`) with a hairline white border + faint white fill. Both ship in Expo Go on SDK 54. Use `<Glass className="rounded-3xl p-4">…</Glass>` for cards/panels instead of `bg-ink-card`.
+- **Never put an `opacity-*` utility on a `Glass` element or any ancestor** — native `GlassView` errors on sub-1 opacity. To dim or tint, use a translucent `bg-white/[0.06]` / `bg-black/40` fill or an absolutely-positioned overlay child (see `BadgeTile`, `BarListItem`).
+- Glass needs colour behind it to refract. `components/AppBackground.tsx` (an `expo-linear-gradient` wash) is rendered behind every screen — the `(tabs)` layout provides it for all three tabs (scenes are `transparent`); modal/root screens (`bar/[id]`, `log/[day]`, `sign-in`, the badges Modal) each render their own `<AppBackground />`. Tab screens own their top safe-area padding (`insets.top`) since the native headers are hidden.
+- For many small repeated elements (filter chips, tag pills) use a cheap translucent `bg-white/[0.08] border border-white/10` instead of a real `Glass`/blur per item, to avoid mounting dozens of blur views.
+
 ### Key config files
 - `babel.config.js` — sets `jsxImportSource: "nativewind"`, includes the `nativewind/babel` preset, and lists `react-native-worklets/plugin` **last** (reanimated v4 moved its babel plugin into `react-native-worklets`)
 - `metro.config.js` — wraps default Expo config with `withNativeWind`, pointing at `global.css`

@@ -4,6 +4,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { drinkEmoji, PRESET_DRINKS } from "../lib/drinks";
 import { lightTap } from "../lib/haptics";
 import type { Visit } from "../lib/types";
+import Glass from "./Glass";
 
 type Props = {
   visit?: Visit;
@@ -31,7 +32,7 @@ function DrinkRow({
   onRemove: () => void;
 }) {
   return (
-    <View className="mb-3 flex-row items-center justify-between rounded-2xl bg-ink-card px-4 py-3">
+    <Glass className="mb-3 flex-row items-center justify-between rounded-2xl px-4 py-3">
       <View className="flex-1 flex-row items-center">
         <Text className="mr-3 text-2xl">{drinkEmoji(type)}</Text>
         <Text className="text-base font-medium text-white">{type}</Text>
@@ -48,8 +49,8 @@ function DrinkRow({
           accessibilityLabel={`Remove ${type}`}
           className={
             count === 0
-              ? "h-9 w-9 items-center justify-center rounded-full bg-ink-soft opacity-40"
-              : "h-9 w-9 items-center justify-center rounded-full bg-ink-soft active:opacity-70"
+              ? "h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] opacity-40"
+              : "h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.12] active:opacity-70"
           }
         >
           <Ionicons name="remove" size={20} color="#ffffff" />
@@ -71,7 +72,7 @@ function DrinkRow({
           <Ionicons name="add" size={20} color="#ffffff" />
         </Pressable>
       </View>
-    </View>
+    </Glass>
   );
 }
 
@@ -116,7 +117,7 @@ export default function DrinkLogger({ visit, onLog, onRemove }: Props) {
         />
       ))}
 
-      <View className="flex-row items-center rounded-2xl bg-ink-card px-4 py-3">
+      <Glass className="flex-row items-center rounded-2xl px-4 py-3">
         <TextInput
           value={custom}
           onChangeText={setCustom}
@@ -133,7 +134,7 @@ export default function DrinkLogger({ visit, onLog, onRemove }: Props) {
           <Ionicons name="add" size={16} color="#ffffff" />
           <Text className="ml-1 text-sm font-semibold text-white">Add</Text>
         </Pressable>
-      </View>
+      </Glass>
     </View>
   );
 }

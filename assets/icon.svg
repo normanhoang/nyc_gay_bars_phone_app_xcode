@@ -1,16 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <!-- NYC Gay Bar Tracker app icon: a martini glass holding the progress
-       pride flag (vertical stripes, upward chevron), garnished with an
-       Empire State Building cocktail pick. -->
-  <rect width="1024" height="1024" fill="#0b0b12"/>
-
-  <!-- progress-pride drink. The clip is the same triangle as the glass
-       outline's centerline, so the stroke overlaps the fill — no gaps. -->
+  <!-- NYC Gay Bar Tracker app icon, Liquid Glass styling: a glossy martini
+       glass holding the progress-pride flag, lit from the upper-left, over a
+       vibrant magenta→indigo glass gradient with a soft glow. -->
   <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a0f3a"/>
+      <stop offset="0.5" stop-color="#16101e"/>
+      <stop offset="1" stop-color="#0b0b12"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.4" r="0.55">
+      <stop offset="0" stop-color="#e0218a" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#e0218a" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Diagonal sheen laid over the drink to read as glass. -->
+    <linearGradient id="gloss" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="0.42" stop-color="#ffffff" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Light-catching glass edge: bright at the top, cooler below. -->
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#cbb6da"/>
+    </linearGradient>
     <clipPath id="bowl">
       <polygon points="272,320 752,320 512,620"/>
     </clipPath>
   </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+
   <g clip-path="url(#bowl)">
     <!-- vertical rainbow stripes, red at the left -->
     <rect x="272" y="308" width="80" height="320" fill="#e40303"/>
@@ -19,17 +39,19 @@
     <rect x="512" y="308" width="80" height="320" fill="#008026"/>
     <rect x="592" y="308" width="80" height="320" fill="#24408e"/>
     <rect x="672" y="308" width="80" height="320" fill="#732982"/>
-    <!-- progress chevron pointing up: black outermost on top, then brown,
-         light blue, pink, white innermost at the bowl's tip -->
+    <!-- progress chevron pointing up -->
     <polygon points="512,390 290,545 290,700 734,700 734,545" fill="#000000"/>
     <polygon points="512,430 290,585 290,700 734,700 734,585" fill="#784f17"/>
     <polygon points="512,470 290,625 290,700 734,700 734,625" fill="#5bcefa"/>
     <polygon points="512,510 290,665 290,700 734,700 734,665" fill="#f5a9b8"/>
     <polygon points="512,550 290,705 290,740 734,740 734,705" fill="#ffffff"/>
+    <!-- glass sheen + a bright specular streak across the upper-left -->
+    <rect x="272" y="308" width="480" height="320" fill="url(#gloss)"/>
+    <polygon points="318,320 388,320 300,560 250,520" fill="#ffffff" opacity="0.35"/>
   </g>
 
   <!-- Empire State Building cocktail pick -->
-  <g transform="translate(610,470) rotate(18)" fill="#e0218a">
+  <g transform="translate(610,470) rotate(18)" fill="#ff58ad">
     <rect x="-3"  y="-130" width="6"  height="130"/>
     <rect x="-27" y="-180" width="54" height="60"/>
     <rect x="-19" y="-240" width="38" height="60"/>
@@ -38,12 +60,15 @@
     <rect x="-3"  y="-370" width="6"  height="55"/>
   </g>
 
-  <!-- glass -->
-  <g stroke="#f5f5f7" stroke-width="16" stroke-linecap="round"
+  <!-- glass: light-catching edges -->
+  <g stroke="url(#edge)" stroke-width="16" stroke-linecap="round"
      stroke-linejoin="round" fill="none">
     <polyline points="272,320 512,620 752,320"/>
     <line x1="272" y1="320" x2="752" y2="320"/>
     <line x1="512" y1="620" x2="512" y2="800"/>
     <line x1="396" y1="812" x2="628" y2="812"/>
   </g>
+
+  <!-- soft reflection pooled under the foot -->
+  <ellipse cx="512" cy="858" rx="150" ry="16" fill="#ffffff" opacity="0.12"/>
 </svg>

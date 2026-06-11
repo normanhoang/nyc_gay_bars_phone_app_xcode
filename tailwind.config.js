@@ -15,6 +15,13 @@ module.exports = {
           soft: "#16161f",
           card: "#1e1e2a",
         },
+        // Translucent "glass" fills layered over the gradient backdrop. Use
+        // these (not solid ink-card) on frosted surfaces so the blur shows.
+        glass: {
+          DEFAULT: "rgba(255,255,255,0.06)",
+          strong: "rgba(255,255,255,0.12)",
+          line: "rgba(255,255,255,0.12)", // hairline edge highlight
+        },
       },
     },
   },

@@ -10,8 +10,10 @@ import {
   TextInput,
   View,
 } from "react-native";
+import AppBackground from "../../components/AppBackground";
 import BadgeToast from "../../components/BadgeToast";
 import DrinkLogger from "../../components/DrinkLogger";
+import Glass from "../../components/Glass";
 import { getBarById } from "../../lib/bars";
 import {
   dayKey,
@@ -54,10 +56,10 @@ function NotesSection({
           placeholder="How was the night?…"
           placeholderTextColor="#6b7280"
           multiline
-          className="min-h-[80px] rounded-2xl bg-ink-card px-4 py-3 text-base text-white"
+          className="min-h-[80px] rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-base text-white"
         />
       ) : (
-        <View className="rounded-2xl bg-ink-card px-4 py-3">
+        <View className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
           <Text className="text-sm text-gray-500">
             Log a drink to add a note about this visit.
           </Text>
@@ -86,15 +88,18 @@ export default function BarDetailScreen() {
   if (!bar) {
     return (
       <View className="flex-1 bg-ink">
+        <AppBackground />
         <View className="flex-row justify-end px-4 pt-4">
           <Pressable
             onPress={() => router.back()}
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel="Close"
-            className="h-9 w-9 items-center justify-center rounded-full bg-ink-card active:opacity-60"
+            className="active:opacity-60"
           >
-            <Ionicons name="close" size={20} color="#ffffff" />
+            <Glass className="h-9 w-9 items-center justify-center rounded-full">
+              <Ionicons name="close" size={20} color="#ffffff" />
+            </Glass>
           </Pressable>
         </View>
         <View className="flex-1 items-center justify-center px-8">
@@ -149,15 +154,18 @@ export default function BarDetailScreen() {
 
   return (
     <View className="flex-1 bg-ink">
+      <AppBackground />
       <View className="flex-row justify-end px-4 pt-4">
         <Pressable
           onPress={() => router.back()}
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Close"
-          className="h-9 w-9 items-center justify-center rounded-full bg-ink-card active:opacity-60"
+          className="active:opacity-60"
         >
-          <Ionicons name="close" size={20} color="#ffffff" />
+          <Glass className="h-9 w-9 items-center justify-center rounded-full">
+            <Ionicons name="close" size={20} color="#ffffff" />
+          </Glass>
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
@@ -171,7 +179,7 @@ export default function BarDetailScreen() {
             {bar.tags.map((tag) => (
               <View
                 key={tag}
-                className="mb-1 mr-2 rounded-full bg-ink-soft px-3 py-1"
+                className="mb-1 mr-2 rounded-full border border-white/10 bg-white/[0.08] px-3 py-1"
               >
                 <Text className="text-xs font-medium text-gray-300">{tag}</Text>
               </View>
@@ -200,8 +208,9 @@ export default function BarDetailScreen() {
           accessibilityRole="checkbox"
           accessibilityState={{ checked: visited }}
           accessibilityLabel="Visited"
-          className="mt-5 flex-row items-center justify-between rounded-2xl bg-ink-card px-4 py-3 active:opacity-80"
+          className="mt-5 active:opacity-80"
         >
+          <Glass className="flex-row items-center justify-between rounded-2xl px-4 py-3">
           <View className="flex-1 pr-3">
             <Text className="text-base font-semibold text-white">Visited</Text>
             <Text className="mt-0.5 text-xs text-gray-400">
@@ -213,9 +222,10 @@ export default function BarDetailScreen() {
             size={28}
             color={visited ? "#22c55e" : "#6b7280"}
           />
+          </Glass>
         </Pressable>
 
-        <View className="mt-4 mb-4 flex-row items-center justify-between rounded-2xl bg-primary/15 px-4 py-3">
+        <View className="mt-4 mb-4 flex-row items-center justify-between rounded-2xl border border-primary/30 bg-primary/15 px-4 py-3">
           <Text className="flex-1 pr-3 text-sm font-medium text-white">
             {isTargetToday
               ? "Today's drinks"

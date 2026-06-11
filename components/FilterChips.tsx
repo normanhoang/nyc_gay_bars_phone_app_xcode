@@ -73,15 +73,15 @@ export default function FilterChips({ options, value, onChange }: Props) {
         }}
         className={
           active
-            ? "mr-2 rounded-full bg-primary px-4 py-2"
-            : "mr-2 rounded-full bg-ink-card px-4 py-2"
+            ? "mr-2 rounded-full border border-primary/60 bg-primary px-4 py-2"
+            : "mr-2 rounded-full border border-white/10 bg-white/[0.08] px-4 py-2"
         }
       >
         <Text
           className={
             active
               ? "text-sm font-semibold text-white"
-              : "text-sm font-semibold text-gray-400"
+              : "text-sm font-semibold text-gray-300"
           }
         >
           {opt}

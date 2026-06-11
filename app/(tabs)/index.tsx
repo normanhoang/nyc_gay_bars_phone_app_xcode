@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BarListItem from "../../components/BarListItem";
 import BarMap from "../../components/BarMap";
 import FilterChips from "../../components/FilterChips";
+import Glass from "../../components/Glass";
 import SegmentedToggle from "../../components/SegmentedToggle";
 import { BARS, NEIGHBORHOODS } from "../../lib/bars";
 import { distanceMiles, neighborhoodsByProximity } from "../../lib/geo";
@@ -150,14 +151,14 @@ export default function ExploreScreen() {
   );
 
   return (
-    <Pressable className="flex-1 bg-ink" onPress={Keyboard.dismiss}>
-      <View className="px-4 pb-3 pt-4">
-        <Text className="mb-3 text-2xl font-extrabold text-white">
+    <Pressable className="flex-1" onPress={Keyboard.dismiss}>
+      <View className="px-4 pb-3" style={{ paddingTop: insets.top + 8 }}>
+        <Text className="mb-3 text-3xl font-extrabold text-white">
           NYC Gay Bars
         </Text>
 
-        <View className="mb-3 flex-row items-center rounded-2xl bg-ink-card px-3">
-          <Ionicons name="search" size={18} color="#6b7280" />
+        <Glass className="mb-3 flex-row items-center rounded-2xl px-3">
+          <Ionicons name="search" size={18} color="#9ca3af" />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -180,10 +181,10 @@ export default function ExploreScreen() {
               accessibilityRole="button"
               accessibilityLabel="Clear search"
             >
-              <Ionicons name="close-circle" size={18} color="#6b7280" />
+              <Ionicons name="close-circle" size={18} color="#9ca3af" />
             </Pressable>
           ) : null}
-        </View>
+        </Glass>
 
         <SegmentedToggle<ViewMode>
           options={[

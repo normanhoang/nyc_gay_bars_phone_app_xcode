@@ -11,6 +11,7 @@ import {
   TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AppBackground from "../components/AppBackground";
 import { supabase } from "../lib/supabase";
 
 export default function SignInScreen() {
@@ -49,9 +50,10 @@ export default function SignInScreen() {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-ink"
+      className="flex-1"
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
+      <AppBackground />
       <ScrollView
         // Content is anchored to the top (not centered): the keyboard's
         // height fluctuates per keystroke (QuickType/autofill bar), and a
@@ -86,7 +88,7 @@ export default function SignInScreen() {
           autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="next"
-          className="mb-3 rounded-2xl bg-ink-card px-4 py-4 text-base text-white"
+          className="mb-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-4 text-base text-white"
         />
         <TextInput
           value={password}
@@ -96,7 +98,7 @@ export default function SignInScreen() {
           secureTextEntry
           returnKeyType="done"
           onSubmitEditing={submit}
-          className="mb-6 rounded-2xl bg-ink-card px-4 py-4 text-base text-white"
+          className="mb-6 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-4 text-base text-white"
         />
 
         <Pressable

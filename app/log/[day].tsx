@@ -3,7 +3,9 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AppBackground from "../../components/AppBackground";
 import BarListItem from "../../components/BarListItem";
+import Glass from "../../components/Glass";
 import { BARS } from "../../lib/bars";
 import {
   dayKey,
@@ -37,13 +39,14 @@ export default function LogDayScreen() {
 
   return (
     <View className="flex-1 bg-ink">
+      <AppBackground />
       <Stack.Screen options={{ title: "Pick a bar" }} />
       <View className="px-4 pb-3 pt-4">
         <Text className="mb-3 text-sm text-gray-400">
           Logging drinks for {formatDayKey(targetDay)} — which bar were you at?
         </Text>
-        <View className="flex-row items-center rounded-2xl bg-ink-card px-3">
-          <Ionicons name="search" size={18} color="#6b7280" />
+        <Glass className="flex-row items-center rounded-2xl px-3">
+          <Ionicons name="search" size={18} color="#9ca3af" />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -60,10 +63,10 @@ export default function LogDayScreen() {
               accessibilityRole="button"
               accessibilityLabel="Clear search"
             >
-              <Ionicons name="close-circle" size={18} color="#6b7280" />
+              <Ionicons name="close-circle" size={18} color="#9ca3af" />
             </Pressable>
           ) : null}
-        </View>
+        </Glass>
       </View>
 
       <FlatList

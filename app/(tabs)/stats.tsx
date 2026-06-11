@@ -2,7 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AppBackground from "../../components/AppBackground";
 import BadgeTile from "../../components/BadgeTile";
+import Glass from "../../components/Glass";
 import { useBadges } from "../../lib/BadgesContext";
 import { drinkEmoji } from "../../lib/drinks";
 import {
@@ -28,15 +31,15 @@ function StatCard({
   detail?: string;
 }) {
   return (
-    <View className="mb-3 rounded-2xl bg-ink-card p-4">
-      <Text className="text-xs uppercase tracking-wide text-gray-400">
+    <Glass className="mb-3 rounded-3xl p-4">
+      <Text className="text-xs uppercase tracking-wide text-gray-300">
         {label}
       </Text>
       <Text className="mt-1 text-xl font-extrabold text-white">{value}</Text>
       {detail ? (
         <Text className="mt-0.5 text-xs text-gray-400">{detail}</Text>
       ) : null}
-    </View>
+    </Glass>
   );
 }
 
@@ -45,6 +48,7 @@ export default function StatsScreen() {
   const { badges: badgeList } = useBadges();
   const [showAllBadges, setShowAllBadges] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  const insets = useSafeAreaInsets();
 
   // Opening the tab always shows the top of the page.
   useFocusEffect(
@@ -86,7 +90,7 @@ export default function StatsScreen() {
 
   if (visits.length === 0 && visitedIds.size === 0) {
     return (
-      <View className="flex-1 items-center justify-center bg-ink px-8">
+      <View className="flex-1 items-center justify-center px-8">
         <Text className="text-4xl">📊</Text>
         <Text className="mt-3 text-center text-base text-gray-400">
           Log your first drink to start earning stats and badges.
@@ -98,27 +102,32 @@ export default function StatsScreen() {
   return (
     <ScrollView
       ref={scrollRef}
-      className="flex-1 bg-ink"
-      contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+      className="flex-1"
+      contentContainerStyle={{
+        paddingHorizontal: 16,
+        paddingTop: insets.top + 8,
+        paddingBottom: 40,
+      }}
     >
+      <Text className="mb-4 text-3xl font-extrabold text-white">Stats</Text>
       <View className="mb-3">
-        <Text className="mb-2 text-xs uppercase tracking-wide text-gray-400">
+        <Text className="mb-2 text-xs uppercase tracking-wide text-gray-300">
           Totals
         </Text>
         <View className="flex-row">
-          <View className="mr-3 flex-1 items-center rounded-2xl bg-primary/15 px-2 py-4">
+          <View className="mr-3 flex-1 items-center rounded-3xl border border-primary/30 bg-primary/15 px-2 py-4">
             <Text className="text-2xl font-extrabold text-primary">
               {drinks}
             </Text>
             <Text className="mt-1 text-xs text-gray-400">drinks</Text>
           </View>
-          <View className="mr-3 flex-1 items-center rounded-2xl bg-primary/15 px-2 py-4">
+          <View className="mr-3 flex-1 items-center rounded-3xl border border-primary/30 bg-primary/15 px-2 py-4">
             <Text className="text-2xl font-extrabold text-primary">
               {drinkDays}
             </Text>
             <Text className="mt-1 text-xs text-gray-400">drink-days</Text>
           </View>
-          <View className="flex-1 items-center rounded-2xl bg-primary/15 px-2 py-4">
+          <View className="flex-1 items-center rounded-3xl border border-primary/30 bg-primary/15 px-2 py-4">
             <Text className="text-2xl font-extrabold text-primary">{bars}</Text>
             <Text className="mt-1 text-xs text-gray-400">bars</Text>
           </View>
@@ -157,7 +166,7 @@ export default function StatsScreen() {
       <Text className="mb-2 mt-3 text-base font-bold text-white">
         Neighborhoods
       </Text>
-      <View className="rounded-2xl bg-ink-card px-4 py-2">
+      <Glass className="rounded-3xl px-4 py-2">
         {progress.map((p) => (
           <View
             key={p.neighborhood}
@@ -177,7 +186,7 @@ export default function StatsScreen() {
             </Text>
           </View>
         ))}
-      </View>
+      </Glass>
 
       <View className="mb-2 mt-5 flex-row items-center justify-between">
         <Text className="text-base font-bold text-white">Recent badges</Text>
@@ -199,11 +208,11 @@ export default function StatsScreen() {
           ))}
         </View>
       ) : (
-        <View className="items-center rounded-2xl bg-ink-card p-4">
-          <Text className="text-sm text-gray-400">
+        <Glass className="items-center rounded-3xl p-4">
+          <Text className="text-sm text-gray-300">
             No badges yet — log a drink to start earning.
           </Text>
-        </View>
+        </Glass>
       )}
 
       <Modal
@@ -213,6 +222,7 @@ export default function StatsScreen() {
         onRequestClose={() => setShowAllBadges(false)}
       >
         <View className="flex-1 bg-ink">
+          <AppBackground />
           <View className="flex-row items-center justify-between px-4 pb-3 pt-5">
             <Text className="text-lg font-extrabold text-white">
               Badges · {earnedBadges.length}/{badgeList.length} earned
@@ -222,9 +232,10 @@ export default function StatsScreen() {
               hitSlop={12}
               accessibilityRole="button"
               accessibilityLabel="Close"
-              className="h-9 w-9 items-center justify-center rounded-full bg-ink-card active:opacity-60"
             >
-              <Ionicons name="close" size={20} color="#ffffff" />
+              <Glass className="h-9 w-9 items-center justify-center rounded-full">
+                <Ionicons name="close" size={20} color="#ffffff" />
+              </Glass>
             </Pressable>
           </View>
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>

@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text } from "react-native";
+import Glass from "./Glass";
 
 export type SegmentedOption<T extends string> = {
   value: T;
@@ -17,7 +18,7 @@ export default function SegmentedToggle<T extends string>({
   onChange,
 }: Props<T>) {
   return (
-    <View className="flex-row rounded-full bg-ink-card p-1">
+    <Glass className="flex-row rounded-full p-1">
       {options.map((opt) => {
         const active = opt.value === value;
         return (
@@ -34,7 +35,7 @@ export default function SegmentedToggle<T extends string>({
               className={
                 active
                   ? "text-sm font-semibold text-white"
-                  : "text-sm font-semibold text-gray-400"
+                  : "text-sm font-semibold text-gray-300"
               }
             >
               {opt.label}
@@ -42,6 +43,6 @@ export default function SegmentedToggle<T extends string>({
           </Pressable>
         );
       })}
-    </View>
+    </Glass>
   );
 }

@@ -2,6 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Glass from "../../components/Glass";
 import MonthCalendar from "../../components/MonthCalendar";
 import VisitCard from "../../components/VisitCard";
 import { supabase } from "../../lib/supabase";
@@ -18,6 +20,7 @@ export default function HistoryScreen() {
   const [selectedDay, setSelectedDay] = useState<string>(dayKey());
   const listRef = useRef<FlatList>(null);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   useFocusEffect(
     useCallback(() => {
@@ -69,14 +72,21 @@ export default function HistoryScreen() {
     dayKeyToDate(selectedDay).getTime() > dayKeyToDate(dayKey()).getTime();
 
   return (
-    <View className="flex-1 bg-ink">
+    <View className="flex-1">
       <FlatList
         ref={listRef}
         data={dayVisits}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: insets.top + 8,
+          paddingBottom: 16,
+        }}
         ListHeaderComponent={
           <View className="mb-4">
+            <Text className="mb-4 text-3xl font-extrabold text-white">
+              History
+            </Text>
             <MonthCalendar
               markedDays={markedDays}
               selectedDay={selectedDay}
@@ -125,14 +135,13 @@ export default function HistoryScreen() {
                 </Text>
               </Pressable>
             ) : null}
-            <Pressable
-              onPress={confirmSignOut}
-              className="flex-row items-center justify-center rounded-2xl bg-ink-card px-4 py-3 active:opacity-70"
-            >
-              <Ionicons name="log-out-outline" size={18} color="#9ca3af" />
-              <Text className="ml-2 text-base font-semibold text-gray-300">
-                Sign Out
-              </Text>
+            <Pressable onPress={confirmSignOut} className="active:opacity-70">
+              <Glass className="flex-row items-center justify-center rounded-2xl px-4 py-3">
+                <Ionicons name="log-out-outline" size={18} color="#9ca3af" />
+                <Text className="ml-2 text-base font-semibold text-gray-300">
+                  Sign Out
+                </Text>
+              </Glass>
             </Pressable>
           </View>
         }

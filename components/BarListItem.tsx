@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
+import Glass from "./Glass";
 import type { Bar } from "../lib/types";
 
 type Props = {
@@ -25,15 +26,23 @@ export default function BarListItem({
   onPress,
 }: Props) {
   return (
-    <Pressable
-      onPress={onPress}
-      className={
-        visited
-          ? "mb-3 flex-row items-center rounded-2xl border border-primary/40 bg-primary/15 p-4 active:opacity-80"
-          : "mb-3 flex-row items-center rounded-2xl border border-transparent bg-ink-card p-4 active:opacity-80"
-      }
-    >
-      <View className="flex-1 pr-3">
+    <Pressable onPress={onPress} className="mb-3 active:opacity-80">
+      <Glass
+        className={
+          visited
+            ? "flex-row items-center rounded-3xl border border-primary/50 p-4"
+            : "flex-row items-center rounded-3xl p-4"
+        }
+      >
+        {visited ? (
+          // Magenta wash to flag a visited bar without an opacity utility
+          // (which would break native glass).
+          <View
+            pointerEvents="none"
+            className="absolute inset-0 bg-primary/20"
+          />
+        ) : null}
+        <View className="flex-1 pr-3">
         <Text className="text-base font-semibold text-white">{bar.name}</Text>
         <Text className="mt-0.5 text-xs font-medium text-primary">
           {bar.neighborhood}
@@ -52,7 +61,7 @@ export default function BarListItem({
             {bar.tags.slice(0, 3).map((tag) => (
               <View
                 key={tag}
-                className="mr-1.5 rounded-full bg-ink-soft px-2 py-0.5"
+                className="mr-1.5 rounded-full border border-white/10 bg-white/[0.08] px-2 py-0.5"
               >
                 <Text className="text-[10px] font-medium text-gray-400">
                   {tag}
@@ -63,14 +72,15 @@ export default function BarListItem({
         ) : null}
       </View>
 
-      {todayCount > 0 ? (
-        <View className="mr-1 flex-row items-center rounded-full bg-primary/20 px-2.5 py-1">
-          <Text className="mr-1 text-sm">🍹</Text>
-          <Text className="text-sm font-bold text-primary">{todayCount}</Text>
-        </View>
-      ) : null}
+        {todayCount > 0 ? (
+          <View className="mr-1 flex-row items-center rounded-full bg-primary/25 px-2.5 py-1">
+            <Text className="mr-1 text-sm">🍹</Text>
+            <Text className="text-sm font-bold text-primary">{todayCount}</Text>
+          </View>
+        ) : null}
 
-      <Ionicons name="chevron-forward" size={18} color="#6b7280" />
+        <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
+      </Glass>
     </Pressable>
   );
 }
