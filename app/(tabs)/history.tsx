@@ -136,7 +136,7 @@ export default function HistoryScreen() {
               </Pressable>
             ) : null}
             <Pressable onPress={confirmSignOut} className="active:opacity-70">
-              <Glass className="flex-row items-center justify-center rounded-2xl px-4 py-3">
+              <Glass radius={16} bordered className="flex-row items-center justify-center px-4 py-3">
                 <Ionicons name="log-out-outline" size={18} color="#9ca3af" />
                 <Text className="ml-2 text-base font-semibold text-gray-300">
                   Sign Out

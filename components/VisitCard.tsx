@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Alert, Pressable, Text, View } from "react-native";
-import Glass from "./Glass";
 import { drinkEmoji } from "../lib/drinks";
 import { getBarById } from "../lib/bars";
 import type { Visit } from "../lib/types";
@@ -39,7 +38,7 @@ export default function VisitCard({ visit, onDelete }: Props) {
   };
 
   return (
-    <Glass className="mb-3 rounded-3xl p-4">
+    <View className="mb-3 rounded-3xl bg-white/[0.05] p-4">
       <View className="flex-row items-start justify-between">
         <View className="flex-1 pr-3">
           <Text className="text-base font-semibold text-white">
@@ -91,6 +90,6 @@ export default function VisitCard({ visit, onDelete }: Props) {
         <Ionicons name="trash-outline" size={14} color="#9ca3af" />
         <Text className="ml-1 text-xs text-gray-400">Delete</Text>
       </Pressable>
-    </Glass>
+    </View>
   );
 }

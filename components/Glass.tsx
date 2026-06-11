@@ -1,7 +1,7 @@
 import { BlurView } from "expo-blur";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { type ReactNode } from "react";
-import { View, type ViewStyle } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 // Resolved once at module load: true only on iOS 26+ where Apple's native
 // Liquid Glass is available. Everywhere else we fall back to a frosted
@@ -10,9 +10,17 @@ const LIQUID_GLASS = isLiquidGlassAvailable();
 
 type GlassProps = {
   children?: ReactNode;
-  /** Utility classes for the surface (padding, radius, border, layout). */
+  /** Layout/padding utility classes only — radius and borders are props. */
   className?: string;
-  style?: ViewStyle;
+  /**
+   * Corner radius, applied to both the wrapper and the native glass layer.
+   * Passing it down lets iOS 26 glass shape itself (smooth rim) instead of
+   * being rect-clipped by the wrapper's corner mask, which looks jagged.
+   */
+  radius?: number;
+  /** Draw a hairline overlay border (crisper than 1px utility borders). */
+  bordered?: boolean;
+  borderColor?: string;
   /** Blur strength for the BlurView fallback (ignored by native glass). */
   intensity?: number;
   /** Frost tint for the fallback. */
@@ -22,63 +30,72 @@ type GlassProps = {
 };
 
 /**
- * A translucent "Liquid Glass" surface. On iOS 26+ it renders the real
- * native effect; otherwise a frosted BlurView with a hairline highlight.
+ * A translucent "Liquid Glass" surface for chrome and controls (search bars,
+ * toggles, buttons, toasts, tab/header backgrounds). On iOS 26+ it renders
+ * the real native effect; otherwise a frosted BlurView.
+ *
+ * Static *content* panels (stat cards, calendar, visit cards, badges) should
+ * NOT use this — native glass draws an un-disableable luminous rim that reads
+ * as a border. Use a plain `View` with `bg-white/[0.05]` instead.
  *
  * Note: never put an opacity utility on this component or its parents —
- * native GlassView errors on sub-1 opacity. Use a translucent background
- * fill or a child overlay to dim instead.
+ * native GlassView errors on sub-1 opacity. Dim with a translucent fill or
+ * an overlay child instead.
  */
 export default function Glass({
   children,
   className = "",
-  style,
+  radius,
+  bordered = false,
+  borderColor = "rgba(255,255,255,0.16)",
   intensity = 40,
   tint = "dark",
   interactive = false,
 }: GlassProps) {
-  if (LIQUID_GLASS) {
-    return (
-      <GlassView
-        // Remount when interactivity changes — it can't be toggled live.
-        key={interactive ? "interactive" : "static"}
-        isInteractive={interactive}
-        glassEffectStyle="regular"
-        style={style}
-        className={`overflow-hidden ${className}`}
-      >
-        {children}
-      </GlassView>
-    );
-  }
-
-  return (
-    <BlurView
-      intensity={intensity}
-      tint={tint}
-      experimentalBlurMethod="dimezisBlurView"
-      style={style}
-      // A faint white fill + hairline border give the frosted edge highlight
-      // that sells the glass look over the dark gradient backdrop.
-      className={`overflow-hidden border border-white/10 bg-white/[0.06] ${className}`}
-    >
-      {children}
-    </BlurView>
-  );
-}
-
-/** Convenience: a full-bleed glass layer behind absolutely-positioned content. */
-export function GlassFill({
-  className = "",
-  intensity = 40,
-  tint = "dark",
-}: Pick<GlassProps, "className" | "intensity" | "tint">) {
   return (
     <View
-      pointerEvents="none"
-      style={{ position: "absolute", inset: 0 } as ViewStyle}
+      className={`overflow-hidden ${className}`}
+      style={radius !== undefined ? { borderRadius: radius } : undefined}
     >
-      <Glass intensity={intensity} tint={tint} className={`flex-1 ${className}`} />
+      {LIQUID_GLASS ? (
+        <GlassView
+          // Remount when interactivity changes — it can't be toggled live.
+          key={interactive ? "interactive" : "static"}
+          isInteractive={interactive}
+          glassEffectStyle="regular"
+          style={[
+            StyleSheet.absoluteFill,
+            radius !== undefined ? { borderRadius: radius } : null,
+          ]}
+        />
+      ) : (
+        <BlurView
+          intensity={intensity}
+          tint={tint}
+          experimentalBlurMethod="dimezisBlurView"
+          style={StyleSheet.absoluteFill}
+        />
+      )}
+      {/* Faint white fill lifts contrast over the dark gradient backdrop. */}
+      <View
+        pointerEvents="none"
+        style={StyleSheet.absoluteFill}
+        className="bg-white/[0.07]"
+      />
+      {bordered ? (
+        <View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              borderRadius: radius,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor,
+            },
+          ]}
+        />
+      ) : null}
+      {children}
     </View>
   );
 }

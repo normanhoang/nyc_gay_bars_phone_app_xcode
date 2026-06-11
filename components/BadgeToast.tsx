@@ -26,7 +26,12 @@ export default function BadgeToast() {
         accessibilityRole="alert"
         className="active:opacity-80"
       >
-        <Glass className="flex-row items-center rounded-3xl border border-primary/50 px-4 py-3 shadow-lg">
+        <Glass
+          radius={24}
+          bordered
+          borderColor="rgba(224,33,138,0.5)"
+          className="flex-row items-center px-4 py-3 shadow-lg"
+        >
           <Text className="mr-3 text-2xl">{badge.emoji}</Text>
           <View className="shrink">
             <Text className="text-xs uppercase tracking-wide text-gray-300">

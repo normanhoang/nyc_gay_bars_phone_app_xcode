@@ -18,7 +18,7 @@ export default function SegmentedToggle<T extends string>({
   onChange,
 }: Props<T>) {
   return (
-    <Glass className="flex-row rounded-full p-1">
+    <Glass radius={999} bordered className="flex-row p-1">
       {options.map((opt) => {
         const active = opt.value === value;
         return (
@@ -35,7 +35,7 @@ export default function SegmentedToggle<T extends string>({
               className={
                 active
                   ? "text-sm font-semibold text-white"
-                  : "text-sm font-semibold text-gray-300"
+                  : "text-sm font-semibold text-gray-200"
               }
             >
               {opt.label}

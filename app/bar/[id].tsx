@@ -97,7 +97,7 @@ export default function BarDetailScreen() {
             accessibilityLabel="Close"
             className="active:opacity-60"
           >
-            <Glass className="h-9 w-9 items-center justify-center rounded-full">
+            <Glass radius={18} className="h-9 w-9 items-center justify-center">
               <Ionicons name="close" size={20} color="#ffffff" />
             </Glass>
           </Pressable>
@@ -163,7 +163,7 @@ export default function BarDetailScreen() {
           accessibilityLabel="Close"
           className="active:opacity-60"
         >
-          <Glass className="h-9 w-9 items-center justify-center rounded-full">
+          <Glass radius={18} className="h-9 w-9 items-center justify-center">
             <Ionicons name="close" size={20} color="#ffffff" />
           </Glass>
         </Pressable>
@@ -210,7 +210,7 @@ export default function BarDetailScreen() {
           accessibilityLabel="Visited"
           className="mt-5 active:opacity-80"
         >
-          <Glass className="flex-row items-center justify-between rounded-2xl px-4 py-3">
+          <Glass radius={16} bordered className="flex-row items-center justify-between px-4 py-3">
           <View className="flex-1 pr-3">
             <Text className="text-base font-semibold text-white">Visited</Text>
             <Text className="mt-0.5 text-xs text-gray-400">

@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { dayKey } from "../lib/VisitsContext";
-import Glass from "./Glass";
 
 type Props = {
   /** dayKeys (see lib/VisitsContext.dayKey) that have logged visits. */
@@ -57,7 +56,7 @@ export default function MonthCalendar({
   };
 
   return (
-    <Glass className="rounded-3xl p-4">
+    <View className="rounded-[32px] bg-white/[0.05] p-4">
       <View className="mb-3 flex-row items-center justify-between">
         <Pressable
           onPress={() => shiftMonth(-1)}
@@ -136,6 +135,6 @@ export default function MonthCalendar({
           );
         })}
       </View>
-    </Glass>
+    </View>
   );
 }

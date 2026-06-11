@@ -1,6 +1,6 @@
-import { Text, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet, Text, View } from "react-native";
 import type { BadgeWithDate } from "../lib/BadgesContext";
-import Glass from "./Glass";
 
 type Props = {
   badge: BadgeWithDate;
@@ -16,38 +16,46 @@ function formatEarnedAt(iso: string): string {
   });
 }
 
+/**
+ * A badge tile — an award medallion on a soft gradient wash, deliberately
+ * not a Glass surface or bordered (those read as buttons). Earned tiles get
+ * a magenta→violet glow and an emoji medallion; unearned ones stay muted
+ * with dimmed content.
+ */
 export default function BadgeTile({ badge, showDate = false }: Props) {
   return (
-    <Glass
+    <View
       className={
         badge.earned
-          ? "mb-3 w-[48%] items-center rounded-3xl border border-primary/40 p-4"
-          : "mb-3 w-[48%] items-center rounded-3xl p-4"
+          ? "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl px-3 py-5"
+          : "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl bg-white/[0.04] px-3 py-5"
       }
     >
-      {/* Dim unearned tiles with an overlay rather than an opacity utility,
-          which would error on native Liquid Glass. */}
-      {!badge.earned ? (
-        <View pointerEvents="none" className="absolute inset-0 bg-black/40" />
+      {badge.earned ? (
+        <LinearGradient
+          colors={["rgba(224,33,138,0.35)", "rgba(110,60,190,0.22)"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          pointerEvents="none"
+          style={StyleSheet.absoluteFill}
+        />
       ) : null}
-      <Text className="text-3xl">{badge.emoji}</Text>
-      <Text
-        className={
-          badge.earned
-            ? "mt-2 text-center text-sm font-semibold text-white"
-            : "mt-2 text-center text-sm font-semibold text-gray-400"
-        }
+      <View
+        className={badge.earned ? "items-center" : "items-center opacity-40"}
       >
-        {badge.title}
-      </Text>
-      <Text className="mt-1 text-center text-xs text-gray-400">
-        {badge.description}
-      </Text>
-      {showDate && badge.earned && badge.earnedAt ? (
-        <Text className="mt-1 text-center text-[10px] font-semibold text-primary">
-          Earned {formatEarnedAt(badge.earnedAt)}
+        <Text className="text-4xl">{badge.emoji}</Text>
+        <Text className="mt-3 text-center text-sm font-bold text-white">
+          {badge.title}
         </Text>
-      ) : null}
-    </Glass>
+        <Text className="mt-1 text-center text-xs leading-4 text-gray-400">
+          {badge.description}
+        </Text>
+        {showDate && badge.earned && badge.earnedAt ? (
+          <Text className="mt-2 text-center text-[10px] font-semibold text-primary">
+            Earned {formatEarnedAt(badge.earnedAt)}
+          </Text>
+        ) : null}
+      </View>
+    </View>
   );
 }

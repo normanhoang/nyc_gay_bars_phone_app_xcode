@@ -75,7 +75,9 @@ export default function RootLayout() {
               />
               <Stack.Screen
                 name="log/[day]"
-                options={{ presentation: "modal", title: "Pick a bar" }}
+                // Header hidden for the same reason as bar/[id]: the screen
+                // renders its own title row with a glass close button.
+                options={{ presentation: "modal", headerShown: false }}
               />
             </Stack>
             <BadgeToast />

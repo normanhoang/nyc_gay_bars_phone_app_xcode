@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -40,12 +40,25 @@ export default function LogDayScreen() {
   return (
     <View className="flex-1 bg-ink">
       <AppBackground />
-      <Stack.Screen options={{ title: "Pick a bar" }} />
-      <View className="px-4 pb-3 pt-4">
+      <View className="flex-row items-center justify-between px-4 pb-1 pt-4">
+        <Text className="text-lg font-extrabold text-white">Pick a bar</Text>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          className="active:opacity-60"
+        >
+          <Glass radius={18} className="h-9 w-9 items-center justify-center">
+            <Ionicons name="close" size={20} color="#ffffff" />
+          </Glass>
+        </Pressable>
+      </View>
+      <View className="px-4 pb-3 pt-2">
         <Text className="mb-3 text-sm text-gray-400">
           Logging drinks for {formatDayKey(targetDay)} — which bar were you at?
         </Text>
-        <Glass className="flex-row items-center rounded-2xl px-3">
+        <Glass radius={16} bordered className="flex-row items-center px-3">
           <Ionicons name="search" size={18} color="#9ca3af" />
           <TextInput
             value={query}

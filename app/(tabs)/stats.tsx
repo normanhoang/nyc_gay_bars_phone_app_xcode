@@ -31,7 +31,7 @@ function StatCard({
   detail?: string;
 }) {
   return (
-    <Glass className="mb-3 rounded-3xl p-4">
+    <View className="mb-3 rounded-3xl bg-white/[0.05] p-4">
       <Text className="text-xs uppercase tracking-wide text-gray-300">
         {label}
       </Text>
@@ -39,7 +39,7 @@ function StatCard({
       {detail ? (
         <Text className="mt-0.5 text-xs text-gray-400">{detail}</Text>
       ) : null}
-    </Glass>
+    </View>
   );
 }
 
@@ -166,7 +166,7 @@ export default function StatsScreen() {
       <Text className="mb-2 mt-3 text-base font-bold text-white">
         Neighborhoods
       </Text>
-      <Glass className="rounded-3xl px-4 py-2">
+      <View className="rounded-3xl bg-white/[0.05] px-4 py-2">
         {progress.map((p) => (
           <View
             key={p.neighborhood}
@@ -186,7 +186,7 @@ export default function StatsScreen() {
             </Text>
           </View>
         ))}
-      </Glass>
+      </View>
 
       <View className="mb-2 mt-5 flex-row items-center justify-between">
         <Text className="text-base font-bold text-white">Recent badges</Text>
@@ -208,11 +208,11 @@ export default function StatsScreen() {
           ))}
         </View>
       ) : (
-        <Glass className="items-center rounded-3xl p-4">
+        <View className="items-center rounded-3xl bg-white/[0.05] p-4">
           <Text className="text-sm text-gray-300">
             No badges yet — log a drink to start earning.
           </Text>
-        </Glass>
+        </View>
       )}
 
       <Modal
@@ -233,7 +233,7 @@ export default function StatsScreen() {
               accessibilityRole="button"
               accessibilityLabel="Close"
             >
-              <Glass className="h-9 w-9 items-center justify-center rounded-full">
+              <Glass radius={18} className="h-9 w-9 items-center justify-center">
                 <Ionicons name="close" size={20} color="#ffffff" />
               </Glass>
             </Pressable>

@@ -32,7 +32,7 @@ function DrinkRow({
   onRemove: () => void;
 }) {
   return (
-    <Glass className="mb-3 flex-row items-center justify-between rounded-2xl px-4 py-3">
+    <Glass radius={16} className="mb-3 flex-row items-center justify-between px-4 py-3">
       <View className="flex-1 flex-row items-center">
         <Text className="mr-3 text-2xl">{drinkEmoji(type)}</Text>
         <Text className="text-base font-medium text-white">{type}</Text>
@@ -117,7 +117,7 @@ export default function DrinkLogger({ visit, onLog, onRemove }: Props) {
         />
       ))}
 
-      <Glass className="flex-row items-center rounded-2xl px-4 py-3">
+      <Glass radius={16} className="flex-row items-center px-4 py-3">
         <TextInput
           value={custom}
           onChangeText={setCustom}

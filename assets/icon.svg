@@ -18,8 +18,11 @@
       <stop offset="0.42" stop-color="#ffffff" stop-opacity="0.07"/>
       <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
     </linearGradient>
-    <!-- Light-catching glass edge: bright at the top, cooler below. -->
-    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+    <!-- Light-catching glass edge: bright at the top, cooler below. Uses
+         userSpaceOnUse so vertical/horizontal strokes (stem, rim, foot),
+         whose bounding boxes are zero-width/height, still paint. -->
+    <linearGradient id="edge" x1="0" y1="308" x2="0" y2="812"
+                    gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#ffffff"/>
       <stop offset="1" stop-color="#cbb6da"/>
     </linearGradient>
@@ -69,6 +72,4 @@
     <line x1="396" y1="812" x2="628" y2="812"/>
   </g>
 
-  <!-- soft reflection pooled under the foot -->
-  <ellipse cx="512" cy="858" rx="150" ry="16" fill="#ffffff" opacity="0.12"/>
 </svg>

@@ -28,11 +28,10 @@ export default function BarListItem({
   return (
     <Pressable onPress={onPress} className="mb-3 active:opacity-80">
       <Glass
-        className={
-          visited
-            ? "flex-row items-center rounded-3xl border border-primary/50 p-4"
-            : "flex-row items-center rounded-3xl p-4"
-        }
+        radius={24}
+        bordered={visited}
+        borderColor="rgba(224,33,138,0.5)"
+        className="flex-row items-center p-4"
       >
         {visited ? (
           // Magenta wash to flag a visited bar without an opacity utility

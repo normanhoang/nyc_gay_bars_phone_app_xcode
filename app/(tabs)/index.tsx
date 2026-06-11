@@ -157,7 +157,7 @@ export default function ExploreScreen() {
           NYC Gay Bars
         </Text>
 
-        <Glass className="mb-3 flex-row items-center rounded-2xl px-3">
+        <Glass radius={16} bordered className="mb-3 flex-row items-center px-3">
           <Ionicons name="search" size={18} color="#9ca3af" />
           <TextInput
             value={query}

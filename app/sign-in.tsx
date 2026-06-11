@@ -60,15 +60,18 @@ export default function SignInScreen() {
         // centered layout re-centers on every fluctuation — visible jiggle.
         contentContainerStyle={{
           paddingTop: insets.top + 40,
-          paddingBottom: insets.bottom + 24,
+          paddingBottom: insets.bottom + 48,
           paddingHorizontal: 32,
         }}
         keyboardShouldPersistTaps="handled"
       >
         <Image
-          source={require("../assets/icon.png")}
-          className="mb-4 h-[224px] w-[224px] self-center rounded-[40px]"
-          accessibilityLabel="NYC Gay Bars app icon"
+          // Transparent artwork (no baked background) so the logo floats on
+          // the gradient with no tile edge. It carries ~28% internal safe-zone
+          // padding, so it's sized up and margin-trimmed to compensate.
+          source={require("../assets/splash-icon.png")}
+          className="-my-8 h-[300px] w-[300px] self-center"
+          accessibilityLabel="NYC Gay Bars logo"
         />
         <Text className="mb-1 text-3xl font-extrabold text-white">
           NYC Gay Bars
@@ -120,7 +123,7 @@ export default function SignInScreen() {
           onPress={() => setMode(mode === "signin" ? "signup" : "signin")}
           className="items-center py-2"
         >
-          <Text className="text-sm text-gray-400">
+          <Text className="text-sm leading-5 text-gray-400">
             {mode === "signin"
               ? "Don't have an account? "
               : "Already have an account? "}
