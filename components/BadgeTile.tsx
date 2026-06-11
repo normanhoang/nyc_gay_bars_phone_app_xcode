@@ -31,8 +31,8 @@ export default function BadgeTile({ badge, showDate = false }: Props) {
       className={
         milestone
           ? badge.earned
-            ? "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl border-2 border-[#e3b34199] px-3 py-5"
-            : "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl border-2 border-[#e3b3414d] bg-white/[0.04] px-3 py-5"
+            ? "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl border border-[#e3b34180] px-3 py-5"
+            : "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl border border-[#e3b34140] bg-white/[0.04] px-3 py-5"
           : badge.earned
             ? "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl px-3 py-5"
             : "mb-3 min-h-[160px] w-[48%] items-center justify-center overflow-hidden rounded-3xl bg-white/[0.04] px-3 py-5"
