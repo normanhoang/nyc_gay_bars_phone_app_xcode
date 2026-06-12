@@ -15,8 +15,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AppBackground from "../../components/AppBackground";
 import BarDetailSheet from "../../components/BarDetailSheet";
 import BarListItem from "../../components/BarListItem";
+import FilterChips from "../../components/FilterChips";
 import Glass from "../../components/Glass";
-import { BARS } from "../../lib/bars";
+import { BARS, NEIGHBORHOODS } from "../../lib/bars";
+import { distanceMiles, neighborhoodsByProximity } from "../../lib/geo";
+import { useDeviceCoords } from "../../lib/useDeviceCoords";
 import {
   dayKey,
   formatDayKey,
@@ -24,26 +27,71 @@ import {
   useVisits,
 } from "../../lib/VisitsContext";
 
+type SortMode = "name" | "nearest";
+
+const ALL = "All";
+
 export default function LogDayScreen() {
   const { day } = useLocalSearchParams<{ day: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { getVisitFor, isVisited } = useVisits();
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<SortMode>("name");
+  const [neighborhood, setNeighborhood] = useState<string>(ALL);
   const [pickedBarId, setPickedBarId] = useState<string | null>(null);
+  const coords = useDeviceCoords();
 
   const targetDay = day ?? dayKey();
 
+  // Order neighborhood chips by proximity once we have a location; All stays
+  // pinned leftmost. Falls back to the alphabetical default without location.
+  const neighborhoodOptions = useMemo(
+    () =>
+      coords
+        ? neighborhoodsByProximity(coords.lat, coords.lng)
+        : NEIGHBORHOODS,
+    [coords],
+  );
+
+  // Miles from the device to each bar, or null without a location.
+  const distances = useMemo(
+    () =>
+      coords
+        ? new Map(
+            BARS.map((b) => [b.id, distanceMiles(coords.lat, coords.lng, b)]),
+          )
+        : null,
+    [coords],
+  );
+
   const filteredBars = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return BARS.filter(
-      (b) =>
-        !q ||
-        `${b.name} ${b.neighborhood} ${b.address} ${b.tags?.join(" ") ?? ""}`
+    return BARS.filter((b) => {
+      if (neighborhood !== ALL && b.neighborhood !== neighborhood) return false;
+      if (
+        q &&
+        !`${b.name} ${b.neighborhood} ${b.address} ${b.tags?.join(" ") ?? ""}`
           .toLowerCase()
-          .includes(q),
-    ).sort((a, b) => a.name.localeCompare(b.name));
-  }, [query]);
+          .includes(q)
+      ) {
+        return false;
+      }
+      return true;
+    }).sort((a, b) =>
+      sort === "nearest" && distances
+        ? (distances.get(a.id) ?? Infinity) - (distances.get(b.id) ?? Infinity)
+        : a.name.localeCompare(b.name),
+    );
+  }, [neighborhood, query, sort, distances]);
+
+  const selectNeighborhood = (value: string) => {
+    // Chips capture their own taps, so the keyboard would otherwise stay up.
+    Keyboard.dismiss();
+    setNeighborhood(value);
+    // Picking a neighborhood starts a fresh browse — drop any search query.
+    setQuery("");
+  };
 
   // Picking a bar doesn't navigate — the logger slides in over the picker
   // inside this same modal. One modal means swiping down (or the X) always
@@ -98,6 +146,54 @@ export default function LogDayScreen() {
         </Glass>
       </View>
 
+      <View className="pb-3 pl-4">
+        <FilterChips
+          options={[ALL, ...neighborhoodOptions]}
+          value={neighborhood}
+          onChange={selectNeighborhood}
+        />
+      </View>
+
+      {distances ? (
+        <View className="mb-2 flex-row items-center justify-end px-4">
+          <Pressable
+            onPress={() => {
+              Keyboard.dismiss();
+              setSort("name");
+            }}
+            hitSlop={6}
+          >
+            <Text
+              className={
+                sort === "name"
+                  ? "text-xs font-bold text-primary"
+                  : "text-xs font-semibold text-gray-500"
+              }
+            >
+              A–Z
+            </Text>
+          </Pressable>
+          <Text className="text-xs text-gray-600"> · </Text>
+          <Pressable
+            onPress={() => {
+              Keyboard.dismiss();
+              setSort("nearest");
+            }}
+            hitSlop={6}
+          >
+            <Text
+              className={
+                sort === "nearest"
+                  ? "text-xs font-bold text-primary"
+                  : "text-xs font-semibold text-gray-500"
+              }
+            >
+              Nearest
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <FlatList
         data={filteredBars}
         keyExtractor={(item) => item.id}
@@ -122,6 +218,7 @@ export default function LogDayScreen() {
               bar={item}
               todayCount={visit ? getDrinkTotal(visit) : 0}
               visited={isVisited(item.id)}
+              distanceMi={distances?.get(item.id)}
               onPress={() => pickBar(item.id)}
             />
           );

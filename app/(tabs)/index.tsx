@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Location from "expo-location";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
   InputAccessoryView,
@@ -22,6 +21,7 @@ import { useSetTabSwipeEnabled } from "../../components/TabSwipeContext";
 import { BARS, NEIGHBORHOODS } from "../../lib/bars";
 import { distanceMiles, neighborhoodsByProximity } from "../../lib/geo";
 import { computeVisitedIds } from "../../lib/stats";
+import { useDeviceCoords } from "../../lib/useDeviceCoords";
 import { getDrinkTotal, useVisits } from "../../lib/VisitsContext";
 
 type ViewMode = "map" | "list";
@@ -52,9 +52,9 @@ export default function ExploreScreen() {
   // Bumped when the selected chip is re-pressed so the map re-centers on it
   // (a zoom-out gesture switches the filter without moving the camera).
   const [frameNonce, setFrameNonce] = useState(0);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
-    null,
-  );
+  // Used for distances, the Nearest sort, and proximity-ordered chips. The
+  // filter always starts on "All".
+  const coords = useDeviceCoords();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { getVisitFor, isVisited } = useVisits();
@@ -82,29 +82,6 @@ export default function ExploreScreen() {
     // Picking a neighborhood starts a fresh browse — drop any search query.
     setQuery("");
   };
-
-  // Fetch the device location once — used for distances, the Nearest sort,
-  // and proximity-ordered chips. The filter always starts on "All".
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const { status } =
-          await Location.requestForegroundPermissionsAsync();
-        if (!active || status !== "granted") return;
-        const pos = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-        if (!active) return;
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-      } catch {
-        // Location unavailable — distances and Nearest sort stay hidden.
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   // Miles from the device to each bar, or null without a location.
   const distances = useMemo(
