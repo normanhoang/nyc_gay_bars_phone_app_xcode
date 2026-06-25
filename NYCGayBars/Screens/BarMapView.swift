@@ -98,7 +98,7 @@ struct BarMapView: View {
             // each step is its own camera set, so MapKit keeps fetching tiles the
             // whole way in, and the motion ends exactly on target — no nudge, no
             // hitch.
-            let steps = 20
+            let steps = 30
             let duration = 0.5
             framingUntil = Date().addingTimeInterval(duration + 0.3)
             var i = 0
