@@ -18,12 +18,14 @@ struct BarMapView: View {
     @State private var camera: MapCameraPosition = .automatic
     @State private var framedSpan: Double = 0.22
     @State private var suppressNextFrame = false
-    /// Set when we programmatically reframe; the next camera-change records the
-    /// real rendered span (which MapKit may enlarge to fit a wide region) so the
-    /// zoom-out check compares against what's actually on screen.
-    @State private var awaitingFrame = false
     /// Bumped on every frame() request so coalesced async applies keep only the last.
     @State private var frameGen = 0
+    /// Last region MapKit reported — the start point for our own stepwise zoom.
+    @State private var currentRegion: MKCoordinateRegion?
+    /// While we drive the camera, suppress the zoom-out→All check; `framedSpan`
+    /// keeps tracking so it ends pinned to the settled target span.
+    @State private var framingUntil = Date.distantPast
+    @State private var animTimer: Timer?
 
     var body: some View {
         MapReader { proxy in
@@ -77,30 +79,35 @@ struct BarMapView: View {
     private func frame(animated: Bool) {
         if suppressNextFrame { suppressNextFrame = false; return }
         // A neighborhood tap flips both `showOutlines` and `bars` in the same
-        // update, firing frame() twice. Racing two animated camera sets in one
-        // cycle can leave MapKit without fetching tiles (blank map until you
-        // zoom). Coalesce: apply once on the next runloop, last request wins.
+        // update, firing frame() twice. Coalesce: apply once on the next
+        // runloop, last request wins.
         frameGen &+= 1
         let gen = frameGen
         DispatchQueue.main.async {
             guard gen == frameGen else { return }
-            let region = targetRegion()
-            awaitingFrame = true
-            let apply = { camera = .region(region) }
-            if animated { withAnimation(.easeInOut(duration: 0.35)) { apply() } } else { apply() }
-            // MapKit often lands on a programmatically-set region without
-            // fetching tiles (blank/half-loaded map until you manually zoom).
-            // After the move fully settles, apply a tiny span nudge — the same
-            // kick a manual zoom gives — to force the tile loader to run. Keep
-            // it small and *animated* so it reads as the zoom settling, not a
-            // second jump.
-            DispatchQueue.main.asyncAfter(deadline: .now() + (animated ? 0.55 : 0.12)) {
-                guard gen == frameGen else { return }
-                var r = region
-                r.span.latitudeDelta *= 1.0004
-                r.span.longitudeDelta *= 1.0004
-                awaitingFrame = true
-                withAnimation(.easeInOut(duration: 0.3)) { camera = .region(r) }
+            let target = targetRegion()
+            animTimer?.invalidate()
+            guard animated, let start = currentRegion else {
+                framingUntil = Date().addingTimeInterval(0.4)
+                camera = .region(target)
+                return
+            }
+            // A single programmatic animated region set often lands with blank/
+            // half-loaded tiles, and any separate "kick" afterwards reads as a
+            // hitch. Instead, drive the zoom ourselves in small discrete steps:
+            // each step is its own camera set, so MapKit keeps fetching tiles the
+            // whole way in, and the motion ends exactly on target — no nudge, no
+            // hitch.
+            let steps = 20
+            let duration = 0.5
+            framingUntil = Date().addingTimeInterval(duration + 0.3)
+            var i = 0
+            animTimer = Timer.scheduledTimer(withTimeInterval: duration / Double(steps), repeats: true) { timer in
+                guard gen == frameGen else { timer.invalidate(); return }
+                i += 1
+                let t = easeInOut(Double(i) / Double(steps))
+                camera = .region(lerp(start, target, t))
+                if i >= steps { timer.invalidate(); camera = .region(target) }
             }
         }
     }
@@ -125,11 +132,12 @@ struct BarMapView: View {
     }
 
     private func handleCameraChange(_ region: MKCoordinateRegion) {
-        // First settle after a programmatic reframe: record the real rendered
-        // span and don't treat it as a user zoom-out.
-        if awaitingFrame {
+        currentRegion = region
+        // While we're driving the camera, keep recording the rendered span but
+        // don't treat it as a user zoom-out. After the window closes, framedSpan
+        // is pinned to the settled target span.
+        if Date() < framingUntil {
             framedSpan = region.span.latitudeDelta
-            awaitingFrame = false
             return
         }
         let r = Region(latitude: region.center.latitude, longitude: region.center.longitude,
@@ -138,6 +146,20 @@ struct BarMapView: View {
         if Geo.fullyVisibleNeighborhoods(r) >= 2 && region.span.latitudeDelta > framedSpan * 1.2 {
             if onZoomOut() { suppressNextFrame = true }
         }
+    }
+
+    private func easeInOut(_ t: Double) -> Double {
+        t < 0.5 ? 2 * t * t : 1 - pow(-2 * t + 2, 2) / 2
+    }
+
+    /// Linear interpolation between two regions (center + span) at fraction t.
+    private func lerp(_ s: MKCoordinateRegion, _ e: MKCoordinateRegion, _ t: Double) -> MKCoordinateRegion {
+        func l(_ a: Double, _ b: Double) -> Double { a + (b - a) * t }
+        return MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: l(s.center.latitude, e.center.latitude),
+                                           longitude: l(s.center.longitude, e.center.longitude)),
+            span: MKCoordinateSpan(latitudeDelta: l(s.span.latitudeDelta, e.span.latitudeDelta),
+                                   longitudeDelta: l(s.span.longitudeDelta, e.span.longitudeDelta)))
     }
 
     // MARK: - Hit testing
