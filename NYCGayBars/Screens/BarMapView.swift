@@ -90,15 +90,17 @@ struct BarMapView: View {
             if animated { withAnimation(.easeInOut(duration: 0.35)) { apply() } } else { apply() }
             // MapKit often lands on a programmatically-set region without
             // fetching tiles (blank/half-loaded map until you manually zoom).
-            // After the move settles, apply an imperceptible span nudge — the
-            // same kick a manual zoom gives — to force the tile loader to run.
-            DispatchQueue.main.asyncAfter(deadline: .now() + (animated ? 0.45 : 0.1)) {
+            // After the move fully settles, apply a tiny span nudge — the same
+            // kick a manual zoom gives — to force the tile loader to run. Keep
+            // it small and *animated* so it reads as the zoom settling, not a
+            // second jump.
+            DispatchQueue.main.asyncAfter(deadline: .now() + (animated ? 0.55 : 0.12)) {
                 guard gen == frameGen else { return }
                 var r = region
-                r.span.latitudeDelta *= 1.0015
-                r.span.longitudeDelta *= 1.0015
+                r.span.latitudeDelta *= 1.0012
+                r.span.longitudeDelta *= 1.0012
                 awaitingFrame = true
-                camera = .region(r)
+                withAnimation(.easeInOut(duration: 0.3)) { camera = .region(r) }
             }
         }
     }
