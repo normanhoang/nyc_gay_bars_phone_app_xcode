@@ -1,52 +1,12 @@
 {
   "Chelsea": [
     {
-      "latitude": 40.738686,
-      "longitude": -73.995874
+      "latitude": 40.754,
+      "longitude": -74.009086
     },
     {
-      "latitude": 40.738691,
-      "longitude": -74.00074
-    },
-    {
-      "latitude": 40.742313,
-      "longitude": -74.008638
-    },
-    {
-      "latitude": 40.7596,
-      "longitude": -74.0093
-    },
-    {
-      "latitude": 40.759706,
-      "longitude": -74.003669
-    },
-    {
-      "latitude": 40.760729,
-      "longitude": -74.003385
-    },
-    {
-      "latitude": 40.762508,
-      "longitude": -74.004558
-    },
-    {
-      "latitude": 40.761728,
-      "longitude": -74.002201
-    },
-    {
-      "latitude": 40.762295,
-      "longitude": -74.001788
-    },
-    {
-      "latitude": 40.760941,
-      "longitude": -73.998594
-    },
-    {
-      "latitude": 40.7547,
-      "longitude": -73.9995
-    },
-    {
-      "latitude": 40.754705,
-      "longitude": -73.993706
+      "latitude": 40.754,
+      "longitude": -73.993032
     },
     {
       "latitude": 40.753474,
@@ -63,6 +23,18 @@
     {
       "latitude": 40.738686,
       "longitude": -73.995874
+    },
+    {
+      "latitude": 40.738691,
+      "longitude": -74.00074
+    },
+    {
+      "latitude": 40.742313,
+      "longitude": -74.008638
+    },
+    {
+      "latitude": 40.754,
+      "longitude": -74.009086
     }
   ],
   "East Village": [
@@ -623,6 +595,34 @@
   ],
   "Hell's Kitchen": [
     {
+      "latitude": 40.759706,
+      "longitude": -74.003669
+    },
+    {
+      "latitude": 40.760729,
+      "longitude": -74.003385
+    },
+    {
+      "latitude": 40.762508,
+      "longitude": -74.004558
+    },
+    {
+      "latitude": 40.761728,
+      "longitude": -74.002201
+    },
+    {
+      "latitude": 40.762295,
+      "longitude": -74.001788
+    },
+    {
+      "latitude": 40.760941,
+      "longitude": -73.998594
+    },
+    {
+      "latitude": 40.7733,
+      "longitude": -73.9968
+    },
+    {
       "latitude": 40.773275,
       "longitude": -73.996121
     },
@@ -683,12 +683,24 @@
       "longitude": -73.991633
     },
     {
-      "latitude": 40.7547,
-      "longitude": -73.9995
+      "latitude": 40.754705,
+      "longitude": -73.993706
     },
     {
-      "latitude": 40.7733,
-      "longitude": -73.9968
+      "latitude": 40.754,
+      "longitude": -73.993032
+    },
+    {
+      "latitude": 40.754,
+      "longitude": -74.009086
+    },
+    {
+      "latitude": 40.7596,
+      "longitude": -74.0093
+    },
+    {
+      "latitude": 40.759706,
+      "longitude": -74.003669
     }
   ],
   "Lower East Side": [
