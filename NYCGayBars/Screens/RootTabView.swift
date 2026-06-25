@@ -75,18 +75,18 @@ struct RootTabView: View {
                     withAnimation(.snappy(duration: 0.18)) { pillPage = i }
                     page = i
                 } label: {
-                    VStack(spacing: 2) {
-                        Image(systemName: tab.icon).font(.system(size: 13, weight: .semibold))
-                        Text(tab.label).font(.system(size: 9, weight: .semibold))
+                    VStack(spacing: 3) {
+                        Image(systemName: tab.icon).font(.system(size: 15, weight: .semibold))
+                        Text(tab.label).font(.system(size: 10, weight: .semibold))
                     }
                     .foregroundStyle(active ? .white : Palette.gray400)
-                    .frame(width: 80)
-                    .padding(.vertical, 7)
+                    .frame(width: 92)
+                    .padding(.vertical, 8)
                     .background {
                         if active {
                             Capsule(style: .continuous)
                                 .fill(Palette.primary)
-                                .shadow(color: Palette.primary.opacity(0.45), radius: 6)
+                                .shadow(color: Palette.primary.opacity(0.45), radius: 7)
                                 .matchedGeometryEffect(id: "tabPill", in: tabNS)
                         }
                     }
@@ -94,7 +94,7 @@ struct RootTabView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(4)
-        .glassSurface(radius: 26, bordered: true)
+        .padding(5)
+        .glassSurface(radius: 30, bordered: true)
     }
 }

@@ -117,7 +117,7 @@ enum Stats {
 
     // MARK: - Streak helpers
 
-    private static let brooklynHoods: Set = ["Williamsburg", "Bushwick", "Bedford-Stuyvesant",
+    private static let brooklynHoods: Set = ["Williamsburg", "Bushwick", "Bed-Stuy",
         "Prospect Heights", "Park Slope", "Carroll Gardens"]
     private static let queensHoods: Set = ["Astoria", "Jackson Heights"]
 
