@@ -60,13 +60,13 @@ struct RootTabView: View {
         GeometryReader { geo in
             let inner = geo.size.width
             let seg = inner / CGFloat(tabs.count)
+            let margin: CGFloat = 6
             ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 999, style: .continuous)
+                Capsule()
                     .fill(Color.white.opacity(0.10))
-                    .overlay(RoundedRectangle(cornerRadius: 999, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.25), lineWidth: 1))
-                    .frame(width: seg)
-                    .offset(x: seg * CGFloat(current))
+                    .overlay(Capsule().strokeBorder(Color.white.opacity(0.25), lineWidth: 1))
+                    .frame(width: seg - 2 * margin, height: 44)
+                    .offset(x: seg * CGFloat(current) + margin)
                     .animation(Anim.chip, value: current)
 
                 HStack(spacing: 0) {
