@@ -18,12 +18,12 @@ struct BarMapView: View {
     @State private var camera: MapCameraPosition = .automatic
     @State private var framedSpan: Double = 0.22
     @State private var suppressNextFrame = false
+    /// Set when we programmatically reframe; the next camera-change records the
+    /// real rendered span (which MapKit may enlarge to fit a wide region) so the
+    /// zoom-out check compares against what's actually on screen.
+    @State private var awaitingFrame = false
     /// Bumped on every frame() request so coalesced async applies keep only the last.
     @State private var frameGen = 0
-    /// While we're driving the camera, suppress the zoom-out→All check. `framedSpan`
-    /// keeps tracking the rendered span during this window so it ends pinned to the
-    /// settled target (MapKit may enlarge a region to fit wide/non-square bars).
-    @State private var framingUntil = Date.distantPast
 
     var body: some View {
         MapReader { proxy in
@@ -77,28 +77,30 @@ struct BarMapView: View {
     private func frame(animated: Bool) {
         if suppressNextFrame { suppressNextFrame = false; return }
         // A neighborhood tap flips both `showOutlines` and `bars` in the same
-        // update, firing frame() twice. Coalesce: apply once on the next
-        // runloop, last request wins.
+        // update, firing frame() twice. Racing two animated camera sets in one
+        // cycle can leave MapKit without fetching tiles (blank map until you
+        // zoom). Coalesce: apply once on the next runloop, last request wins.
         frameGen &+= 1
         let gen = frameGen
         DispatchQueue.main.async {
             guard gen == frameGen else { return }
             let region = targetRegion()
-            framingUntil = Date().addingTimeInterval(1.3)
-            guard animated else { camera = .region(region); return }
-            // MapKit often lands on a single programmatically-set region without
-            // fetching tiles (blank/half-loaded map). Prime the tiles *before*
-            // the zoom: snap to a zoomed-out view of the target first (a discrete
-            // camera set kicks the tile loader), then animate in to the exact
-            // region. The animation ends at the target, so there's zero tail
-            // motion / no post-settle jump.
-            var wide = region
-            wide.span.latitudeDelta *= 2.5
-            wide.span.longitudeDelta *= 2.5
-            camera = .region(wide)
-            DispatchQueue.main.async {
+            awaitingFrame = true
+            let apply = { camera = .region(region) }
+            if animated { withAnimation(.easeInOut(duration: 0.35)) { apply() } } else { apply() }
+            // MapKit often lands on a programmatically-set region without
+            // fetching tiles (blank/half-loaded map until you manually zoom).
+            // After the move fully settles, apply a tiny span nudge — the same
+            // kick a manual zoom gives — to force the tile loader to run. Keep
+            // it small and *animated* so it reads as the zoom settling, not a
+            // second jump.
+            DispatchQueue.main.asyncAfter(deadline: .now() + (animated ? 0.55 : 0.12)) {
                 guard gen == frameGen else { return }
-                withAnimation(.easeInOut(duration: 0.45)) { camera = .region(region) }
+                var r = region
+                r.span.latitudeDelta *= 1.0004
+                r.span.longitudeDelta *= 1.0004
+                awaitingFrame = true
+                withAnimation(.easeInOut(duration: 0.3)) { camera = .region(r) }
             }
         }
     }
@@ -123,11 +125,11 @@ struct BarMapView: View {
     }
 
     private func handleCameraChange(_ region: MKCoordinateRegion) {
-        // While we're driving the camera (prime + zoom-in), keep recording the
-        // rendered span but don't treat it as a user zoom-out. After the window
-        // closes, framedSpan is pinned to the settled target span.
-        if Date() < framingUntil {
+        // First settle after a programmatic reframe: record the real rendered
+        // span and don't treat it as a user zoom-out.
+        if awaitingFrame {
             framedSpan = region.span.latitudeDelta
+            awaitingFrame = false
             return
         }
         let r = Region(latitude: region.center.latitude, longitude: region.center.longitude,
