@@ -1,5 +1,12 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+# Xcode / Swift (native app)
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+.swiftpm/
+
 # dependencies
 node_modules/
 

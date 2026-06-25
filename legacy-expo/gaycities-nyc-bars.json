@@ -1,0 +1,825 @@
+{
+  "count": 91,
+  "withAddress": 88,
+  "bars": [
+    {
+      "id": "400",
+      "slug": "eagle-nyc",
+      "name": "Eagle NYC",
+      "neighborhood": "Chelsea",
+      "address": "554 W 28th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/400-eagle-nyc"
+    },
+    {
+      "id": "442",
+      "slug": "the-monster",
+      "name": "The Monster",
+      "neighborhood": "West Village",
+      "address": "80 Grove St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/442-the-monster"
+    },
+    {
+      "id": "3507",
+      "slug": "boxers-nyc",
+      "name": "Boxers NYC",
+      "neighborhood": "Chelsea",
+      "address": "37 W 20th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/3507-boxers-nyc"
+    },
+    {
+      "id": "437",
+      "slug": "the-stonewall-inn",
+      "name": "The Stonewall Inn",
+      "neighborhood": "West Village",
+      "address": "53 Christopher St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/437-the-stonewall-inn"
+    },
+    {
+      "id": "421",
+      "slug": "the-cock",
+      "name": "The Cock",
+      "neighborhood": "East Village",
+      "address": "93 2nd Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/421-the-cock"
+    },
+    {
+      "id": "394",
+      "slug": "gym-sportsbar",
+      "name": "Gym Sportsbar",
+      "neighborhood": "Chelsea",
+      "address": "167 8th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/394-gym-sportsbar"
+    },
+    {
+      "id": "300623",
+      "slug": "industry-bar",
+      "name": "Industry Bar",
+      "neighborhood": "Hell's Kitchen",
+      "address": "355 West 52nd Street, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/300623-industry-bar"
+    },
+    {
+      "id": "457",
+      "slug": "club-cumming",
+      "name": "Club Cumming",
+      "neighborhood": "East Village",
+      "address": "505 E 6th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/457-club-cumming"
+    },
+    {
+      "id": "388",
+      "slug": "tys-bar-nyc",
+      "name": "Ty's Bar NYC",
+      "neighborhood": "West Village",
+      "address": "114 Christopher St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/388-tys-bar-nyc"
+    },
+    {
+      "id": "433",
+      "slug": "henrietta-hudson",
+      "name": "Henrietta Hudson",
+      "neighborhood": "West Village",
+      "address": "438 Hudson St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/433-henrietta-hudson"
+    },
+    {
+      "id": "302355",
+      "slug": "ritz-bar-and-lounge",
+      "name": "Ritz Bar and Lounge",
+      "neighborhood": "Hell's Kitchen",
+      "address": "369 West 46th Street, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/302355-ritz-bar-and-lounge"
+    },
+    {
+      "id": "415",
+      "slug": "nowhere-bar",
+      "name": "Nowhere Bar",
+      "neighborhood": "East Village",
+      "address": "322 E 14th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/415-nowhere-bar"
+    },
+    {
+      "id": "436",
+      "slug": "pieces",
+      "name": "Pieces",
+      "neighborhood": "West Village",
+      "address": "8 Christopher St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/436-pieces"
+    },
+    {
+      "id": "410",
+      "slug": "the-boiler-room",
+      "name": "The Boiler Room",
+      "neighborhood": "East Village",
+      "address": "45 2nd Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/410-the-boiler-room"
+    },
+    {
+      "id": "416",
+      "slug": "phoenix-bar",
+      "name": "Phoenix Bar",
+      "neighborhood": "East Village",
+      "address": "447 E 13th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/416-phoenix-bar"
+    },
+    {
+      "id": "438",
+      "slug": "cubbyhole",
+      "name": "Cubbyhole",
+      "neighborhood": "West Village",
+      "address": "281 W 12th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/438-cubbyhole"
+    },
+    {
+      "id": "435",
+      "slug": "maries-crisis",
+      "name": "Marie's Crisis",
+      "neighborhood": "West Village",
+      "address": "59 Grove St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/435-maries-crisis"
+    },
+    {
+      "id": "434",
+      "slug": "julius",
+      "name": "Julius'",
+      "neighborhood": "West Village",
+      "address": "159 W 10th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/434-julius"
+    },
+    {
+      "id": "3486",
+      "slug": "rockbar-nyc",
+      "name": "Rockbar NYC",
+      "neighborhood": "West Village",
+      "address": "185 Christopher St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/3486-rockbar-nyc"
+    },
+    {
+      "id": "426",
+      "slug": "th-avenue-saloon",
+      "name": "9th Avenue Saloon",
+      "neighborhood": "Hell's Kitchen",
+      "address": "656 9th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/426-th-avenue-saloon"
+    },
+    {
+      "id": "302313",
+      "slug": "flaming-saddles-saloon",
+      "name": "Flaming Saddles Saloon",
+      "neighborhood": "Hell's Kitchen",
+      "address": "793 Ninth Avenue, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/302313-flaming-saddles-saloon"
+    },
+    {
+      "id": "1292",
+      "slug": "friends-tavern",
+      "name": "Friend's Tavern",
+      "neighborhood": "Queens",
+      "address": "78-11 Roosevelt Ave, Jackson Heights",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/1292-friends-tavern"
+    },
+    {
+      "id": "448",
+      "slug": "metropolitan",
+      "name": "Metropolitan",
+      "neighborhood": "Brooklyn",
+      "address": "559 Lorimer St, Brooklyn",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/448-metropolitan"
+    },
+    {
+      "id": "3409",
+      "slug": "dont-tell-mama",
+      "name": "Don't Tell Mama",
+      "neighborhood": "Hell's Kitchen",
+      "address": "343 West 46th Street, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/3409-dont-tell-mama"
+    },
+    {
+      "id": "303844",
+      "slug": "hardware",
+      "name": "Hardware",
+      "neighborhood": "Hell's Kitchen",
+      "address": "697 10th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/303844-hardware"
+    },
+    {
+      "id": "408",
+      "slug": "the-toolbox-bar",
+      "name": "The Toolbox Bar",
+      "neighborhood": "Upper East Side",
+      "address": "1742 2nd Ave., New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/408-the-toolbox-bar"
+    },
+    {
+      "id": "304314",
+      "slug": "hk-hall",
+      "name": "HK Hall",
+      "neighborhood": "Hell's Kitchen",
+      "address": "605 W 48th Street, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/304314-hk-hall"
+    },
+    {
+      "id": "445",
+      "slug": "suite",
+      "name": "Suite",
+      "neighborhood": "Upper West Side",
+      "address": "992 Amsterdam Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/445-suite"
+    },
+    {
+      "id": "3305",
+      "slug": "gingers-bar",
+      "name": "Ginger's Bar",
+      "neighborhood": "Brooklyn",
+      "address": "363 5th Ave, Brooklyn",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/3305-gingers-bar"
+    },
+    {
+      "id": "300149",
+      "slug": "hombres-lounge",
+      "name": "Hombres Lounge",
+      "neighborhood": "Queens",
+      "address": "85-28 37th Avenue, Jackson Heights",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/300149-hombres-lounge"
+    },
+    {
+      "id": "305118",
+      "slug": "atlas-social-club",
+      "name": "Atlas Social Club",
+      "neighborhood": "Hell's Kitchen",
+      "address": "753 9th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/305118-atlas-social-club"
+    },
+    {
+      "id": "305366",
+      "slug": "icon-bar",
+      "name": "Icon Bar",
+      "neighborhood": "Astoria",
+      "address": "31-84 33rd St, Astoria",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/305366-icon-bar"
+    },
+    {
+      "id": "2077",
+      "slug": "bar-centrale",
+      "name": "Bar Centrale",
+      "neighborhood": "Hell's Kitchen",
+      "address": "324 West 46th Street, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/2077-bar-centrale"
+    },
+    {
+      "id": "307747",
+      "slug": "g-lounge",
+      "name": "G Lounge",
+      "neighborhood": "Chelsea",
+      "address": "225 W 19th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/307747-g-lounge"
+    },
+    {
+      "id": "305148",
+      "slug": "marquee-new-york",
+      "name": "Marquee New York",
+      "neighborhood": "Meatpacking",
+      "address": "289 10th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/305148-marquee-new-york"
+    },
+    {
+      "id": "449",
+      "slug": "albatross-bar",
+      "name": "Albatross Bar",
+      "neighborhood": "Queens",
+      "address": "3619 24th Ave, Queens",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/449-albatross-bar"
+    },
+    {
+      "id": "300214",
+      "slug": "ardesia-wine-bar",
+      "name": "Ardesia Wine Bar",
+      "neighborhood": "Hell's Kitchen",
+      "address": "510 West 52nd Street, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/300214-ardesia-wine-bar"
+    },
+    {
+      "id": "300888",
+      "slug": "spin-new-york-flatiron",
+      "name": "SPIN New York Flatiron",
+      "neighborhood": "Flatiron District",
+      "address": "48 E 23rd St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/300888-spin-new-york-flatiron"
+    },
+    {
+      "id": "3616",
+      "slug": "gotham-comedy-club",
+      "name": "Gotham Comedy Club",
+      "neighborhood": "Chelsea",
+      "address": "208 West 23rd Street, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/3616-gotham-comedy-club"
+    },
+    {
+      "id": "307230",
+      "slug": "rise-bar",
+      "name": "Rise Bar",
+      "neighborhood": "Hell's Kitchen",
+      "address": "859 9th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/307230-rise-bar"
+    },
+    {
+      "id": "307732",
+      "slug": "uncle-charlies-piano-lounge",
+      "name": "Uncle Charlie's Piano Lounge",
+      "neighborhood": "East Side",
+      "address": "139 East 45th Street, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/307732-uncle-charlies-piano-lounge"
+    },
+    {
+      "id": "303238",
+      "slug": "branded-saloon",
+      "name": "Branded Saloon",
+      "neighborhood": "Brooklyn",
+      "address": "603 Vanderbilt Ave, Brooklyn",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/303238-branded-saloon"
+    },
+    {
+      "id": "3315",
+      "slug": "nurse-bettie",
+      "name": "Nurse Bettie",
+      "neighborhood": "Lower East Side",
+      "address": "106 Norfolk St Frnt 1, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/3315-nurse-bettie"
+    },
+    {
+      "id": "300379",
+      "slug": "please-dont-tell",
+      "name": "Please Don't Tell",
+      "neighborhood": "East Village",
+      "address": "113 St. Mark's Place, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/300379-please-dont-tell"
+    },
+    {
+      "id": "308961",
+      "slug": "good-judy",
+      "name": "Good Judy",
+      "neighborhood": "Brooklyn",
+      "address": "563 5th Avenue, Brooklyn",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/308961-good-judy"
+    },
+    {
+      "id": "308110",
+      "slug": "monarch-rooftop",
+      "name": "Monarch Rooftop",
+      "neighborhood": "Midtown",
+      "address": "71 W 35th Street, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/308110-monarch-rooftop"
+    },
+    {
+      "id": "307894",
+      "slug": "alibi-lounge",
+      "name": "Alibi Lounge",
+      "neighborhood": "Harlem",
+      "address": "2376 Clayton Powell Jr Blvd, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/307894-alibi-lounge"
+    },
+    {
+      "id": "312723",
+      "slug": "the-brooklyn-monarch",
+      "name": "The Brooklyn Monarch",
+      "neighborhood": null,
+      "address": null,
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/312723-the-brooklyn-monarch"
+    },
+    {
+      "id": "312406",
+      "slug": "animal",
+      "name": "ANIMAL",
+      "neighborhood": "Brooklyn",
+      "address": "307 Meeker Ave,",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/312406-animal"
+    },
+    {
+      "id": "312344",
+      "slug": "boyfriend-co-op",
+      "name": "BOYFRIEND co-op",
+      "neighborhood": null,
+      "address": null,
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/312344-boyfriend-co-op"
+    },
+    {
+      "id": "312228",
+      "slug": "loafers-cocktail-bar",
+      "name": "Loafers Cocktail Bar",
+      "neighborhood": null,
+      "address": null,
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/312228-loafers-cocktail-bar"
+    },
+    {
+      "id": "312227",
+      "slug": "marys",
+      "name": "Mary's",
+      "neighborhood": "Lower East Side",
+      "address": "146 Orchard St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/312227-marys"
+    },
+    {
+      "id": "311981",
+      "slug": "the-fleur-room",
+      "name": "The Fleur Room",
+      "neighborhood": "Chelsea",
+      "address": "105 W 28th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311981-the-fleur-room"
+    },
+    {
+      "id": "311949",
+      "slug": "so-sos-neighborhood-piano-bar",
+      "name": "So & So's Neighborhood Piano Bar",
+      "neighborhood": "Hell's Kitchen",
+      "address": "302 W 52nd St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311949-so-sos-neighborhood-piano-bar"
+    },
+    {
+      "id": "311888",
+      "slug": "the-red-stache",
+      "name": "The Red Stache",
+      "neighborhood": "Hell's Kitchen",
+      "address": "401 W 52nd St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311888-the-red-stache"
+    },
+    {
+      "id": "311850",
+      "slug": "bar-nine",
+      "name": "Bar Nine",
+      "neighborhood": "Hell's Kitchen",
+      "address": "807 9th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311850-bar-nine"
+    },
+    {
+      "id": "311849",
+      "slug": "vv-bar-kitchen",
+      "name": "VV Bar & Kitchen",
+      "neighborhood": "Hell's Kitchen",
+      "address": "325 W 51st St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311849-vv-bar-kitchen"
+    },
+    {
+      "id": "311848",
+      "slug": "mickey-spillanes",
+      "name": "Mickey Spillane's",
+      "neighborhood": "Hell's Kitchen",
+      "address": "350 W 49th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311848-mickey-spillanes"
+    },
+    {
+      "id": "311847",
+      "slug": "its-him",
+      "name": "It’s Him",
+      "neighborhood": "Hell's Kitchen",
+      "address": "692 10th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311847-its-him"
+    },
+    {
+      "id": "311839",
+      "slug": "dbl",
+      "name": "DBL",
+      "neighborhood": "Hell's Kitchen",
+      "address": "667 10th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311839-dbl"
+    },
+    {
+      "id": "311838",
+      "slug": "adonis-lounge",
+      "name": "Adonis Lounge",
+      "neighborhood": "Hell's Kitchen",
+      "address": "500 W 48th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311838-adonis-lounge"
+    },
+    {
+      "id": "311772",
+      "slug": "the-delancey",
+      "name": "The Delancey",
+      "neighborhood": "Lower East Side",
+      "address": "168 Delancey St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311772-the-delancey"
+    },
+    {
+      "id": "311727",
+      "slug": "upstairs-cocktail-bar",
+      "name": "Upstairs Cocktail Bar",
+      "neighborhood": "Queens",
+      "address": "7122 Roosevelt Ave,",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311727-upstairs-cocktail-bar"
+    },
+    {
+      "id": "311725",
+      "slug": "red-eye-ny",
+      "name": "Red Eye NY",
+      "neighborhood": "Hell's Kitchen",
+      "address": "355 W 41st St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311725-red-eye-ny"
+    },
+    {
+      "id": "311681",
+      "slug": "balcon-salon",
+      "name": "Balcon Salon",
+      "neighborhood": "Hell's Kitchen",
+      "address": "674 9th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311681-balcon-salon"
+    },
+    {
+      "id": "311518",
+      "slug": "the-highwater",
+      "name": "The Highwater",
+      "neighborhood": "Queens",
+      "address": "34-20 Broadway,",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311518-the-highwater"
+    },
+    {
+      "id": "311516",
+      "slug": "the-red-pavilion",
+      "name": "The Red Pavilion",
+      "neighborhood": "Brooklyn",
+      "address": "1241 Flushing Ave,",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311516-the-red-pavilion"
+    },
+    {
+      "id": "311503",
+      "slug": "the-bush",
+      "name": "The Bush",
+      "neighborhood": "Brooklyn",
+      "address": "333 Troutman St, Brooklyn",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311503-the-bush"
+    },
+    {
+      "id": "311458",
+      "slug": "the-rosemont",
+      "name": "The Rosemont",
+      "neighborhood": "Brooklyn",
+      "address": "63 Montrose Ave,",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311458-the-rosemont"
+    },
+    {
+      "id": "311269",
+      "slug": "happyfun-hideaway",
+      "name": "Happyfun Hideaway",
+      "neighborhood": "Brooklyn",
+      "address": "1211 Myrtle Ave,",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311269-happyfun-hideaway"
+    },
+    {
+      "id": "311152",
+      "slug": "basement-ny",
+      "name": "BASEMENT NY",
+      "neighborhood": "Brooklyn",
+      "address": "52-19 Flushing Ave, Maspeth",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311152-basement-ny"
+    },
+    {
+      "id": "311141",
+      "slug": "the-skylark",
+      "name": "The Skylark",
+      "neighborhood": "Midtown",
+      "address": "200 W 39th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311141-the-skylark"
+    },
+    {
+      "id": "311127",
+      "slug": "flex",
+      "name": "FLEX",
+      "neighborhood": "Hell's Kitchen",
+      "address": "405 W 51st St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311127-flex"
+    },
+    {
+      "id": "311115",
+      "slug": "diamond-dogs",
+      "name": "Diamond Dogs",
+      "neighborhood": "Queens",
+      "address": "34-04 31st Ave,",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311115-diamond-dogs"
+    },
+    {
+      "id": "311113",
+      "slug": "kween",
+      "name": "Kween",
+      "neighborhood": "Queens",
+      "address": "34-10 30th Ave.,",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311113-kween"
+    },
+    {
+      "id": "311112",
+      "slug": "viva-la-heights",
+      "name": "Viva La Heights",
+      "neighborhood": "Queens",
+      "address": "78-13 Roosevelt Ave,",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/311112-viva-la-heights"
+    },
+    {
+      "id": "310825",
+      "slug": "the-dickens",
+      "name": "The Dickens",
+      "neighborhood": "Hell's Kitchen",
+      "address": "783 8th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/310825-the-dickens"
+    },
+    {
+      "id": "309625",
+      "slug": "pink-metal",
+      "name": "Pink Metal",
+      "neighborhood": "Brooklyn",
+      "address": "253 Bushwick Ave, Brooklyn",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309625-pink-metal"
+    },
+    {
+      "id": "309568",
+      "slug": "hush",
+      "name": "HUSH",
+      "neighborhood": "Hell's Kitchen",
+      "address": "348 W 52nd St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309568-hush"
+    },
+    {
+      "id": "309567",
+      "slug": "vers-queer-bar-cocktails-bar-snacks-and-parties",
+      "name": "VERS — queer bar, cocktails, bar snacks, and parties",
+      "neighborhood": "Hell's Kitchen",
+      "address": "714 9th Ave, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309567-vers-queer-bar-cocktails-bar-snacks-and-parties"
+    },
+    {
+      "id": "309516",
+      "slug": "the-townhouse-of-new-york",
+      "name": "The Townhouse of New York",
+      "neighborhood": "East Side",
+      "address": "236 E 58th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309516-the-townhouse-of-new-york"
+    },
+    {
+      "id": "309515",
+      "slug": "below",
+      "name": "54 Below",
+      "neighborhood": "Hell's Kitchen",
+      "address": "254 W 54th St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309515-below"
+    },
+    {
+      "id": "309426",
+      "slug": "lambda-lounge",
+      "name": "Lambda Lounge",
+      "neighborhood": "Harlem",
+      "address": "2256 Adam Clayton Powell Jr Blvd, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309426-lambda-lounge"
+    },
+    {
+      "id": "309425",
+      "slug": "the-lambda-lounge",
+      "name": "The Lambda Lounge",
+      "neighborhood": "Harlem",
+      "address": "2256 Adam Clayton Powell blvd, Manhattan",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309425-the-lambda-lounge"
+    },
+    {
+      "id": "309373",
+      "slug": "the-library-at-the-public",
+      "name": "The Library at the Public",
+      "neighborhood": "East Village",
+      "address": "425 Lafayette St, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309373-the-library-at-the-public"
+    },
+    {
+      "id": "309067",
+      "slug": "cmon-everybody",
+      "name": "C'mon Everybody",
+      "neighborhood": "Brooklyn",
+      "address": "325 Franklin Ave, Brooklyn",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309067-cmon-everybody"
+    },
+    {
+      "id": "309059",
+      "slug": "dollar-bill",
+      "name": "3 Dollar Bill",
+      "neighborhood": "Brooklyn",
+      "address": "260 Meserole St, Brooklyn",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309059-dollar-bill"
+    },
+    {
+      "id": "309052",
+      "slug": "playhouse",
+      "name": "Playhouse",
+      "neighborhood": "West Village",
+      "address": "100A 7th Ave S, New York",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/309052-playhouse"
+    },
+    {
+      "id": "307982",
+      "slug": "house-of-yes",
+      "name": "House of YES",
+      "neighborhood": "Brooklyn",
+      "address": "2 Wyckoff Ave, Brooklyn",
+      "closed": false,
+      "url": "https://newyork.gaycities.com/bars/307982-house-of-yes"
+    },
+    {
+      "id": "3431",
+      "slug": "mb-bar-boutique",
+      "name": "MB Bar Boutique",
+      "neighborhood": "Queens",
+      "address": "40-08 74th Street, Jackson Heights",
+      "closed": true,
+      "url": "https://newyork.gaycities.com/bars/3431-mb-bar-boutique"
+    },
+    {
+      "id": "440",
+      "slug": "the-duplex",
+      "name": "The Duplex",
+      "neighborhood": "West Village",
+      "address": "61 Christopher St, New York",
+      "closed": true,
+      "url": "https://newyork.gaycities.com/bars/440-the-duplex"
+    }
+  ]
+}

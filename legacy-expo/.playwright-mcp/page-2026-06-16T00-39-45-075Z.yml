@@ -1,0 +1,1023 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e5]:
+    - navigation [ref=e8]:
+      - generic [ref=e9]:
+        - link "GayCities Homepage" [ref=e10] [cursor=pointer]:
+          - /url: https://www.gaycities.com
+          - img "GayCities" [ref=e11]
+        - list [ref=e12]:
+          - listitem [ref=e13]:
+            - link "Cities" [ref=e14] [cursor=pointer]:
+              - /url: https://www.gaycities.com/places
+          - button "Articles" [ref=e16] [cursor=pointer]
+          - listitem [ref=e17]:
+            - link "Pride Finder" [ref=e18] [cursor=pointer]:
+              - /url: https://www.gaycities.com/events
+          - listitem [ref=e19]:
+            - link "Pride in Places" [ref=e20] [cursor=pointer]:
+              - /url: https://www.gaycities.com/pride-in-places
+      - generic [ref=e21]:
+        - search [ref=e23]:
+          - generic [ref=e25]:
+            - img [ref=e27]
+            - combobox [ref=e30]
+        - list [ref=e32]:
+          - listitem [ref=e33]:
+            - link "Sign In" [ref=e34] [cursor=pointer]:
+              - /url: https://www.gaycities.com/login
+          - listitem [ref=e35]:
+            - link "Register" [ref=e36] [cursor=pointer]:
+              - /url: https://www.gaycities.com/register
+              - button "Register" [ref=e37]
+  - generic [ref=e40]:
+    - link "Gay New York City" [ref=e41] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com
+      - strong [ref=e42]:
+        - text: Gay
+        - text: New York City
+    - link "Bars & Clubs" [ref=e43] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/bars
+      - img [ref=e45]
+      - text: Bars & Clubs
+    - link "Restaurants" [ref=e48] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/restaurants
+      - img [ref=e50]
+      - text: Restaurants
+    - link "Bathhouses" [ref=e62] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/bathhouses
+      - img [ref=e64]
+      - text: Bathhouses
+    - link "Hotels" [ref=e73] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/hotels
+      - img [ref=e75]
+      - text: Hotels
+    - link "Shops" [ref=e82] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/shops
+      - img [ref=e84]
+      - text: Shops
+    - link "Arts" [ref=e86] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/arts
+      - img [ref=e88]
+      - text: Arts
+    - link "Gyms" [ref=e95] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/gyms
+      - img [ref=e97]
+      - text: Gyms
+    - link "Beaches" [ref=e100] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/beaches
+      - img [ref=e102]
+      - text: Beaches
+    - link "History" [ref=e104] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/heritage
+      - img [ref=e106]
+      - text: History
+    - link "Articles" [ref=e146] [cursor=pointer]:
+      - /url: https://www.gaycities.com/articles/metro/newyork
+      - img [ref=e147]
+      - text: Articles
+    - link "Events" [ref=e149] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/events
+      - img [ref=e151]
+      - text: Events
+  - generic [ref=e157]:
+    - generic [ref=e158]:
+      - heading "Gay Bars in New York City" [level=1] [ref=e160]
+      - group [ref=e161]:
+        - text: Hide
+        - generic [ref=e162]:
+          - generic [ref=e163]: "Filter:"
+          - combobox "Filter by Neighborhood" [ref=e165]:
+            - option "All Neighborhoods" [selected]
+            - option "Hell's Kitchen (26)"
+            - option "Brooklyn (14)"
+            - option "West Village (11)"
+            - option "Queens (9)"
+            - option "East Village (7)"
+            - option "Chelsea (6)"
+            - option "Harlem (3)"
+            - option "Lower East Side (3)"
+            - option "East Side (2)"
+            - option "Midtown (2)"
+            - option "Astoria (1)"
+            - option "Flatiron District (1)"
+            - option "Meatpacking (1)"
+            - option "Upper East Side (1)"
+            - option "Upper West Side (1)"
+          - combobox "Filter by type" [ref=e167]:
+            - option "All Types" [selected]
+            - option "cocktail lounge (36)"
+            - option "dancing (35)"
+            - option "nightclub (20)"
+            - option "dive (17)"
+            - option "karaoke (14)"
+            - option "piano (11)"
+            - option "pub (10)"
+            - option "cabaret (9)"
+            - option "cruising (5)"
+            - option "video (5)"
+            - option "comedy club (4)"
+            - option "country (2)"
+            - option "sports (2)"
+            - option "tiki (1)"
+            - option "garden (1)"
+            - option "strip club (1)"
+          - combobox "Filter by vibe" [ref=e169]:
+            - option "All Vibes" [selected]
+            - option "casual (37)"
+            - option "live entertainment (33)"
+            - option "drag (32)"
+            - option "happy hour (30)"
+            - option "outdoor seating (26)"
+            - option "lively (18)"
+            - option "go-go boys (15)"
+            - option "upscale (14)"
+            - option "after work (12)"
+            - option "bar food (12)"
+            - option "pool table (9)"
+            - option "leather (7)"
+            - option "themed (6)"
+            - option "fetish (4)"
+            - option "Backroom (3)"
+            - option "craft beer (3)"
+            - option "luxe (3)"
+            - option "rooftop (3)"
+            - option "after hours (2)"
+            - option "techno (2)"
+            - option "romantic (2)"
+            - option "Smoking Area (1)"
+            - option "open mic (1)"
+            - option "industrial (1)"
+            - option "quiet (1)"
+          - combobox "Filter by crowd" [ref=e171]:
+            - option "All Crowds" [selected]
+            - option "30+ (79)"
+            - option "20+ (57)"
+            - option "40+ (41)"
+            - option "locals (21)"
+            - option "50+ (15)"
+            - option "bears (10)"
+            - option "daddies (8)"
+            - option "bears (7)"
+            - option "travelers (6)"
+            - option "all ages (3)"
+            - option "twinks (3)"
+            - option "18+ (3)"
+      - generic [ref=e174]:
+        - generic [ref=e175]:
+          - generic "Save" [ref=e176]:
+            - img [ref=e177]
+          - link "Eagle NYC" [ref=e179] [cursor=pointer]:
+            - /url: https://newyork.gaycities.com/bars/400-eagle-nyc
+          - generic [ref=e180]:
+            - link "Eagle NYC" [ref=e181] [cursor=pointer]:
+              - /url: https://newyork.gaycities.com/bars/400-eagle-nyc
+              - heading "Eagle NYC" [level=2] [ref=e182]
+            - generic [ref=e183]:
+              - figure "4.95 star(s)" [ref=e184]:
+                - img [ref=e185]
+                - img [ref=e187]
+                - img [ref=e189]
+                - img [ref=e191]
+                - img [ref=e193]
+              - text: (2549 Ratings)
+            - heading "Classic leather bar" [level=3] [ref=e196]
+            - paragraph [ref=e197]: The Eagle in NYC attracts a wide variety of men for cruising and all around fun. Head to the roof for all kinds of...
+            - paragraph [ref=e198]:
+              - img [ref=e199]
+              - link "Chelsea" [ref=e202] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/neighborhoods/chelsea
+              - text: · 554 W 28th St, New York
+            - list [ref=e203]:
+              - listitem [ref=e204]:
+                - link "20+" [ref=e205] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=20-somethings
+              - listitem [ref=e206]:
+                - link "30+" [ref=e207] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=30-somethings
+              - listitem [ref=e208]:
+                - link "40+" [ref=e209] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=40-somethings
+              - listitem [ref=e210]:
+                - link "Backroom" [ref=e211] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=backroom
+              - listitem [ref=e212]:
+                - link "leather" [ref=e213] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=leather
+              - listitem [ref=e214]:
+                - link "outdoor seating" [ref=e215] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=outdoor-seating
+              - listitem [ref=e216]:
+                - link "bears" [ref=e217] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=bears
+              - listitem [ref=e218]:
+                - link "cruising" [ref=e219] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=cruising
+              - listitem [ref=e220]:
+                - link "$$" [ref=e221] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?price=standard
+              - listitem [ref=e222]:
+                - link "dive" [ref=e223] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=dive-bars
+              - listitem [ref=e224]:
+                - link "casual" [ref=e225] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=casual
+              - listitem [ref=e226]:
+                - link "LGBTQ+ owned" [ref=e227] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=lgbtq-owned
+              - listitem [ref=e228]:
+                - link "fetish" [ref=e229] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=fetish
+              - listitem [ref=e230]:
+                - link "techno" [ref=e231] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=techno
+              - listitem [ref=e232]:
+                - link "rooftop" [ref=e233] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=rooftop
+              - listitem [ref=e234]:
+                - link "daddies" [ref=e235] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=daddies
+              - listitem [ref=e236]:
+                - link "bears" [ref=e237] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=Events
+        - separator [ref=e238]
+        - generic [ref=e239]:
+          - generic "Save" [ref=e240]:
+            - img [ref=e241]
+          - link "The Monster" [ref=e243] [cursor=pointer]:
+            - /url: https://newyork.gaycities.com/bars/442-the-monster
+          - generic [ref=e244]:
+            - link "The Monster" [ref=e245] [cursor=pointer]:
+              - /url: https://newyork.gaycities.com/bars/442-the-monster
+              - heading "The Monster" [level=2] [ref=e246]
+            - generic [ref=e247]:
+              - figure "4.95 star(s)" [ref=e248]:
+                - img [ref=e249]
+                - img [ref=e251]
+                - img [ref=e253]
+                - img [ref=e255]
+                - img [ref=e257]
+              - text: (1779 Ratings)
+            - heading "A West Village institution" [level=3] [ref=e260]
+            - paragraph [ref=e261]: Walk in at street level to the piano bar/lounge which retains its historic charm. Don't let the vintage decor...
+            - paragraph [ref=e262]:
+              - img [ref=e263]
+              - link "West Village" [ref=e266] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/neighborhoods/west-village
+              - text: · 80 Grove St, New York
+            - list [ref=e267]:
+              - listitem [ref=e268]:
+                - link "30+" [ref=e269] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=30-somethings
+              - listitem [ref=e270]:
+                - link "40+" [ref=e271] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=40-somethings
+              - listitem [ref=e272]:
+                - link "50+" [ref=e273] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=50-somethings
+              - listitem [ref=e274]:
+                - link "dancing" [ref=e275] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=dancing
+              - listitem [ref=e276]:
+                - link "drag" [ref=e277] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=drag-shows
+              - listitem [ref=e278]:
+                - link "go-go boys" [ref=e279] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=go-go-boysstrippers
+              - listitem [ref=e280]:
+                - link "piano" [ref=e281] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=piano-bar
+              - listitem [ref=e282]:
+                - link "happy hour" [ref=e283] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=happy-hour
+              - listitem [ref=e284]:
+                - link "bears" [ref=e285] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=bears
+              - listitem [ref=e286]:
+                - link "mixed LGBTQ+" [ref=e287] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=mixed-lgbtq
+              - listitem [ref=e288]:
+                - link "$$" [ref=e289] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?price=standard
+              - listitem [ref=e290]:
+                - link "live entertainment" [ref=e291] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=live-entertainment
+              - listitem [ref=e292]:
+                - link "travelers" [ref=e293] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=travelers
+              - listitem [ref=e294]:
+                - link "locals" [ref=e295] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=locals
+              - listitem [ref=e296]:
+                - link "twinks" [ref=e297] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=twinks
+              - listitem [ref=e298]:
+                - link "bears" [ref=e299] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=Events
+        - separator [ref=e300]
+        - generic [ref=e301]:
+          - generic "Save" [ref=e302]:
+            - img [ref=e303]
+          - link "Boxers NYC" [ref=e305] [cursor=pointer]:
+            - /url: https://newyork.gaycities.com/bars/3507-boxers-nyc
+          - generic [ref=e306]:
+            - link "Boxers NYC" [ref=e307] [cursor=pointer]:
+              - /url: https://newyork.gaycities.com/bars/3507-boxers-nyc
+              - heading "Boxers NYC" [level=2] [ref=e308]
+            - generic [ref=e309]:
+              - figure "4.96 star(s)" [ref=e310]:
+                - img [ref=e311]
+                - img [ref=e313]
+                - img [ref=e315]
+                - img [ref=e317]
+                - img [ref=e319]
+              - text: (1055 Ratings)
+            - heading "Chelsea sports bar" [level=3] [ref=e322]
+            - paragraph [ref=e323]: With two levels, pool tables, brick oven pizza, beer on tap, and plasma screens, this is a spot ideal for a causal...
+            - paragraph [ref=e324]:
+              - img [ref=e325]
+              - link "Chelsea" [ref=e328] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/neighborhoods/chelsea
+              - text: · 37 W 20th St, New York
+            - list [ref=e329]:
+              - listitem [ref=e330]:
+                - link "20+" [ref=e331] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=20-somethings
+              - listitem [ref=e332]:
+                - link "30+" [ref=e333] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=30-somethings
+              - listitem [ref=e334]:
+                - link "pool table" [ref=e335] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=pool-table
+              - listitem [ref=e336]:
+                - link "video" [ref=e337] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=video-bar
+              - listitem [ref=e338]:
+                - link "sports" [ref=e339] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=sports-bar
+              - listitem [ref=e340]:
+                - link "happy hour" [ref=e341] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=happy-hour
+              - listitem [ref=e342]:
+                - link "$$" [ref=e343] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?price=standard
+              - listitem [ref=e344]:
+                - link "bar food" [ref=e345] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=bar-food
+              - listitem [ref=e346]:
+                - link "LGBTQ+ owned" [ref=e347] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=lgbtq-owned
+        - separator [ref=e348]
+        - generic [ref=e349]:
+          - generic "Save" [ref=e350]:
+            - img [ref=e351]
+          - link "The Stonewall Inn" [ref=e353] [cursor=pointer]:
+            - /url: https://newyork.gaycities.com/bars/437-the-stonewall-inn
+          - generic [ref=e354]:
+            - link "The Stonewall Inn" [ref=e355] [cursor=pointer]:
+              - /url: https://newyork.gaycities.com/bars/437-the-stonewall-inn
+              - heading "The Stonewall Inn" [level=2] [ref=e356]
+            - generic [ref=e357]:
+              - figure "4.91 star(s)" [ref=e358]:
+                - img [ref=e359]
+                - img [ref=e361]
+                - img [ref=e363]
+                - img [ref=e365]
+                - img [ref=e367]
+              - text: (456 Ratings)
+            - heading "Where it all began" [level=3] [ref=e370]
+            - paragraph [ref=e371]: Stop in and check out the landmark bar that basically started the gay rights movement. On June 28, 1969, New York...
+            - paragraph [ref=e372]:
+              - img [ref=e373]
+              - link "West Village" [ref=e376] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/neighborhoods/west-village
+              - text: · 53 Christopher St, New York
+            - list [ref=e377]:
+              - listitem [ref=e378]:
+                - link "20+" [ref=e379] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=20-somethings
+              - listitem [ref=e380]:
+                - link "30+" [ref=e381] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=30-somethings
+              - listitem [ref=e382]:
+                - link "40+" [ref=e383] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=40-somethings
+              - listitem [ref=e384]:
+                - link "drag" [ref=e385] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=drag-shows
+              - listitem [ref=e386]:
+                - link "outdoor seating" [ref=e387] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=outdoor-seating
+              - listitem [ref=e388]:
+                - link "happy hour" [ref=e389] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=happy-hour
+              - listitem [ref=e390]:
+                - link "karaoke" [ref=e391] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=karaoke
+              - listitem [ref=e392]:
+                - link "mixed LGBTQ+" [ref=e393] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=mixed-lgbtq
+              - listitem [ref=e394]:
+                - link "$$" [ref=e395] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?price=standard
+        - separator [ref=e396]
+        - generic [ref=e397]:
+          - generic "Save" [ref=e398]:
+            - img [ref=e399]
+          - link "The Cock" [ref=e401] [cursor=pointer]:
+            - /url: https://newyork.gaycities.com/bars/421-the-cock
+          - generic [ref=e402]:
+            - link "The Cock" [ref=e403] [cursor=pointer]:
+              - /url: https://newyork.gaycities.com/bars/421-the-cock
+              - heading "The Cock" [level=2] [ref=e404]
+            - generic [ref=e405]:
+              - figure "4.86 star(s)" [ref=e406]:
+                - img [ref=e407]
+                - img [ref=e409]
+                - img [ref=e411]
+                - img [ref=e413]
+                - img [ref=e415]
+              - text: (397 Ratings)
+            - heading "Long-standing hole-in-the-wall gay bar" [level=3] [ref=e418]
+            - paragraph [ref=e419]: The Cock is one of the few remaining cruising spaces in New York City. It offers a two-level interior with a...
+            - paragraph [ref=e420]:
+              - img [ref=e421]
+              - link "East Village" [ref=e424] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/neighborhoods/east-village
+              - text: · 93 2nd Ave, New York
+            - list [ref=e425]:
+              - listitem [ref=e426]:
+                - link "20+" [ref=e427] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=20-somethings
+              - listitem [ref=e428]:
+                - link "30+" [ref=e429] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=30-somethings
+              - listitem [ref=e430]:
+                - link "40+" [ref=e431] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=40-somethings
+              - listitem [ref=e432]:
+                - link "Backroom" [ref=e433] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=backroom
+              - listitem [ref=e434]:
+                - link "drag" [ref=e435] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=drag-shows
+              - listitem [ref=e436]:
+                - link "go-go boys" [ref=e437] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=go-go-boysstrippers
+              - listitem [ref=e438]:
+                - link "leather" [ref=e439] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=leather
+              - listitem [ref=e440]:
+                - link "bears" [ref=e441] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=bears
+              - listitem [ref=e442]:
+                - link "cruising" [ref=e443] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=cruising
+              - listitem [ref=e444]:
+                - link "after hours" [ref=e445] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=after-hours
+              - listitem [ref=e446]:
+                - link "$$" [ref=e447] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?price=standard
+              - listitem [ref=e448]:
+                - link "live entertainment" [ref=e449] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=live-entertainment
+              - listitem [ref=e450]:
+                - link "dive" [ref=e451] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=dive-bars
+              - listitem [ref=e452]:
+                - link "casual" [ref=e453] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=casual
+              - listitem [ref=e454]:
+                - link "LGBTQ+ owned" [ref=e455] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=lgbtq-owned
+              - listitem [ref=e456]:
+                - link "fetish" [ref=e457] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=fetish
+              - listitem [ref=e458]:
+                - link "locals" [ref=e459] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=locals
+              - listitem [ref=e460]:
+                - link "daddies" [ref=e461] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=daddies
+              - listitem [ref=e462]:
+                - link "twinks" [ref=e463] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=twinks
+              - listitem [ref=e464]:
+                - link "bears" [ref=e465] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=Events
+        - separator [ref=e466]
+        - generic [ref=e468]:
+          - generic "Save" [ref=e469]:
+            - img [ref=e470]
+          - link "Gym Sportsbar" [ref=e472] [cursor=pointer]:
+            - /url: https://newyork.gaycities.com/bars/394-gym-sportsbar
+          - generic [ref=e473]:
+            - link "Gym Sportsbar" [ref=e474] [cursor=pointer]:
+              - /url: https://newyork.gaycities.com/bars/394-gym-sportsbar
+              - heading "Gym Sportsbar" [level=2] [ref=e475]
+            - generic [ref=e476]:
+              - figure "4.83 star(s)" [ref=e477]:
+                - img [ref=e478]
+                - img [ref=e480]
+                - img [ref=e482]
+                - img [ref=e484]
+                - img [ref=e486]
+              - text: (260 Ratings)
+            - heading "A genuine sports bar in the heart of Chelsea" [level=3] [ref=e489]
+            - paragraph [ref=e490]: If the real gym's too crowded, leave your manly Daisy Dukes and tank on and grab a beer with the other gym bunnies....
+            - paragraph [ref=e491]:
+              - img [ref=e492]
+              - link "Chelsea" [ref=e495] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/neighborhoods/chelsea
+              - text: · 167 8th Ave, New York
+            - list [ref=e496]:
+              - listitem [ref=e497]:
+                - link "20+" [ref=e498] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=20-somethings
+              - listitem [ref=e499]:
+                - link "30+" [ref=e500] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=30-somethings
+              - listitem [ref=e501]:
+                - link "40+" [ref=e502] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=40-somethings
+              - listitem [ref=e503]:
+                - link "dancing" [ref=e504] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=dancing
+              - listitem [ref=e505]:
+                - link "outdoor seating" [ref=e506] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=outdoor-seating
+              - listitem [ref=e507]:
+                - link "pool table" [ref=e508] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=pool-table
+              - listitem [ref=e509]:
+                - link "sports" [ref=e510] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=sports-bar
+              - listitem [ref=e511]:
+                - link "happy hour" [ref=e512] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=happy-hour
+              - listitem [ref=e513]:
+                - link "pub" [ref=e514] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=pubtavern
+              - listitem [ref=e515]:
+                - link "Smoking Area" [ref=e516] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=smoking-area
+        - separator [ref=e517]
+        - generic [ref=e518]:
+          - generic "Save" [ref=e519]:
+            - img [ref=e520]
+          - link "Industry Bar" [ref=e522] [cursor=pointer]:
+            - /url: https://newyork.gaycities.com/bars/300623-industry-bar
+          - generic [ref=e523]:
+            - link "Industry Bar" [ref=e524] [cursor=pointer]:
+              - /url: https://newyork.gaycities.com/bars/300623-industry-bar
+              - heading "Industry Bar" [level=2] [ref=e525]
+            - generic [ref=e526]:
+              - figure "4.89 star(s)" [ref=e527]:
+                - img [ref=e528]
+                - img [ref=e530]
+                - img [ref=e532]
+                - img [ref=e534]
+                - img [ref=e536]
+              - text: (254 Ratings)
+            - heading "After-work delights" [level=3] [ref=e539]
+            - paragraph [ref=e540]: Industry Bar is one of the Hell's Kitchen go-to bars for queens. With stiff cocktails, incredible entertainment,...
+            - paragraph [ref=e541]:
+              - img [ref=e542]
+              - link "Hell's Kitchen" [ref=e545] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/neighborhoods/hells-kitchen
+              - text: · 355 West 52nd Street, New York
+            - list [ref=e546]:
+              - listitem [ref=e547]:
+                - link "20+" [ref=e548] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=20-somethings
+              - listitem [ref=e549]:
+                - link "30+" [ref=e550] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=30-somethings
+              - listitem [ref=e551]:
+                - link "40+" [ref=e552] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=40-somethings
+              - listitem [ref=e553]:
+                - link "50+" [ref=e554] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=50-somethings
+              - listitem [ref=e555]:
+                - link "dancing" [ref=e556] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=dancing
+              - listitem [ref=e557]:
+                - link "drag" [ref=e558] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=drag-shows
+              - listitem [ref=e559]:
+                - link "mixed LGBTQ+" [ref=e560] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=mixed-lgbtq
+              - listitem [ref=e561]:
+                - link "$$" [ref=e562] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?price=standard
+              - listitem [ref=e563]:
+                - link "live entertainment" [ref=e564] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=live-entertainment
+              - listitem [ref=e565]:
+                - link "nightclub" [ref=e566] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=nightclub
+              - listitem [ref=e567]:
+                - link "locals" [ref=e568] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=locals
+              - listitem [ref=e569]:
+                - link "lively" [ref=e570] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=lively
+        - separator [ref=e571]
+        - generic [ref=e572]:
+          - generic "Save" [ref=e573]:
+            - img [ref=e574]
+          - link "Club Cumming" [ref=e576] [cursor=pointer]:
+            - /url: https://newyork.gaycities.com/bars/457-club-cumming
+          - generic [ref=e577]:
+            - link "Club Cumming" [ref=e578] [cursor=pointer]:
+              - /url: https://newyork.gaycities.com/bars/457-club-cumming
+              - heading "Club Cumming" [level=2] [ref=e579]
+            - generic [ref=e580]:
+              - figure "4.94 star(s)" [ref=e581]:
+                - img [ref=e582]
+                - img [ref=e584]
+                - img [ref=e586]
+                - img [ref=e588]
+                - img [ref=e590]
+              - text: (260 Ratings)
+            - heading "Take a walk on the wild side" [level=3] [ref=e593]
+            - paragraph [ref=e594]: Alan Cumming set up shop in the former Eastern Bloc and created something dark, sexy, kinky and wild. Step in and...
+            - paragraph [ref=e595]:
+              - img [ref=e596]
+              - link "East Village" [ref=e599] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/neighborhoods/east-village
+              - text: · 505 E 6th St, New York
+            - list [ref=e600]:
+              - listitem [ref=e601]:
+                - link "dancing" [ref=e602] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=dancing
+              - listitem [ref=e603]:
+                - link "drag" [ref=e604] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=drag-shows
+              - listitem [ref=e605]:
+                - link "go-go boys" [ref=e606] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=go-go-boysstrippers
+              - listitem [ref=e607]:
+                - link "piano" [ref=e608] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=piano-bar
+              - listitem [ref=e609]:
+                - link "happy hour" [ref=e610] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=happy-hour
+              - listitem [ref=e611]:
+                - link "18+" [ref=e612] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=18
+              - listitem [ref=e613]:
+                - link "mixed LGBTQ+" [ref=e614] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=mixed-lgbtq
+              - listitem [ref=e615]:
+                - link "$$" [ref=e616] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?price=standard
+              - listitem [ref=e617]:
+                - link "live entertainment" [ref=e618] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=live-entertainment
+              - listitem [ref=e619]:
+                - link "cabaret" [ref=e620] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=cabaret
+        - separator [ref=e621]
+        - generic [ref=e622]:
+          - generic "Save" [ref=e623]:
+            - img [ref=e624]
+          - link "Ty's Bar NYC" [ref=e626] [cursor=pointer]:
+            - /url: https://newyork.gaycities.com/bars/388-tys-bar-nyc
+          - generic [ref=e627]:
+            - link "Ty's Bar NYC" [ref=e628] [cursor=pointer]:
+              - /url: https://newyork.gaycities.com/bars/388-tys-bar-nyc
+              - heading "Ty's Bar NYC" [level=2] [ref=e629]
+            - generic [ref=e630]:
+              - figure "4.9 star(s)" [ref=e631]:
+                - img [ref=e632]
+                - img [ref=e634]
+                - img [ref=e636]
+                - img [ref=e638]
+                - img [ref=e640]
+              - text: (240 Ratings)
+            - heading "Historic Christopher Street institution" [level=3] [ref=e643]
+            - paragraph [ref=e644]: Firemen, policemen, and the men who love them should head to Ty's. Pop in for a beer and a mighty good time!
+            - paragraph [ref=e645]:
+              - img [ref=e646]
+              - link "West Village" [ref=e649] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/neighborhoods/west-village
+              - text: · 114 Christopher St, New York
+            - list [ref=e650]:
+              - listitem [ref=e651]:
+                - link "40+" [ref=e652] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=40-somethings
+              - listitem [ref=e653]:
+                - link "leather" [ref=e654] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=leather
+              - listitem [ref=e655]:
+                - link "happy hour" [ref=e656] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=happy-hour
+              - listitem [ref=e657]:
+                - link "bears" [ref=e658] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=bears
+              - listitem [ref=e659]:
+                - link "cruising" [ref=e660] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=cruising
+              - listitem [ref=e661]:
+                - link "dive" [ref=e662] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=dive-bars
+        - separator [ref=e663]
+        - generic [ref=e664]:
+          - generic "Save" [ref=e665]:
+            - img [ref=e666]
+          - link "Henrietta Hudson" [ref=e668] [cursor=pointer]:
+            - /url: https://newyork.gaycities.com/bars/433-henrietta-hudson
+          - generic [ref=e669]:
+            - link "Henrietta Hudson" [ref=e670] [cursor=pointer]:
+              - /url: https://newyork.gaycities.com/bars/433-henrietta-hudson
+              - heading "Henrietta Hudson" [level=2] [ref=e671]
+              - img [ref=e672]
+            - generic [ref=e673]:
+              - figure "4.84 star(s)" [ref=e674]:
+                - img [ref=e675]
+                - img [ref=e677]
+                - img [ref=e679]
+                - img [ref=e681]
+                - img [ref=e683]
+              - text: (184 Ratings)
+            - heading "New York's most popular lesbian bar" [level=3] [ref=e686]
+            - paragraph [ref=e687]: Once a crowded nightclub, Henrietta Hudson is now a moody wine bar with specialty cocktails, charcuterie and cheese...
+            - paragraph [ref=e688]: 2nd place in Best of GayCities 2025 - Best Women's Bar
+            - paragraph [ref=e689]:
+              - img [ref=e690]
+              - link "West Village" [ref=e693] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/neighborhoods/west-village
+              - text: · 438 Hudson St, New York
+            - list [ref=e694]:
+              - listitem [ref=e695]:
+                - link "lesbian" [ref=e696] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=lesbian
+              - listitem [ref=e697]:
+                - link "20+" [ref=e698] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=20-somethings
+              - listitem [ref=e699]:
+                - link "30+" [ref=e700] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?crowd=30-somethings
+              - listitem [ref=e701]:
+                - link "dancing" [ref=e702] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=dancing
+              - listitem [ref=e703]:
+                - link "outdoor seating" [ref=e704] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=outdoor-seating
+              - listitem [ref=e705]:
+                - link "video" [ref=e706] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=video-bar
+              - listitem [ref=e707]:
+                - link "happy hour" [ref=e708] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?vibe=happy-hour
+              - listitem [ref=e709]:
+                - link "mixed LGBTQ+" [ref=e710] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=mixed-lgbtq
+              - listitem [ref=e711]:
+                - link "cocktail lounge" [ref=e712] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?type=cocktail-lounge
+              - listitem [ref=e713]:
+                - link "$$$" [ref=e714] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?price=moderate
+              - listitem [ref=e715]:
+                - link "LGBTQ+ owned" [ref=e716] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=lgbtq-owned
+              - listitem [ref=e717]:
+                - link "women-led" [ref=e718] [cursor=pointer]:
+                  - /url: https://newyork.gaycities.com/bars?general=womenled
+        - separator [ref=e719]
+        - navigation "Pagination Navigation" [ref=e720]:
+          - generic [ref=e722]:
+            - paragraph [ref=e723]: Showing 1 to 10 of 91 results
+            - generic [ref=e725]:
+              - generic [ref=e727]: "1"
+              - link "Go to page 2" [ref=e728] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/bars?page=2&metro%5Bincrementing%5D=1&metro%5BpreventsLazyLoading%5D=0&metro%5Bexists%5D=1&metro%5BwasRecentlyCreated%5D=0&metro%5Btimestamps%5D=1&metro%5BusesUniqueIds%5D=0&listingType%5Bincrementing%5D=1&listingType%5BpreventsLazyLoading%5D=0&listingType%5Bexists%5D=1&listingType%5BwasRecentlyCreated%5D=0&listingType%5Btimestamps%5D=1&listingType%5BusesUniqueIds%5D=0&listing=2
+                - text: "2"
+              - link "Go to page 3" [ref=e729] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/bars?page=2&metro%5Bincrementing%5D=1&metro%5BpreventsLazyLoading%5D=0&metro%5Bexists%5D=1&metro%5BwasRecentlyCreated%5D=0&metro%5Btimestamps%5D=1&metro%5BusesUniqueIds%5D=0&listingType%5Bincrementing%5D=1&listingType%5BpreventsLazyLoading%5D=0&listingType%5Bexists%5D=1&listingType%5BwasRecentlyCreated%5D=0&listingType%5Btimestamps%5D=1&listingType%5BusesUniqueIds%5D=0&listing=3
+                - text: "3"
+              - link "Go to page 4" [ref=e730] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/bars?page=2&metro%5Bincrementing%5D=1&metro%5BpreventsLazyLoading%5D=0&metro%5Bexists%5D=1&metro%5BwasRecentlyCreated%5D=0&metro%5Btimestamps%5D=1&metro%5BusesUniqueIds%5D=0&listingType%5Bincrementing%5D=1&listingType%5BpreventsLazyLoading%5D=0&listingType%5Bexists%5D=1&listingType%5BwasRecentlyCreated%5D=0&listingType%5Btimestamps%5D=1&listingType%5BusesUniqueIds%5D=0&listing=4
+                - text: "4"
+              - link "Go to page 5" [ref=e731] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/bars?page=2&metro%5Bincrementing%5D=1&metro%5BpreventsLazyLoading%5D=0&metro%5Bexists%5D=1&metro%5BwasRecentlyCreated%5D=0&metro%5Btimestamps%5D=1&metro%5BusesUniqueIds%5D=0&listingType%5Bincrementing%5D=1&listingType%5BpreventsLazyLoading%5D=0&listingType%5Bexists%5D=1&listingType%5BwasRecentlyCreated%5D=0&listingType%5Btimestamps%5D=1&listingType%5BusesUniqueIds%5D=0&listing=5
+                - text: "5"
+              - generic [ref=e733]: ...
+              - link "Go to page 9" [ref=e734] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/bars?page=2&metro%5Bincrementing%5D=1&metro%5BpreventsLazyLoading%5D=0&metro%5Bexists%5D=1&metro%5BwasRecentlyCreated%5D=0&metro%5Btimestamps%5D=1&metro%5BusesUniqueIds%5D=0&listingType%5Bincrementing%5D=1&listingType%5BpreventsLazyLoading%5D=0&listingType%5Bexists%5D=1&listingType%5BwasRecentlyCreated%5D=0&listingType%5Btimestamps%5D=1&listingType%5BusesUniqueIds%5D=0&listing=9
+                - text: "9"
+              - link "Go to page 10" [ref=e735] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/bars?page=2&metro%5Bincrementing%5D=1&metro%5BpreventsLazyLoading%5D=0&metro%5Bexists%5D=1&metro%5BwasRecentlyCreated%5D=0&metro%5Btimestamps%5D=1&metro%5BusesUniqueIds%5D=0&listingType%5Bincrementing%5D=1&listingType%5BpreventsLazyLoading%5D=0&listingType%5Bexists%5D=1&listingType%5BwasRecentlyCreated%5D=0&listingType%5Btimestamps%5D=1&listingType%5BusesUniqueIds%5D=0&listing=10
+                - text: "10"
+              - link "Next &raquo;" [ref=e736] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com/bars?page=2&metro%5Bincrementing%5D=1&metro%5BpreventsLazyLoading%5D=0&metro%5Bexists%5D=1&metro%5BwasRecentlyCreated%5D=0&metro%5Btimestamps%5D=1&metro%5BusesUniqueIds%5D=0&listingType%5Bincrementing%5D=1&listingType%5BpreventsLazyLoading%5D=0&listingType%5Bexists%5D=1&listingType%5BwasRecentlyCreated%5D=0&listingType%5Btimestamps%5D=1&listingType%5BusesUniqueIds%5D=0&listing=2
+                - img [ref=e737]
+          - generic [ref=e740]:
+            - img [ref=e741]
+            - link "Suggest a place we're missing" [ref=e743] [cursor=pointer]:
+              - /url: /listings/new
+    - generic [ref=e753]:
+      - heading "Featured Articles" [level=2] [ref=e755]
+      - generic [ref=e756]:
+        - generic [ref=e757]:
+          - generic [ref=e759]:
+            - paragraph [ref=e760]: last call
+            - heading "The gay bar where I met my 'Sex and the City' foursome is closing & NYC will never be the same" [level=3] [ref=e761]
+          - link "The gay bar where I met my 'Sex and the City' foursome is closing & NYC will never be the same" [ref=e762] [cursor=pointer]:
+            - /url: https://www.gaycities.com/articles/96576/how-i-discovered-the-vanishing-gay-bar-where-i-met-my-and-the-city-foursome-irl/
+        - generic [ref=e763]:
+          - generic [ref=e765]:
+            - paragraph [ref=e766]: coming home
+            - heading "LGBTQ+ nightlife in the U.S. is thriving again" [level=3] [ref=e767]
+          - link "LGBTQ+ nightlife in the U.S. is thriving again" [ref=e768] [cursor=pointer]:
+            - /url: https://www.gaycities.com/articles/95601/lgbtq-nightlife-in-the-u-s-is-thriving-again/
+        - generic [ref=e769]:
+          - generic [ref=e771]:
+            - paragraph [ref=e772]: bogc
+            - 'heading "Best of GayCities: Best Bar or Nightclub nominees" [level=3] [ref=e773]'
+          - 'link "Best of GayCities: Best Bar or Nightclub nominees" [ref=e774] [cursor=pointer]':
+            - /url: https://www.gaycities.com/articles/93538/best-of-gaycities-best-bar-or-nightclub-nominees/
+        - generic [ref=e775]:
+          - generic [ref=e777]:
+            - paragraph [ref=e778]: pride problems
+            - heading "Why Ginger's Bar is turning down the party a few notches this Pride Month" [level=3] [ref=e779]
+          - link "Why Ginger's Bar is turning down the party a few notches this Pride Month" [ref=e780] [cursor=pointer]:
+            - /url: https://www.gaycities.com/articles/105334/why-gingers-bar-is-turning-down-the-party-a-few-notches-this-pride-month/
+  - separator [ref=e781]
+  - generic [ref=e784]:
+    - link "Gay New York City" [ref=e785] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com
+      - strong [ref=e786]:
+        - text: Gay
+        - text: New York City
+    - link "Bars & Clubs" [ref=e787] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/bars
+      - img [ref=e789]
+      - text: Bars & Clubs
+    - link "Restaurants" [ref=e792] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/restaurants
+      - img [ref=e794]
+      - text: Restaurants
+    - link "Bathhouses" [ref=e806] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/bathhouses
+      - img [ref=e808]
+      - text: Bathhouses
+    - link "Hotels" [ref=e817] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/hotels
+      - img [ref=e819]
+      - text: Hotels
+    - link "Shops" [ref=e826] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/shops
+      - img [ref=e828]
+      - text: Shops
+    - link "Arts" [ref=e830] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/arts
+      - img [ref=e832]
+      - text: Arts
+    - link "Gyms" [ref=e839] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/gyms
+      - img [ref=e841]
+      - text: Gyms
+    - link "Beaches" [ref=e844] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/beaches
+      - img [ref=e846]
+      - text: Beaches
+    - link "History" [ref=e848] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/heritage
+      - img [ref=e850]
+      - text: History
+    - link "Articles" [ref=e890] [cursor=pointer]:
+      - /url: https://www.gaycities.com/articles/metro/newyork
+      - img [ref=e891]
+      - text: Articles
+    - link "Events" [ref=e893] [cursor=pointer]:
+      - /url: https://newyork.gaycities.com/events
+      - img [ref=e895]
+      - text: Events
+  - contentinfo "Footer" [ref=e902]:
+    - heading "Footer" [level=2] [ref=e903]
+    - generic [ref=e905]:
+      - generic [ref=e906]:
+        - generic [ref=e907]:
+          - generic [ref=e908]:
+            - heading "Featured" [level=3] [ref=e909]
+            - list [ref=e910]:
+              - listitem [ref=e911]:
+                - link "Gay Atlanta" [ref=e912] [cursor=pointer]:
+                  - /url: https://atlanta.gaycities.com
+              - listitem [ref=e913]:
+                - link "Gay Mexico City" [ref=e914] [cursor=pointer]:
+                  - /url: https://mexicocity.gaycities.com
+              - listitem [ref=e915]:
+                - link "Gay Chicago" [ref=e916] [cursor=pointer]:
+                  - /url: https://chicago.gaycities.com
+              - listitem [ref=e917]:
+                - link "Gay Fort Lauderdale" [ref=e918] [cursor=pointer]:
+                  - /url: https://fortlauderdale.gaycities.com
+              - listitem [ref=e919]:
+                - link "Gay Las Vegas" [ref=e920] [cursor=pointer]:
+                  - /url: https://lasvegas.gaycities.com
+              - listitem [ref=e921]:
+                - link "Gay London" [ref=e922] [cursor=pointer]:
+                  - /url: https://london.gaycities.com
+          - list [ref=e924]:
+            - listitem [ref=e925]:
+              - link "Gay Los Angeles" [ref=e926] [cursor=pointer]:
+                - /url: https://losangeles.gaycities.com
+            - listitem [ref=e927]:
+              - link "Gay Montreal" [ref=e928] [cursor=pointer]:
+                - /url: https://montreal.gaycities.com
+            - listitem [ref=e929]:
+              - link "Gay New York" [ref=e930] [cursor=pointer]:
+                - /url: https://newyork.gaycities.com
+            - listitem [ref=e931]:
+              - link "Gay Palm Springs" [ref=e932] [cursor=pointer]:
+                - /url: https://palmsprings.gaycities.com
+            - listitem [ref=e933]:
+              - link "Gay San Francisco" [ref=e934] [cursor=pointer]:
+                - /url: https://sanfrancisco.gaycities.com
+            - listitem [ref=e935]:
+              - link "See all cities" [ref=e936] [cursor=pointer]:
+                - /url: https://www.gaycities.com/places
+        - generic [ref=e937]:
+          - generic [ref=e938]:
+            - heading "More" [level=3] [ref=e939]
+            - list [ref=e940]:
+              - listitem [ref=e941]:
+                - link "Travel Inspiration" [ref=e942] [cursor=pointer]:
+                  - /url: https://www.gaycities.com/articles/
+              - listitem [ref=e943]:
+                - link "Travel Tips and Tricks" [ref=e944] [cursor=pointer]:
+                  - /url: https://www.gaycities.com/articles/tips-and-tricks/
+              - listitem [ref=e945]:
+                - link "Wanderluxe" [ref=e946] [cursor=pointer]:
+                  - /url: https://www.gaycities.com/articles/channel/wander-luxe/
+              - listitem [ref=e947]:
+                - link "Pride Calendar" [ref=e948] [cursor=pointer]:
+                  - /url: https://www.gaycities.com/events/pride
+          - generic [ref=e949]:
+            - heading "Connect" [level=3] [ref=e950]
+            - list [ref=e951]:
+              - listitem [ref=e952]:
+                - link "Contact us" [ref=e953] [cursor=pointer]:
+                  - /url: https://www.gaycities.com/articles/contact-us/
+              - listitem [ref=e954]:
+                - link "Terms of Use" [ref=e955] [cursor=pointer]:
+                  - /url: https://www.gaycities.com/about/termsofuse
+              - listitem [ref=e956]:
+                - link "Privacy Policy" [ref=e957] [cursor=pointer]:
+                  - /url: https://www.gaycities.com/about/privacy
+              - listitem [ref=e958]:
+                - link "AI Policy" [ref=e959] [cursor=pointer]:
+                  - /url: https://www.gaycities.com/articles/ai-policy/
+              - listitem [ref=e960]:
+                - link "Privacy Notice for California Residents" [ref=e961] [cursor=pointer]:
+                  - /url: https://www.gaycities.com/about/privacy-notice-for-california-residents
+              - listitem [ref=e962]:
+                - link "Sitemap" [ref=e963] [cursor=pointer]:
+                  - /url: https://www.gaycities.com/about/sitemap
+      - generic [ref=e964]:
+        - heading "Join our newsletter" [level=3] [ref=e965]
+        - link "Sign Up" [ref=e966] [cursor=pointer]:
+          - /url: https://www.gaycities.com/articles/newsletter/
+        - generic [ref=e967]:
+          - text: A proud member of
+          - link "IGLTA" [ref=e968] [cursor=pointer]:
+            - /url: https://www.iglta.org
+            - img "IGLTA" [ref=e969]
+    - generic [ref=e972]:
+      - generic [ref=e973]:
+        - link "GayCities Facebook" [ref=e974] [cursor=pointer]:
+          - /url: https://www.facebook.com/GayCities/
+          - generic [ref=e975]:
+            - text: 
+            - generic [ref=e976]: Facebook
+        - link "GayCities Instagram" [ref=e977] [cursor=pointer]:
+          - /url: https://instagram.com/gaycities
+          - generic [ref=e978]:
+            - text: 
+            - generic [ref=e979]: Instagram
+        - link "GayCities Twitter/X" [ref=e980] [cursor=pointer]:
+          - /url: https://twitter.com/gaycities
+          - generic [ref=e981]:
+            - text: 
+            - generic [ref=e982]: Twitter
+        - link "GayCities Threads" [ref=e983] [cursor=pointer]:
+          - /url: https://www.threads.com/@gaycities
+          - generic [ref=e984]:
+            - text: 
+            - generic [ref=e985]: Threads
+        - link "GayCities Bluesky" [ref=e986] [cursor=pointer]:
+          - /url: https://bsky.app/profile/gaycities.com
+          - generic [ref=e987]:
+            - text: 
+            - generic [ref=e988]: Bluesky
+      - paragraph [ref=e989]:
+        - link "Q.Digital" [ref=e990] [cursor=pointer]:
+          - /url: https://www.q.digital
+          - img "Q.Digital" [ref=e991]
+        - text: ©2026 GayCities | Proudly LGBTQ+ Owned and Operated 🏳️‍🌈 🏳️‍⚧️
+  - iframe

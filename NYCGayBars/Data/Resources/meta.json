@@ -1,0 +1,21 @@
+{
+  "neighborhoods": [
+    "Brooklyn",
+    "Chelsea",
+    "East Village",
+    "Harlem",
+    "Hell's Kitchen",
+    "Lower East Side",
+    "Midtown East",
+    "Queens",
+    "Upper East Side",
+    "Upper West Side",
+    "West Village"
+  ],
+  "region": {
+    "latitude": 40.73,
+    "longitude": -73.96,
+    "latitudeDelta": 0.22,
+    "longitudeDelta": 0.22
+  }
+}

@@ -1,0 +1,44 @@
+name: NYCGayBars
+options:
+  bundleIdPrefix: com.normanhoang
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: "" # set your Apple Developer team in Xcode to run on device
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  NYCGayBars:
+    type: application
+    platform: iOS
+    sources:
+      - NYCGayBars
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.normanhoang.nycgaybars
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: NYCGayBars/Info.plist
+      properties:
+        CFBundleDisplayName: NYC Gay Bars
+        UIUserInterfaceStyle: Dark
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSLocationWhenInUseUsageDescription: "Used to show your distance to bars and sort them by proximity."
+        LSApplicationQueriesSchemes:
+          - instagram
+  NYCGayBarsTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - NYCGayBarsTests
+    dependencies:
+      - target: NYCGayBars
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
