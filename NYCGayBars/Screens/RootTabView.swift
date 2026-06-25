@@ -69,21 +69,24 @@ struct RootTabView: View {
             ForEach(Array(tabs.enumerated()), id: \.offset) { i, tab in
                 let active = pillPage == i
                 Button {
-                    pillPage = i   // instant — no animation wrapper
+                    // Snappy (not bouncy) so the move feels instant on tap yet
+                    // still rides an animation transaction — without one the
+                    // matched-geometry pill is removed+reinserted and flashes.
+                    withAnimation(.snappy(duration: 0.18)) { pillPage = i }
                     page = i
                 } label: {
-                    VStack(spacing: 3) {
-                        Image(systemName: tab.icon).font(.system(size: 20, weight: .semibold))
-                        Text(tab.label).font(.system(size: 11, weight: .semibold))
+                    VStack(spacing: 2) {
+                        Image(systemName: tab.icon).font(.system(size: 13, weight: .semibold))
+                        Text(tab.label).font(.system(size: 9, weight: .semibold))
                     }
                     .foregroundStyle(active ? .white : Palette.gray400)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 7)
                     .background {
                         if active {
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            Capsule(style: .continuous)
                                 .fill(Palette.primary)
-                                .shadow(color: Palette.primary.opacity(0.45), radius: 8)
+                                .shadow(color: Palette.primary.opacity(0.45), radius: 6)
                                 .matchedGeometryEffect(id: "tabPill", in: tabNS)
                         }
                     }
@@ -91,8 +94,8 @@ struct RootTabView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(6)
-        .glassSurface(radius: 20, bordered: true)
+        .padding(4)
+        .glassSurface(radius: 26, bordered: true)
         .padding(.horizontal, 20)
     }
 }
