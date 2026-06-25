@@ -267,7 +267,7 @@
   {
     "id": "metropolitan",
     "name": "Metropolitan",
-    "neighborhood": "East Williamsburg",
+    "neighborhood": "Williamsburg",
     "address": "559 Lorimer St, Brooklyn",
     "latitude": 40.713656,
     "longitude": -73.949379,
@@ -459,7 +459,7 @@
   {
     "id": "animal",
     "name": "ANIMAL",
-    "neighborhood": "Greenpoint",
+    "neighborhood": "Williamsburg",
     "address": "307 Meeker Ave",
     "latitude": 40.718649,
     "longitude": -73.947183,
@@ -612,7 +612,7 @@
   {
     "id": "the-red-pavilion",
     "name": "The Red Pavilion",
-    "neighborhood": "East Williamsburg",
+    "neighborhood": "Williamsburg",
     "address": "1241 Flushing Ave",
     "latitude": 40.70813,
     "longitude": -73.923433,
@@ -636,7 +636,7 @@
   {
     "id": "the-rosemont",
     "name": "The Rosemont",
-    "neighborhood": "East Williamsburg",
+    "neighborhood": "Williamsburg",
     "address": "63 Montrose Ave",
     "latitude": 40.706976,
     "longitude": -73.947465,
@@ -661,7 +661,7 @@
   {
     "id": "basement-ny",
     "name": "BASEMENT NY",
-    "neighborhood": "Bushwick",
+    "neighborhood": "Williamsburg",
     "address": "52-19 Flushing Ave, Maspeth",
     "latitude": 40.714558,
     "longitude": -73.914144,
@@ -732,7 +732,7 @@
   {
     "id": "pink-metal",
     "name": "Pink Metal",
-    "neighborhood": "Bushwick",
+    "neighborhood": "Williamsburg",
     "address": "253 Bushwick Ave, Brooklyn",
     "latitude": 40.707324,
     "longitude": -73.939705,
@@ -792,7 +792,7 @@
   {
     "id": "cmon-everybody",
     "name": "C'mon Everybody",
-    "neighborhood": "Bed-Stuy",
+    "neighborhood": "Bedford-Stuyvesant",
     "address": "325 Franklin Ave, Brooklyn",
     "latitude": 40.689679,
     "longitude": -73.957019,
@@ -804,7 +804,7 @@
   {
     "id": "3-dollar-bill",
     "name": "3 Dollar Bill",
-    "neighborhood": "Bushwick",
+    "neighborhood": "Williamsburg",
     "address": "260 Meserole St, Brooklyn",
     "latitude": 40.708506,
     "longitude": -73.93814,
@@ -892,7 +892,7 @@
   {
     "id": "the-brooklyn-monarch",
     "name": "The Brooklyn Monarch",
-    "neighborhood": "Bushwick",
+    "neighborhood": "Williamsburg",
     "address": "23 Meadow St, Brooklyn",
     "latitude": 40.710814,
     "longitude": -73.936171

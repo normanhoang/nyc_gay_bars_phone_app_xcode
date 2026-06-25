@@ -117,8 +117,8 @@ enum Stats {
 
     // MARK: - Streak helpers
 
-    private static let brooklynHoods: Set = ["Greenpoint", "East Williamsburg", "Bushwick",
-        "Park Slope", "Prospect Heights", "Bed-Stuy", "Carroll Gardens"]
+    private static let brooklynHoods: Set = ["Williamsburg", "Bushwick", "Bedford-Stuyvesant",
+        "Prospect Heights", "Park Slope", "Carroll Gardens"]
     private static let queensHoods: Set = ["Astoria", "Jackson Heights"]
 
     /// Coarse borough for a neighborhood (Manhattan unless it's a known BK/QN one).

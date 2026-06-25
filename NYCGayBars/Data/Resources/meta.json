@@ -1,13 +1,11 @@
 {
   "neighborhoods": [
     "Astoria",
-    "Bed-Stuy",
+    "Bedford-Stuyvesant",
     "Bushwick",
     "Carroll Gardens",
     "Chelsea",
     "East Village",
-    "East Williamsburg",
-    "Greenpoint",
     "Harlem",
     "Hell's Kitchen",
     "Jackson Heights",
@@ -17,7 +15,8 @@
     "Prospect Heights",
     "Upper East Side",
     "Upper West Side",
-    "West Village"
+    "West Village",
+    "Williamsburg"
   ],
   "region": {
     "latitude": 40.73,
