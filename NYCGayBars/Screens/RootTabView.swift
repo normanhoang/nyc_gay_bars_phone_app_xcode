@@ -80,7 +80,7 @@ struct RootTabView: View {
                         Text(tab.label).font(.system(size: 9, weight: .semibold))
                     }
                     .foregroundStyle(active ? .white : Palette.gray400)
-                    .frame(maxWidth: .infinity)
+                    .frame(width: 80)
                     .padding(.vertical, 7)
                     .background {
                         if active {
@@ -96,6 +96,5 @@ struct RootTabView: View {
         }
         .padding(4)
         .glassSurface(radius: 26, bordered: true)
-        .padding(.horizontal, 20)
     }
 }

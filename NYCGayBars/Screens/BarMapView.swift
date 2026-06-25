@@ -18,7 +18,10 @@ struct BarMapView: View {
     @State private var camera: MapCameraPosition = .automatic
     @State private var framedSpan: Double = 0.22
     @State private var suppressNextFrame = false
-    @State private var isFraming = false
+    /// Set when we programmatically reframe; the next camera-change records the
+    /// real rendered span (which MapKit may enlarge to fit a wide region) so the
+    /// zoom-out check compares against what's actually on screen.
+    @State private var awaitingFrame = false
 
     var body: some View {
         MapReader { proxy in
@@ -72,9 +75,7 @@ struct BarMapView: View {
     private func frame(animated: Bool) {
         if suppressNextFrame { suppressNextFrame = false; return }
         let region = targetRegion()
-        framedSpan = region.span.latitudeDelta
-        isFraming = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { isFraming = false }
+        awaitingFrame = true
         let apply = { camera = .region(region) }
         if animated { withAnimation(.easeInOut(duration: 0.35)) { apply() } } else { apply() }
     }
@@ -97,7 +98,13 @@ struct BarMapView: View {
     }
 
     private func handleCameraChange(_ region: MKCoordinateRegion) {
-        guard !isFraming else { return }
+        // First settle after a programmatic reframe: record the real rendered
+        // span and don't treat it as a user zoom-out.
+        if awaitingFrame {
+            framedSpan = region.span.latitudeDelta
+            awaitingFrame = false
+            return
+        }
         let r = Region(latitude: region.center.latitude, longitude: region.center.longitude,
                        latitudeDelta: region.span.latitudeDelta, longitudeDelta: region.span.longitudeDelta)
         // Zoomed out to span 2+ neighborhoods and 1.2x past the framed span.
