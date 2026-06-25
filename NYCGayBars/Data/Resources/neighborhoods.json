@@ -1,22 +1,4 @@
 {
-  "Brooklyn": [
-    {
-      "latitude": 40.661277,
-      "longitude": -73.994682
-    },
-    {
-      "latitude": 40.697231,
-      "longitude": -73.930193
-    },
-    {
-      "latitude": 40.716427,
-      "longitude": -73.910363
-    },
-    {
-      "latitude": 40.721009,
-      "longitude": -73.947367
-    }
-  ],
   "Chelsea": [
     {
       "latitude": 40.762295,
@@ -1629,28 +1611,6 @@
       "longitude": -73.966583
     }
   ],
-  "Queens": [
-    {
-      "latitude": 40.76211,
-      "longitude": -73.925848
-    },
-    {
-      "latitude": 40.760707,
-      "longitude": -73.924608
-    },
-    {
-      "latitude": 40.745281,
-      "longitude": -73.89006
-    },
-    {
-      "latitude": 40.747859,
-      "longitude": -73.867976
-    },
-    {
-      "latitude": 40.771993,
-      "longitude": -73.913664
-    }
-  ],
   "Upper East Side": [
     {
       "latitude": 40.780159,
@@ -2339,6 +2299,78 @@
     {
       "latitude": 40.742496,
       "longitude": -74.009153
+    }
+  ],
+  "Williamsburg": [
+    {
+      "latitude": 40.729,
+      "longitude": -73.96
+    },
+    {
+      "latitude": 40.729,
+      "longitude": -73.903
+    },
+    {
+      "latitude": 40.687,
+      "longitude": -73.903
+    },
+    {
+      "latitude": 40.687,
+      "longitude": -73.96
+    }
+  ],
+  "Downtown Brooklyn": [
+    {
+      "latitude": 40.7,
+      "longitude": -74.01
+    },
+    {
+      "latitude": 40.7,
+      "longitude": -73.947
+    },
+    {
+      "latitude": 40.655,
+      "longitude": -73.947
+    },
+    {
+      "latitude": 40.655,
+      "longitude": -74.01
+    }
+  ],
+  "Astoria": [
+    {
+      "latitude": 40.78,
+      "longitude": -73.93
+    },
+    {
+      "latitude": 40.78,
+      "longitude": -73.903
+    },
+    {
+      "latitude": 40.75,
+      "longitude": -73.903
+    },
+    {
+      "latitude": 40.75,
+      "longitude": -73.93
+    }
+  ],
+  "Jackson Heights": [
+    {
+      "latitude": 40.76,
+      "longitude": -73.902
+    },
+    {
+      "latitude": 40.76,
+      "longitude": -73.861
+    },
+    {
+      "latitude": 40.736,
+      "longitude": -73.861
+    },
+    {
+      "latitude": 40.736,
+      "longitude": -73.902
     }
   ]
 }

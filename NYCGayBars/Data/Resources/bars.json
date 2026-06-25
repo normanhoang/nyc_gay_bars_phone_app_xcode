@@ -255,7 +255,7 @@
   {
     "id": "friends-tavern",
     "name": "Friend's Tavern",
-    "neighborhood": "Queens",
+    "neighborhood": "Jackson Heights",
     "address": "78-11 Roosevelt Ave, Jackson Heights",
     "latitude": 40.747321,
     "longitude": -73.8875,
@@ -267,7 +267,7 @@
   {
     "id": "metropolitan",
     "name": "Metropolitan",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "559 Lorimer St, Brooklyn",
     "latitude": 40.713656,
     "longitude": -73.949379,
@@ -326,7 +326,7 @@
   {
     "id": "gingers-bar",
     "name": "Ginger's Bar",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Downtown Brooklyn",
     "address": "363 5th Ave, Brooklyn",
     "latitude": 40.671414,
     "longitude": -73.984348,
@@ -338,7 +338,7 @@
   {
     "id": "hombres-lounge",
     "name": "Hombres Lounge",
-    "neighborhood": "Queens",
+    "neighborhood": "Jackson Heights",
     "address": "85-28 37th Avenue, Jackson Heights",
     "latitude": 40.750014,
     "longitude": -73.881213,
@@ -362,7 +362,7 @@
   {
     "id": "icon-bar",
     "name": "Icon Bar",
-    "neighborhood": "Queens",
+    "neighborhood": "Astoria",
     "address": "31-84 33rd St, Astoria",
     "latitude": 40.761626,
     "longitude": -73.923553,
@@ -386,7 +386,7 @@
   {
     "id": "albatross-bar",
     "name": "Albatross Bar",
-    "neighborhood": "Queens",
+    "neighborhood": "Astoria",
     "address": "36-19 24th Ave, Astoria",
     "latitude": 40.77045,
     "longitude": -73.912675,
@@ -423,7 +423,7 @@
   {
     "id": "branded-saloon",
     "name": "Branded Saloon",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Downtown Brooklyn",
     "address": "603 Vanderbilt Ave, Brooklyn",
     "latitude": 40.679354,
     "longitude": -73.968173,
@@ -435,7 +435,7 @@
   {
     "id": "good-judy",
     "name": "Good Judy",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Downtown Brooklyn",
     "address": "563 5th Avenue, Brooklyn",
     "latitude": 40.665317,
     "longitude": -73.989429,
@@ -459,7 +459,7 @@
   {
     "id": "animal",
     "name": "ANIMAL",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "307 Meeker Ave",
     "latitude": 40.718649,
     "longitude": -73.947183,
@@ -565,7 +565,7 @@
   {
     "id": "upstairs-cocktail-bar",
     "name": "Upstairs Cocktail Bar",
-    "neighborhood": "Queens",
+    "neighborhood": "Jackson Heights",
     "address": "7122 Roosevelt Ave",
     "latitude": 40.748902,
     "longitude": -73.871882,
@@ -601,7 +601,7 @@
   {
     "id": "the-highwater",
     "name": "The Highwater",
-    "neighborhood": "Queens",
+    "neighborhood": "Astoria",
     "address": "34-20 Broadway",
     "latitude": 40.760373,
     "longitude": -73.922446,
@@ -612,7 +612,7 @@
   {
     "id": "the-red-pavilion",
     "name": "The Red Pavilion",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "1241 Flushing Ave",
     "latitude": 40.70813,
     "longitude": -73.923433,
@@ -624,7 +624,7 @@
   {
     "id": "the-bush",
     "name": "The Bush",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "333 Troutman St, Brooklyn",
     "latitude": 40.704952,
     "longitude": -73.924553,
@@ -636,7 +636,7 @@
   {
     "id": "the-rosemont",
     "name": "The Rosemont",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "63 Montrose Ave",
     "latitude": 40.706976,
     "longitude": -73.947465,
@@ -649,7 +649,7 @@
   {
     "id": "happyfun-hideaway",
     "name": "Happyfun Hideaway",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "1211 Myrtle Ave",
     "latitude": 40.697419,
     "longitude": -73.931849,
@@ -661,7 +661,7 @@
   {
     "id": "basement-ny",
     "name": "BASEMENT NY",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "52-19 Flushing Ave, Maspeth",
     "latitude": 40.714558,
     "longitude": -73.914144,
@@ -684,7 +684,7 @@
   {
     "id": "diamond-dogs",
     "name": "Diamond Dogs",
-    "neighborhood": "Queens",
+    "neighborhood": "Astoria",
     "address": "34-04 31st Ave",
     "latitude": 40.763008,
     "longitude": -73.920978,
@@ -696,7 +696,7 @@
   {
     "id": "kween",
     "name": "Kween",
-    "neighborhood": "Queens",
+    "neighborhood": "Astoria",
     "address": "34-10 30th Ave.",
     "latitude": 40.765445,
     "longitude": -73.918761,
@@ -708,7 +708,7 @@
   {
     "id": "viva-la-heights",
     "name": "Viva La Heights",
-    "neighborhood": "Queens",
+    "neighborhood": "Jackson Heights",
     "address": "78-13 Roosevelt Ave",
     "latitude": 40.747501,
     "longitude": -73.887111,
@@ -732,7 +732,7 @@
   {
     "id": "pink-metal",
     "name": "Pink Metal",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "253 Bushwick Ave, Brooklyn",
     "latitude": 40.707324,
     "longitude": -73.939705,
@@ -792,7 +792,7 @@
   {
     "id": "cmon-everybody",
     "name": "C'mon Everybody",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Downtown Brooklyn",
     "address": "325 Franklin Ave, Brooklyn",
     "latitude": 40.689679,
     "longitude": -73.957019,
@@ -804,7 +804,7 @@
   {
     "id": "3-dollar-bill",
     "name": "3 Dollar Bill",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "260 Meserole St, Brooklyn",
     "latitude": 40.708506,
     "longitude": -73.93814,
@@ -828,7 +828,7 @@
   {
     "id": "house-of-yes",
     "name": "House of YES",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "2 Wyckoff Ave, Brooklyn",
     "latitude": 40.706947,
     "longitude": -73.92358,
@@ -840,7 +840,7 @@
   {
     "id": "mb-bar-boutique-closed-temporarily",
     "name": "MB Bar Boutique (Closed Temporarily)",
-    "neighborhood": "Queens",
+    "neighborhood": "Jackson Heights",
     "address": "40-08 74th Street, Jackson Heights",
     "latitude": 40.7466,
     "longitude": -73.8916,
@@ -892,7 +892,7 @@
   {
     "id": "the-brooklyn-monarch",
     "name": "The Brooklyn Monarch",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "23 Meadow St, Brooklyn",
     "latitude": 40.710814,
     "longitude": -73.936171
@@ -900,7 +900,7 @@
   {
     "id": "boyfriend-co-op",
     "name": "BOYFRIEND co-op",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Williamsburg",
     "address": "1157 Myrtle Ave, Brooklyn",
     "latitude": 40.697092,
     "longitude": -73.934772,
@@ -912,7 +912,7 @@
   {
     "id": "loafers-cocktail-bar",
     "name": "Loafers Cocktail Bar",
-    "neighborhood": "Brooklyn",
+    "neighborhood": "Downtown Brooklyn",
     "address": "517 Court St, Brooklyn",
     "latitude": 40.67513,
     "longitude": -73.999307,

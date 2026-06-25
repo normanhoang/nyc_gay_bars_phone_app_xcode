@@ -1,16 +1,18 @@
 {
   "neighborhoods": [
-    "Brooklyn",
+    "Astoria",
     "Chelsea",
+    "Downtown Brooklyn",
     "East Village",
     "Harlem",
     "Hell's Kitchen",
+    "Jackson Heights",
     "Lower East Side",
     "Midtown East",
-    "Queens",
     "Upper East Side",
     "Upper West Side",
-    "West Village"
+    "West Village",
+    "Williamsburg"
   ],
   "region": {
     "latitude": 40.73,
