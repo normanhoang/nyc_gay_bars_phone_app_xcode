@@ -68,6 +68,7 @@ struct ExploreView: View {
             statsRow
             content
         }
+        .dismissKeyboardOnBackgroundTap()
         .onAppear { location.start(); tabSwipe.enabled = (mode == 1) }
         .onChange(of: mode) { _, m in tabSwipe.enabled = (m == 1) }
         .sheet(item: $selectedBar) { bar in

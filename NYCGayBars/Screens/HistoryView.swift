@@ -93,10 +93,23 @@ struct HistoryView: View {
         .sheet(isPresented: $showPicker) {
             LogDayPicker(day: selectedDay).environmentObject(visits)
         }
-        .confirmationDialog("Clear all history?", isPresented: $showClear, titleVisibility: .visible) {
-            Button("Drink history only", role: .destructive) { visits.clearHistory(includeVisited: false) }
-            Button("Full reset (incl. visited)", role: .destructive) { visits.clearHistory(includeVisited: true) }
-            Button("Cancel", role: .cancel) {}
-        } message: { Text("This can't be undone. Choose what to clear:") }
+        .overlay {
+            if showClear {
+                ConfirmDialog(
+                    title: "Clear all history?",
+                    message: "This can't be undone. Choose what to clear:",
+                    actions: [
+                        .init(label: "Drink history only", style: .destructive) {
+                            visits.clearHistory(includeVisited: false)
+                        },
+                        .init(label: "Full reset (incl. visited)", style: .destructive) {
+                            visits.clearHistory(includeVisited: true)
+                        },
+                        .init(label: "Cancel", style: .cancel) {},
+                    ],
+                    onDismiss: { withAnimation(.easeOut(duration: 0.2)) { showClear = false } })
+            }
+        }
+        .animation(.easeOut(duration: 0.2), value: showClear)
     }
 }

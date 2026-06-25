@@ -11,11 +11,13 @@
 		081C116E7C2B613480BE61C5 /* LogDayPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9111D5F236C2420820A109B5 /* LogDayPicker.swift */; };
 		0995E846384F405F3260600F /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A60362DDA4AE75915EA919D /* Haptics.swift */; };
 		09C420EA2046F3E5921022E1 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4EFE178F73B08E4AD5504E0 /* Models.swift */; };
+		09D6507D13F9F01E5BC839E5 /* ConfirmDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D238B7F76F5A764AEDDAF032 /* ConfirmDialog.swift */; };
 		14779FB2C4502F579723A355 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E5EE1326FD313C1BAF4F87 /* StatsView.swift */; };
 		1851EEDD1913443CF27669F0 /* SegmentedToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5CBB33EC05392CE4D02073 /* SegmentedToggle.swift */; };
 		1E546B3D615B3EBED2FF6DEF /* DayKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCD591C8B681CE1D3C9D0D81 /* DayKey.swift */; };
 		240DCFCC1E4C6AAF7427DE95 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE8CE4ACAEF21D3435843EAC /* ExploreView.swift */; };
 		32BE164ADE21AC12627961BE /* FilterChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C9AEE9C76BF3770FA4BDE5 /* FilterChips.swift */; };
+		3592D1D69FB998F6485DF5C3 /* KeyboardDismiss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F28F373FFFBF7655744414 /* KeyboardDismiss.swift */; };
 		39142DEA98095B61B604EA41 /* BarMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2DE83E5D877E615C5E7642 /* BarMapView.swift */; };
 		3C86C12FA6FF617B331D7947 /* BadgeTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30AFBE2E59FDFCFCD7E8EA0 /* BadgeTile.swift */; };
 		3E393A67CE2AE0F06764C1B8 /* bars.json in Resources */ = {isa = PBXBuildFile; fileRef = CB21A6E691857F61F5742553 /* bars.json */; };
@@ -65,6 +67,7 @@
 
 /* Begin PBXFileReference section */
 		01D55F9E01785AD115D5B129 /* VisitCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitCard.swift; sourceTree = "<group>"; };
+		02F28F373FFFBF7655744414 /* KeyboardDismiss.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardDismiss.swift; sourceTree = "<group>"; };
 		0715C93C3976A142C4727245 /* DrinkLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkLogger.swift; sourceTree = "<group>"; };
 		0A78E2C8B08CC339744833B0 /* Stats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stats.swift; sourceTree = "<group>"; };
 		0D32F0B9D8891FFCD2251FCF /* BarDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarDetailSheet.swift; sourceTree = "<group>"; };
@@ -101,10 +104,11 @@
 		B5AB110A7AC0A69A887C6B98 /* BadgeToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeToast.swift; sourceTree = "<group>"; };
 		B958682051DE0CAAEE2F37C3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BF80EE4FDD07B59D62F75213 /* Drinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drinks.swift; sourceTree = "<group>"; };
-		BFD6942ED933E6060ED253DC /* NYCGayBars.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NYCGayBars.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BFD6942ED933E6060ED253DC /* NYCGayBars.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NYCGayBars.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4E32EF1AC4DB4BC48297EE6 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		CB21A6E691857F61F5742553 /* bars.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = bars.json; sourceTree = "<group>"; };
 		D138CFDDDB1016084CC6BC15 /* MonthCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthCalendar.swift; sourceTree = "<group>"; };
+		D238B7F76F5A764AEDDAF032 /* ConfirmDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmDialog.swift; sourceTree = "<group>"; };
 		D4D914076E4525196618332F /* meta.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = meta.json; sourceTree = "<group>"; };
 		D69382DB16334001E4E16A08 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DCD591C8B681CE1D3C9D0D81 /* DayKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayKey.swift; sourceTree = "<group>"; };
@@ -226,9 +230,11 @@
 				B5AB110A7AC0A69A887C6B98 /* BadgeToast.swift */,
 				7C0E3C68064192C81E87A4B1 /* BarListItem.swift */,
 				789FAD37EC579F1E13118A4B /* Confetti.swift */,
+				D238B7F76F5A764AEDDAF032 /* ConfirmDialog.swift */,
 				213D7A49D3A0503231D58A3A /* CountUp.swift */,
 				A3C9AEE9C76BF3770FA4BDE5 /* FilterChips.swift */,
 				69CEA7D06EDF5BB4A5D4172A /* FlowLayout.swift */,
+				02F28F373FFFBF7655744414 /* KeyboardDismiss.swift */,
 				D138CFDDDB1016084CC6BC15 /* MonthCalendar.swift */,
 				555933B060A09C51E958783F /* Motion.swift */,
 				4A489A316640E12D8D230F6B /* ProgressBar.swift */,
@@ -312,6 +318,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					B3442538EA9D35008C8DFEEE = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					E1296999D3C589250D834A69 = {
@@ -377,6 +384,7 @@
 				ADB01E5585D4CE7DECF24D53 /* BarListItem.swift in Sources */,
 				39142DEA98095B61B604EA41 /* BarMapView.swift in Sources */,
 				43FFDB2E34C8B1AC006904EB /* Confetti.swift in Sources */,
+				09D6507D13F9F01E5BC839E5 /* ConfirmDialog.swift in Sources */,
 				A0BF6CAA8A1B4A3C1DDF557A /* CountUp.swift in Sources */,
 				1E546B3D615B3EBED2FF6DEF /* DayKey.swift in Sources */,
 				C98F9CD367151DD4E3DDF7BB /* DrinkLogger.swift in Sources */,
@@ -388,6 +396,7 @@
 				DA303AC59D33BFFE8E432EB1 /* Glass.swift in Sources */,
 				0995E846384F405F3260600F /* Haptics.swift in Sources */,
 				C11056DE5B9E5DFEE8E02267 /* HistoryView.swift in Sources */,
+				3592D1D69FB998F6485DF5C3 /* KeyboardDismiss.swift in Sources */,
 				9D69762BF9C28185C0473324 /* LocationManager.swift in Sources */,
 				081C116E7C2B613480BE61C5 /* LogDayPicker.swift in Sources */,
 				09C420EA2046F3E5921022E1 /* Models.swift in Sources */,
@@ -459,7 +468,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = DZRPJF9JB6;
 				INFOPLIST_FILE = NYCGayBars/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -476,7 +484,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = DZRPJF9JB6;
 				INFOPLIST_FILE = NYCGayBars/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

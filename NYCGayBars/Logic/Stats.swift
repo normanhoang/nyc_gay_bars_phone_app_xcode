@@ -21,7 +21,11 @@ enum Stats {
         visits.reduce(0) { $0 + $1.drinkTotal }
     }
 
-    static func totalDrinkDays(_ visits: [Visit]) -> Int { visits.count }
+    /// Number of distinct calendar days the user went to a bar (a day at two
+    /// bars counts once).
+    static func totalDrinkDays(_ visits: [Visit]) -> Int {
+        Set(visits.map { DayKey.key(iso: $0.date) }).count
+    }
 
     static func longestDayStreak(_ visits: [Visit]) -> Int {
         longestRun(uniqueSortedDayTimes(visits))

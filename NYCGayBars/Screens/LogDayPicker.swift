@@ -105,6 +105,7 @@ struct LogDayPicker: View {
                 }
                 .scrollDismissesKeyboard(.immediately)
             }
+            .dismissKeyboardOnBackgroundTap()
 
             if let bar = picked {
                 BarDetailSheet(bar: bar, day: day,
