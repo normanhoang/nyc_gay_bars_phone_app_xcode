@@ -88,6 +88,18 @@ struct BarMapView: View {
             awaitingFrame = true
             let apply = { camera = .region(region) }
             if animated { withAnimation(.easeInOut(duration: 0.35)) { apply() } } else { apply() }
+            // MapKit often lands on a programmatically-set region without
+            // fetching tiles (blank/half-loaded map until you manually zoom).
+            // After the move settles, apply an imperceptible span nudge — the
+            // same kick a manual zoom gives — to force the tile loader to run.
+            DispatchQueue.main.asyncAfter(deadline: .now() + (animated ? 0.45 : 0.1)) {
+                guard gen == frameGen else { return }
+                var r = region
+                r.span.latitudeDelta *= 1.0015
+                r.span.longitudeDelta *= 1.0015
+                awaitingFrame = true
+                camera = .region(r)
+            }
         }
     }
 
