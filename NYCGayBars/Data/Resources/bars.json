@@ -267,7 +267,7 @@
   {
     "id": "metropolitan",
     "name": "Metropolitan",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "East Williamsburg",
     "address": "559 Lorimer St, Brooklyn",
     "latitude": 40.713656,
     "longitude": -73.949379,
@@ -326,7 +326,7 @@
   {
     "id": "gingers-bar",
     "name": "Ginger's Bar",
-    "neighborhood": "Downtown Brooklyn",
+    "neighborhood": "Park Slope",
     "address": "363 5th Ave, Brooklyn",
     "latitude": 40.671414,
     "longitude": -73.984348,
@@ -423,7 +423,7 @@
   {
     "id": "branded-saloon",
     "name": "Branded Saloon",
-    "neighborhood": "Downtown Brooklyn",
+    "neighborhood": "Prospect Heights",
     "address": "603 Vanderbilt Ave, Brooklyn",
     "latitude": 40.679354,
     "longitude": -73.968173,
@@ -435,7 +435,7 @@
   {
     "id": "good-judy",
     "name": "Good Judy",
-    "neighborhood": "Downtown Brooklyn",
+    "neighborhood": "Park Slope",
     "address": "563 5th Avenue, Brooklyn",
     "latitude": 40.665317,
     "longitude": -73.989429,
@@ -459,7 +459,7 @@
   {
     "id": "animal",
     "name": "ANIMAL",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "Greenpoint",
     "address": "307 Meeker Ave",
     "latitude": 40.718649,
     "longitude": -73.947183,
@@ -612,7 +612,7 @@
   {
     "id": "the-red-pavilion",
     "name": "The Red Pavilion",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "East Williamsburg",
     "address": "1241 Flushing Ave",
     "latitude": 40.70813,
     "longitude": -73.923433,
@@ -624,7 +624,7 @@
   {
     "id": "the-bush",
     "name": "The Bush",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "Bushwick",
     "address": "333 Troutman St, Brooklyn",
     "latitude": 40.704952,
     "longitude": -73.924553,
@@ -636,7 +636,7 @@
   {
     "id": "the-rosemont",
     "name": "The Rosemont",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "East Williamsburg",
     "address": "63 Montrose Ave",
     "latitude": 40.706976,
     "longitude": -73.947465,
@@ -649,7 +649,7 @@
   {
     "id": "happyfun-hideaway",
     "name": "Happyfun Hideaway",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "Bushwick",
     "address": "1211 Myrtle Ave",
     "latitude": 40.697419,
     "longitude": -73.931849,
@@ -661,7 +661,7 @@
   {
     "id": "basement-ny",
     "name": "BASEMENT NY",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "Bushwick",
     "address": "52-19 Flushing Ave, Maspeth",
     "latitude": 40.714558,
     "longitude": -73.914144,
@@ -732,7 +732,7 @@
   {
     "id": "pink-metal",
     "name": "Pink Metal",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "Bushwick",
     "address": "253 Bushwick Ave, Brooklyn",
     "latitude": 40.707324,
     "longitude": -73.939705,
@@ -792,7 +792,7 @@
   {
     "id": "cmon-everybody",
     "name": "C'mon Everybody",
-    "neighborhood": "Downtown Brooklyn",
+    "neighborhood": "Bed-Stuy",
     "address": "325 Franklin Ave, Brooklyn",
     "latitude": 40.689679,
     "longitude": -73.957019,
@@ -804,7 +804,7 @@
   {
     "id": "3-dollar-bill",
     "name": "3 Dollar Bill",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "Bushwick",
     "address": "260 Meserole St, Brooklyn",
     "latitude": 40.708506,
     "longitude": -73.93814,
@@ -828,7 +828,7 @@
   {
     "id": "house-of-yes",
     "name": "House of YES",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "Bushwick",
     "address": "2 Wyckoff Ave, Brooklyn",
     "latitude": 40.706947,
     "longitude": -73.92358,
@@ -892,7 +892,7 @@
   {
     "id": "the-brooklyn-monarch",
     "name": "The Brooklyn Monarch",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "Bushwick",
     "address": "23 Meadow St, Brooklyn",
     "latitude": 40.710814,
     "longitude": -73.936171
@@ -900,7 +900,7 @@
   {
     "id": "boyfriend-co-op",
     "name": "BOYFRIEND co-op",
-    "neighborhood": "Williamsburg",
+    "neighborhood": "Bushwick",
     "address": "1157 Myrtle Ave, Brooklyn",
     "latitude": 40.697092,
     "longitude": -73.934772,
@@ -912,7 +912,7 @@
   {
     "id": "loafers-cocktail-bar",
     "name": "Loafers Cocktail Bar",
-    "neighborhood": "Downtown Brooklyn",
+    "neighborhood": "Carroll Gardens",
     "address": "517 Court St, Brooklyn",
     "latitude": 40.67513,
     "longitude": -73.999307,

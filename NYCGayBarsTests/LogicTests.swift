@@ -51,8 +51,8 @@ final class GeoTests: XCTestCase {
         XCTAssertEqual(Geo.neighborhoodForZip("10014"), "West Village")
         XCTAssertEqual(Geo.neighborhoodForZip("10009"), "East Village")
         XCTAssertEqual(Geo.neighborhoodForZip("10027"), "Harlem")
-        XCTAssertEqual(Geo.neighborhoodForZip("11201"), "Brooklyn")
-        XCTAssertEqual(Geo.neighborhoodForZip("11101"), "Queens")
+        XCTAssertEqual(Geo.neighborhoodForZip("11201"), "Carroll Gardens")
+        XCTAssertEqual(Geo.neighborhoodForZip("11101"), "Astoria")
         XCTAssertNil(Geo.neighborhoodForZip("90210"))
     }
 }

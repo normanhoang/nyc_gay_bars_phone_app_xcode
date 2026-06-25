@@ -117,9 +117,14 @@ enum Stats {
 
     // MARK: - Streak helpers
 
-    /// Coarse borough for a neighborhood (only Brooklyn/Queens are non-Manhattan).
+    private static let brooklynHoods: Set = ["Greenpoint", "East Williamsburg", "Bushwick",
+        "Park Slope", "Prospect Heights", "Bed-Stuy", "Carroll Gardens"]
+    private static let queensHoods: Set = ["Astoria", "Jackson Heights"]
+
+    /// Coarse borough for a neighborhood (Manhattan unless it's a known BK/QN one).
     private static func borough(_ neighborhood: String) -> String {
-        (neighborhood == "Brooklyn" || neighborhood == "Queens") ? neighborhood : "Manhattan"
+        brooklynHoods.contains(neighborhood) ? "Brooklyn"
+            : queensHoods.contains(neighborhood) ? "Queens" : "Manhattan"
     }
 
     /// The distinct visit days as sorted local-noon timestamps (ms).
