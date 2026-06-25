@@ -22,6 +22,8 @@ struct BarMapView: View {
     /// real rendered span (which MapKit may enlarge to fit a wide region) so the
     /// zoom-out check compares against what's actually on screen.
     @State private var awaitingFrame = false
+    /// Bumped on every frame() request so coalesced async applies keep only the last.
+    @State private var frameGen = 0
 
     var body: some View {
         MapReader { proxy in
@@ -74,10 +76,19 @@ struct BarMapView: View {
 
     private func frame(animated: Bool) {
         if suppressNextFrame { suppressNextFrame = false; return }
-        let region = targetRegion()
-        awaitingFrame = true
-        let apply = { camera = .region(region) }
-        if animated { withAnimation(.easeInOut(duration: 0.35)) { apply() } } else { apply() }
+        // A neighborhood tap flips both `showOutlines` and `bars` in the same
+        // update, firing frame() twice. Racing two animated camera sets in one
+        // cycle can leave MapKit without fetching tiles (blank map until you
+        // zoom). Coalesce: apply once on the next runloop, last request wins.
+        frameGen &+= 1
+        let gen = frameGen
+        DispatchQueue.main.async {
+            guard gen == frameGen else { return }
+            let region = targetRegion()
+            awaitingFrame = true
+            let apply = { camera = .region(region) }
+            if animated { withAnimation(.easeInOut(duration: 0.35)) { apply() } } else { apply() }
+        }
     }
 
     private func targetRegion() -> MKCoordinateRegion {
@@ -91,9 +102,11 @@ struct BarMapView: View {
         let lats = pts.map(\.latitude), lons = pts.map(\.longitude)
         let minLat = lats.min()!, maxLat = lats.max()!, minLon = lons.min()!, maxLon = lons.max()!
         let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2, longitude: (minLon + maxLon) / 2)
+        // Floor the span so single-bar neighborhoods don't zoom so deep that
+        // MapKit lands without tiles loaded.
         let span = MKCoordinateSpan(
-            latitudeDelta: max((maxLat - minLat) * 1.5, 0.01),
-            longitudeDelta: max((maxLon - minLon) * 1.5, 0.01))
+            latitudeDelta: max((maxLat - minLat) * 1.5, 0.025),
+            longitudeDelta: max((maxLon - minLon) * 1.5, 0.025))
         return MKCoordinateRegion(center: center, span: span)
     }
 
