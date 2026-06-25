@@ -86,7 +86,10 @@ struct ExploreView: View {
                     .foregroundStyle(.white)
                 Spacer()
                 Button(action: openInstagram) {
-                    Image("AppLogo").resizable().scaledToFit().frame(width: 96, height: 96)
+                    ZStack {
+                        InstagramGlyph(size: 84)
+                        Image("AppLogo").resizable().scaledToFit().frame(width: 96, height: 96)
+                    }
                 }
                 .buttonStyle(PressableScale())
                 .accessibilityLabel("Open NYC Gay Bars on Instagram")
@@ -209,5 +212,27 @@ struct ExploreView: View {
         if pct <= 0.5 { return "Making the rounds!" }
         if pct <= 0.75 { return "A regular on the scene!" }
         return "Almost a legend!"
+    }
+}
+
+/// Faint Instagram glyph (rounded square + lens + flash dot) drawn behind the
+/// header logo so it reads as an Instagram link.
+private struct InstagramGlyph: View {
+    var size: CGFloat
+    var color: Color = Color.white.opacity(0.45)
+    var body: some View {
+        let lw = size * 0.07
+        ZStack {
+            RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
+                .strokeBorder(color, lineWidth: lw)
+            Circle()
+                .stroke(color, lineWidth: lw)
+                .frame(width: size * 0.52, height: size * 0.52)
+            Circle()
+                .fill(color)
+                .frame(width: size * 0.10, height: size * 0.10)
+                .offset(x: size * 0.27, y: -size * 0.27)
+        }
+        .frame(width: size, height: size)
     }
 }
