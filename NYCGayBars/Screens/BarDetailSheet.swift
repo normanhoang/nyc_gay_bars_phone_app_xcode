@@ -202,8 +202,9 @@ struct BarDetailSheet: View {
 
     private func openMaps(google: Bool) {
         let lat = bar.latitude, lng = bar.longitude
+        let encoded = "\(bar.name), \(bar.address)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlStr = google
-            ? "https://www.google.com/maps/dir/?api=1&destination=\(lat),\(lng)"
+            ? "https://www.google.com/maps/dir/?api=1&destination=\(encoded)"
             : "https://maps.apple.com/?daddr=\(lat),\(lng)&q=\(bar.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
         if let url = URL(string: urlStr) { UIApplication.shared.open(url) }
     }

@@ -16,6 +16,7 @@ struct RootTabView: View {
     @Namespace private var tabNS
 
     @State private var page: Int? = 0
+    @State private var pillPage: Int = 0
 
     private let tabs: [(icon: String, label: String)] = [
         ("wineglass.fill", "Explore"),
@@ -40,6 +41,10 @@ struct RootTabView: View {
             .scrollDisabled(current == 0 && !tabSwipe.enabled)
             .scrollIndicators(.hidden)
             .ignoresSafeArea(.keyboard)
+            .onChange(of: page) { _, newPage in
+                guard let p = newPage, pillPage != p else { return }
+                withAnimation(Anim.tab) { pillPage = p }
+            }
 
             tabBar
                 .padding(.bottom, 4)
@@ -57,43 +62,37 @@ struct RootTabView: View {
 
     private var current: Int { page ?? 0 }
 
-    // Every tab uses a fixed-size content box, so the active lozenge — matched
-    // to that box via matchedGeometryEffect — is identical at every position and
-    // never crowds the glass edge. The bouncy spring lives on `current`, so it
-    // overshoots whether the page changes by tap or by swipe.
+    // Full-width segmented bar. pillPage drives the active highlight independently
+    // from page so tap is instant and swipe gets the bouncy spring (via onChange).
     private var tabBar: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 0) {
             ForEach(Array(tabs.enumerated()), id: \.offset) { i, tab in
-                let active = current == i
+                let active = pillPage == i
                 Button {
-                    withAnimation(Anim.tab) { page = i }
+                    pillPage = i   // instant — no animation wrapper
+                    page = i
                 } label: {
                     VStack(spacing: 3) {
-                        Image(systemName: tab.icon).font(.system(size: 18, weight: .semibold))
+                        Image(systemName: tab.icon).font(.system(size: 20, weight: .semibold))
                         Text(tab.label).font(.system(size: 11, weight: .semibold))
                     }
                     .foregroundStyle(active ? .white : Palette.gray400)
-                    .frame(width: 70, height: 40)
-                    .scaleEffect(active ? 1.06 : 1)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
                     .background {
                         if active {
-                            Capsule()
-                                .fill(LinearGradient(
-                                    colors: [Palette.primary, Palette.primaryDark],
-                                    startPoint: .top, endPoint: .bottom))
-                                .overlay(Capsule().strokeBorder(Color.white.opacity(0.30), lineWidth: 0.5))
-                                .shadow(color: Palette.primary.opacity(0.5), radius: 6, y: 2)
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Palette.primary)
+                                .shadow(color: Palette.primary.opacity(0.45), radius: 8)
                                 .matchedGeometryEffect(id: "tabPill", in: tabNS)
                         }
                     }
-                    .padding(8)
-                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(6)
-        .glassSurface(radius: 28, bordered: true)
-        .animation(Anim.tab, value: current)
+        .glassSurface(radius: 20, bordered: true)
+        .padding(.horizontal, 20)
     }
 }

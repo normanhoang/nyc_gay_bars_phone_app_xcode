@@ -12,11 +12,21 @@ struct FilterChips: View {
             if let pinned = options.first {
                 chip(pinned)
             }
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(options.dropFirst(), id: \.self) { chip($0) }
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(options.dropFirst(), id: \.self) { opt in
+                            chip(opt).id(opt)
+                        }
+                    }
+                    .padding(.trailing, 16)
                 }
-                .padding(.trailing, 16)
+                .onChange(of: selected) { _, newVal in
+                    let target = newVal == options.first ? options.dropFirst().first : newVal
+                    if let t = target {
+                        withAnimation(.easeOut(duration: 0.3)) { proxy.scrollTo(t, anchor: .leading) }
+                    }
+                }
             }
         }
     }

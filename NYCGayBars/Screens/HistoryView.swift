@@ -8,6 +8,7 @@ struct HistoryView: View {
     @State private var selectedDay = DayKey.key()
     @State private var showPicker = false
     @State private var showClear = false
+    @State private var visitToDelete: Visit?
 
     private var markedDays: Set<String> { Set(visits.visits.map { DayKey.key(iso: $0.date) }) }
     private var dayVisits: [Visit] { visits.getVisitsForDay(selectedDay) }
@@ -61,7 +62,7 @@ struct HistoryView: View {
                         } else {
                             VStack(spacing: 12) {
                                 ForEach(dayVisits) { v in
-                                    VisitCard(visit: v, onDelete: { visits.clearVisit(v.id) })
+                                    VisitCard(visit: v, onDelete: { visitToDelete = v })
                                 }
                             }
                             .padding(.top, 16)
@@ -111,5 +112,21 @@ struct HistoryView: View {
             }
         }
         .animation(.easeOut(duration: 0.2), value: showClear)
+        .overlay {
+            if let v = visitToDelete {
+                let barName = AppData.bar(id: v.barId)?.name ?? "this visit"
+                ConfirmDialog(
+                    title: "Delete visit?",
+                    message: "Remove \(barName) from this day? This can't be undone.",
+                    actions: [
+                        .init(label: "Delete", style: .destructive) {
+                            visits.clearVisit(v.id)
+                        },
+                        .init(label: "Cancel", style: .cancel) {},
+                    ],
+                    onDismiss: { withAnimation(.easeOut(duration: 0.2)) { visitToDelete = nil } })
+            }
+        }
+        .animation(.easeOut(duration: 0.2), value: visitToDelete?.id)
     }
 }

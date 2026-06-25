@@ -18,6 +18,7 @@ struct BarMapView: View {
     @State private var camera: MapCameraPosition = .automatic
     @State private var framedSpan: Double = 0.22
     @State private var suppressNextFrame = false
+    @State private var isFraming = false
 
     var body: some View {
         MapReader { proxy in
@@ -72,6 +73,8 @@ struct BarMapView: View {
         if suppressNextFrame { suppressNextFrame = false; return }
         let region = targetRegion()
         framedSpan = region.span.latitudeDelta
+        isFraming = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { isFraming = false }
         let apply = { camera = .region(region) }
         if animated { withAnimation(.easeInOut(duration: 0.35)) { apply() } } else { apply() }
     }
@@ -94,6 +97,7 @@ struct BarMapView: View {
     }
 
     private func handleCameraChange(_ region: MKCoordinateRegion) {
+        guard !isFraming else { return }
         let r = Region(latitude: region.center.latitude, longitude: region.center.longitude,
                        latitudeDelta: region.span.latitudeDelta, longitudeDelta: region.span.longitudeDelta)
         // Zoomed out to span 2+ neighborhoods and 1.2x past the framed span.
