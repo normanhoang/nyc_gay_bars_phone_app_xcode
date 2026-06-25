@@ -1,22 +1,6 @@
 {
   "Chelsea": [
     {
-      "latitude": 40.754,
-      "longitude": -74.009086
-    },
-    {
-      "latitude": 40.754,
-      "longitude": -73.993032
-    },
-    {
-      "latitude": 40.753474,
-      "longitude": -73.992529
-    },
-    {
-      "latitude": 40.747205,
-      "longitude": -73.997099
-    },
-    {
       "latitude": 40.743916,
       "longitude": -73.992066
     },
@@ -35,6 +19,34 @@
     {
       "latitude": 40.754,
       "longitude": -74.009086
+    },
+    {
+      "latitude": 40.7596,
+      "longitude": -74.0093
+    },
+    {
+      "latitude": 40.759659,
+      "longitude": -74.006191
+    },
+    {
+      "latitude": 40.754199,
+      "longitude": -73.993222
+    },
+    {
+      "latitude": 40.754,
+      "longitude": -73.993032
+    },
+    {
+      "latitude": 40.753474,
+      "longitude": -73.992529
+    },
+    {
+      "latitude": 40.747205,
+      "longitude": -73.997099
+    },
+    {
+      "latitude": 40.743916,
+      "longitude": -73.992066
     }
   ],
   "East Village": [
@@ -595,10 +607,6 @@
   ],
   "Hell's Kitchen": [
     {
-      "latitude": 40.759706,
-      "longitude": -74.003669
-    },
-    {
       "latitude": 40.760729,
       "longitude": -74.003385
     },
@@ -687,20 +695,20 @@
       "longitude": -73.993706
     },
     {
-      "latitude": 40.754,
-      "longitude": -73.993032
+      "latitude": 40.754199,
+      "longitude": -73.993222
     },
     {
-      "latitude": 40.754,
-      "longitude": -74.009086
-    },
-    {
-      "latitude": 40.7596,
-      "longitude": -74.0093
+      "latitude": 40.759659,
+      "longitude": -74.006191
     },
     {
       "latitude": 40.759706,
       "longitude": -74.003669
+    },
+    {
+      "latitude": 40.760729,
+      "longitude": -74.003385
     }
   ],
   "Lower East Side": [
