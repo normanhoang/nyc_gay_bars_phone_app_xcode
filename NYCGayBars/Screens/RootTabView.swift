@@ -13,13 +13,14 @@ struct RootTabView: View {
     @EnvironmentObject var visits: VisitsStore
     @EnvironmentObject var badges: BadgesStore
     @StateObject private var tabSwipe = TabSwipe()
+    @Namespace private var tabNS
 
     @State private var page: Int? = 0
 
     private let tabs: [(icon: String, label: String)] = [
-        ("mug.fill", "Explore"),
+        ("wineglass.fill", "Explore"),
         ("chart.bar.fill", "Stats"),
-        ("clock.fill", "History"),
+        ("calendar", "History"),
     ]
 
     var body: some View {
@@ -56,40 +57,43 @@ struct RootTabView: View {
 
     private var current: Int { page ?? 0 }
 
+    // Every tab uses a fixed-size content box, so the active lozenge — matched
+    // to that box via matchedGeometryEffect — is identical at every position and
+    // never crowds the glass edge. The bouncy spring lives on `current`, so it
+    // overshoots whether the page changes by tap or by swipe.
     private var tabBar: some View {
-        GeometryReader { geo in
-            let inner = geo.size.width
-            let seg = inner / CGFloat(tabs.count)
-            let margin: CGFloat = 6
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(Color.white.opacity(0.10))
-                    .overlay(Capsule().strokeBorder(Color.white.opacity(0.25), lineWidth: 1))
-                    .frame(width: seg - 2 * margin, height: 44)
-                    .offset(x: seg * CGFloat(current) + margin)
-                    .animation(Anim.chip, value: current)
-
-                HStack(spacing: 0) {
-                    ForEach(Array(tabs.enumerated()), id: \.offset) { i, tab in
-                        Button {
-                            withAnimation(Anim.chip) { page = i }
-                        } label: {
-                            VStack(spacing: 2) {
-                                Image(systemName: tab.icon).font(.system(size: 20))
-                                Text(tab.label).font(.system(size: 11, weight: .semibold))
-                            }
-                            .foregroundStyle(current == i ? Palette.primary : Palette.gray400)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
+        HStack(spacing: 8) {
+            ForEach(Array(tabs.enumerated()), id: \.offset) { i, tab in
+                let active = current == i
+                Button {
+                    withAnimation(Anim.tab) { page = i }
+                } label: {
+                    VStack(spacing: 3) {
+                        Image(systemName: tab.icon).font(.system(size: 18, weight: .semibold))
+                        Text(tab.label).font(.system(size: 11, weight: .semibold))
                     }
+                    .foregroundStyle(active ? .white : Palette.gray400)
+                    .frame(width: 70, height: 40)
+                    .scaleEffect(active ? 1.06 : 1)
+                    .background {
+                        if active {
+                            Capsule()
+                                .fill(LinearGradient(
+                                    colors: [Palette.primary, Palette.primaryDark],
+                                    startPoint: .top, endPoint: .bottom))
+                                .overlay(Capsule().strokeBorder(Color.white.opacity(0.30), lineWidth: 0.5))
+                                .shadow(color: Palette.primary.opacity(0.5), radius: 6, y: 2)
+                                .matchedGeometryEffect(id: "tabPill", in: tabNS)
+                        }
+                    }
+                    .padding(8)
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
-            .padding(6)
-            .glassSurface(radius: 999, bordered: true)
         }
-        .frame(width: 280, height: 64)
+        .padding(6)
+        .glassSurface(radius: 28, bordered: true)
+        .animation(Anim.tab, value: current)
     }
 }

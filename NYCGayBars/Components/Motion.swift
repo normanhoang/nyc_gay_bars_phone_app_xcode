@@ -7,6 +7,8 @@ enum Anim {
     static let press = Animation.interpolatingSpring(mass: 0.5, stiffness: 400, damping: 15)
     static let progress = Animation.interpolatingSpring(mass: 0.7, stiffness: 140, damping: 20)
     static let toast = Animation.interpolatingSpring(mass: 0.7, stiffness: 200, damping: 16)
+    /// Bouncy overshoot for the bottom tab-bar selection lozenge.
+    static let tab = Animation.bouncy(duration: 0.45, extraBounce: 0.22)
 }
 
 /// Button style that springs to 0.97 while held — the Apple "squish".
