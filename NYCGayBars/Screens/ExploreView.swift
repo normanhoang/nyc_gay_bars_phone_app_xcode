@@ -92,6 +92,7 @@ struct ExploreView: View {
                     }
                 }
                 .buttonStyle(PressableScale())
+                .offset(x: 12)
                 .accessibilityLabel("Open NYC Gay Bars on Instagram")
             }
             .padding(.bottom, 6)
