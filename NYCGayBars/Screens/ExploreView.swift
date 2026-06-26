@@ -87,7 +87,7 @@ struct ExploreView: View {
                 Spacer()
                 Button(action: openInstagram) {
                     ZStack {
-                        InstagramGlyph(size: 60, color: Color.white.opacity(0.268))
+                        InstagramGlyph(size: 60)
                         Image("AppLogo").resizable().scaledToFit().frame(width: 96, height: 96)
                     }
                 }
@@ -216,18 +216,33 @@ struct ExploreView: View {
     }
 }
 
-/// Faint Instagram glyph (rounded square + lens + flash dot) drawn behind the
-/// header logo so it reads as an Instagram link.
+/// Instagram glyph (rounded square + lens + flash dot) drawn behind the header
+/// logo so it reads as an Instagram link. The outline is rendered in native
+/// Liquid Glass — a `.glassEffect` squircle masked to the stroke shapes.
 private struct InstagramGlyph: View {
     var size: CGFloat
-    var color: Color = Color.white.opacity(0.45)
     var body: some View {
-        let lw = size * 0.07
+        let corner = size * 0.28
+        let lw = size * 0.085
+        ZStack {
+            // Glass body of the outline: a Liquid Glass squircle masked to the
+            // stroke shapes so the frame/lens/dot are made of glass.
+            Color.clear
+                .frame(width: size, height: size)
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: corner, style: .continuous))
+                .mask(outline(lineWidth: lw, color: .white))
+            // Faint white rim for edge definition over the dark background.
+            outline(lineWidth: lw * 0.45, color: .white.opacity(0.4))
+        }
+        .frame(width: size, height: size)
+    }
+
+    private func outline(lineWidth: CGFloat, color: Color) -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
-                .strokeBorder(color, lineWidth: lw)
+                .strokeBorder(color, lineWidth: lineWidth)
             Circle()
-                .stroke(color, lineWidth: lw)
+                .stroke(color, lineWidth: lineWidth)
                 .frame(width: size * 0.52, height: size * 0.52)
             Circle()
                 .fill(color)
