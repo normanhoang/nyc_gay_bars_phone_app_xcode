@@ -957,5 +957,16 @@
       "cocktails",
       "lounge"
     ]
+  },
+  {
+    "id": "rawhide",
+    "name": "Rawhide",
+    "neighborhood": "Chelsea",
+    "address": "250 W 26th St, New York",
+    "latitude": 40.74659,
+    "longitude": -73.996267,
+    "tags": [
+      "leather"
+    ]
   }
 ]
