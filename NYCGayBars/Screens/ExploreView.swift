@@ -87,7 +87,7 @@ struct ExploreView: View {
                 Spacer()
                 Button(action: openInstagram) {
                     ZStack {
-                        InstagramGlyph(size: 60)
+                        InstagramGlyph(size: 66)
                         Image("AppLogo").resizable().scaledToFit().frame(width: 96, height: 96)
                     }
                 }
