@@ -223,17 +223,13 @@ private struct InstagramGlyph: View {
     var size: CGFloat
     var body: some View {
         let corner = size * 0.28
-        let lw = size * 0.19
         ZStack {
-            // Glass body of the outline: a Liquid Glass squircle masked to the
-            // stroke shapes so the frame/lens/dot are made of glass. Thicker
-            // strokes give more glass surface to refract.
+            // Full Liquid Glass squircle tile — maximum glass surface.
             Color.clear
                 .frame(width: size, height: size)
                 .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: corner, style: .continuous))
-                .mask(outline(lineWidth: lw, color: .white))
-            // Very faint white rim, just for edge definition over the dark bg.
-            outline(lineWidth: lw * 0.22, color: .white.opacity(0.15))
+            // Faint Instagram cues (frame edge + lens + flash dot) on the glass.
+            outline(lineWidth: size * 0.04, color: .white.opacity(0.22))
         }
         .frame(width: size, height: size)
     }
