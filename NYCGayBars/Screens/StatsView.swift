@@ -5,7 +5,10 @@ import SwiftUI
 struct StatsView: View {
     @EnvironmentObject private var visits: VisitsStore
     @EnvironmentObject private var badges: BadgesStore
+    @EnvironmentObject private var tabSwipe: TabSwipe
     @State private var showAllBadges = false
+    @State private var expandedBoroughs: Set<String> = []
+    @State private var scrollPos = ScrollPosition()
 
     private var visitedIds: Set<String> { visits.visitedIds }
 
@@ -108,6 +111,12 @@ struct StatsView: View {
             .padding(.top, 8)
             .padding(.bottom, 104)
         }
+        .scrollPosition($scrollPos)
+        // Reset scroll once this page goes offscreen so the next visit always
+        // starts at the top.
+        .onChange(of: tabSwipe.page) { _, p in
+            if p != 1 { scrollPos.scrollTo(edge: .top) }
+        }
     }
 
     private func totalCell(_ value: Int, _ label: String) -> some View {
@@ -137,20 +146,56 @@ struct StatsView: View {
 
     private var neighborhoods: some View {
         VStack(spacing: 0) {
-            ForEach(Array(Stats.neighborhoodProgress(visitedIds).enumerated()), id: \.element.id) { i, p in
-                let complete = p.visited == p.total
-                VStack(spacing: 6) {
-                    HStack {
-                        Text(p.neighborhood + (complete ? " 👑" : ""))
-                            .font(.system(size: 14)).foregroundStyle(.white)
-                        Spacer()
-                        Text("\(p.visited) / \(p.total)")
-                            .font(.system(size: 12, weight: complete ? .bold : .semibold))
-                            .foregroundStyle(complete ? Palette.primary : Palette.gray400)
+            ForEach(Array(Stats.boroughProgress(visitedIds).enumerated()), id: \.element.id) { i, b in
+                let complete = b.visited == b.total
+                let expanded = expandedBoroughs.contains(b.borough)
+                Button {
+                    withAnimation(Anim.chip) {
+                        if expanded { expandedBoroughs.remove(b.borough) }
+                        else { expandedBoroughs.insert(b.borough) }
                     }
-                    ProgressBar(progress: Double(p.visited) / Double(p.total), delay: Double(i) * 0.06)
+                } label: {
+                    VStack(spacing: 6) {
+                        HStack {
+                            Text(b.borough + (complete ? " 👑" : ""))
+                                .font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(Palette.gray400)
+                                .rotationEffect(.degrees(expanded ? 0 : -90))
+                            Spacer()
+                            Text("\(b.visited) / \(b.total)")
+                                .font(.system(size: 12, weight: complete ? .bold : .semibold))
+                                .foregroundStyle(complete ? Palette.primary : Palette.gray400)
+                        }
+                        ProgressBar(progress: Double(b.visited) / Double(b.total), delay: Double(i) * 0.06)
+                    }
+                    .padding(.vertical, 10)
+                    .contentShape(Rectangle())
                 }
-                .padding(.vertical, 8)
+                .buttonStyle(.plain)
+
+                if expanded {
+                    VStack(spacing: 0) {
+                        ForEach(b.neighborhoods) { p in
+                            let done = p.visited == p.total
+                            VStack(spacing: 6) {
+                                HStack {
+                                    Text(p.neighborhood + (done ? " 👑" : ""))
+                                        .font(.system(size: 14)).foregroundStyle(.white)
+                                    Spacer()
+                                    Text("\(p.visited) / \(p.total)")
+                                        .font(.system(size: 12, weight: done ? .bold : .semibold))
+                                        .foregroundStyle(done ? Palette.primary : Palette.gray400)
+                                }
+                                ProgressBar(progress: Double(p.visited) / Double(p.total))
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    .padding(.leading, 16)
+                    .transition(.opacity)
+                }
             }
         }
         .padding(.horizontal, 16).padding(.vertical, 4)

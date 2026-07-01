@@ -7,6 +7,14 @@ struct NeighborhoodProgress: Identifiable {
     var id: String { neighborhood }
 }
 
+struct BoroughProgress: Identifiable {
+    let borough: String
+    let visited: Int
+    let total: Int
+    let neighborhoods: [NeighborhoodProgress]
+    var id: String { borough }
+}
+
 /// Pure stat + badge logic ported from RN lib/stats.ts.
 enum Stats {
     private static let dayMS = 24.0 * 60.0 * 60.0 * 1000.0
@@ -112,6 +120,21 @@ enum Stats {
             let rb = Double(b.visited) / Double(b.total)
             if ra != rb { return ra > rb }
             return a.visited > b.visited
+        }
+    }
+
+    /// Neighborhood progress grouped by borough (Manhattan, Brooklyn, Queens),
+    /// with per-borough visited/total bar sums. Empty boroughs are omitted;
+    /// neighborhood ordering within a borough matches neighborhoodProgress.
+    static func boroughProgress(_ visitedIds: Set<String>) -> [BoroughProgress] {
+        let grouped = Dictionary(grouping: neighborhoodProgress(visitedIds)) { borough($0.neighborhood) }
+        return ["Manhattan", "Brooklyn", "Queens"].compactMap { name in
+            guard let hoods = grouped[name] else { return nil }
+            return BoroughProgress(
+                borough: name,
+                visited: hoods.reduce(0) { $0 + $1.visited },
+                total: hoods.reduce(0) { $0 + $1.total },
+                neighborhoods: hoods)
         }
     }
 

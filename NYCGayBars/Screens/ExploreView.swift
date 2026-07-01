@@ -14,6 +14,7 @@ struct ExploreView: View {
     @State private var neighborhood = "All"
     @State private var selectedBar: Bar?
     @State private var frameNonce = 0
+    @State private var scrollPos = ScrollPosition()
 
     private var coords: (lat: Double, lng: Double)? {
         location.coordinate.map { ($0.latitude, $0.longitude) }
@@ -170,6 +171,12 @@ struct ExploreView: View {
                     .padding(.bottom, 104)
                 }
                 .scrollDismissesKeyboard(.immediately)
+                .scrollPosition($scrollPos)
+                // Reset scroll once this page goes offscreen so the next visit
+                // always starts at the top.
+                .onChange(of: tabSwipe.page) { _, p in
+                    if p != 0 { scrollPos.scrollTo(edge: .top) }
+                }
             }
         } else {
             BarMapView(

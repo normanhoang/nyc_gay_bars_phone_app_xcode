@@ -76,6 +76,28 @@ final class StatsTests: XCTestCase {
         XCTAssertEqual(Stats.distinctBarsVisited(vs), 2)
     }
 
+    func testBoroughProgress() {
+        let boroughs = Stats.boroughProgress([])
+        XCTAssertEqual(boroughs.map(\.borough), ["Manhattan", "Brooklyn", "Queens"])
+        for b in boroughs {
+            XCTAssertEqual(b.total, b.neighborhoods.reduce(0) { $0 + $1.total })
+            XCTAssertEqual(b.visited, 0)
+        }
+        XCTAssertEqual(boroughs.reduce(0) { $0 + $1.total }, AppData.bars.count)
+        let brooklyn = boroughs.first { $0.borough == "Brooklyn" }!
+        XCTAssertTrue(brooklyn.neighborhoods.contains { $0.neighborhood == "Williamsburg" })
+        let queens = boroughs.first { $0.borough == "Queens" }!
+        XCTAssertTrue(queens.neighborhoods.contains { $0.neighborhood == "Astoria" })
+    }
+
+    func testBoroughProgressCountsVisited() {
+        let astoriaBar = AppData.bars.first { $0.neighborhood == "Astoria" }!
+        let boroughs = Stats.boroughProgress([astoriaBar.id])
+        let queens = boroughs.first { $0.borough == "Queens" }!
+        XCTAssertEqual(queens.visited, 1)
+        XCTAssertEqual(boroughs.first { $0.borough == "Manhattan" }!.visited, 0)
+    }
+
     func testBadgesFirstDrinkAndStonewall() {
         let vs = [visit("the-stonewall-inn", "2026-5-10", [("Beer", 1)])]
         let ids = Set(["the-stonewall-inn"])

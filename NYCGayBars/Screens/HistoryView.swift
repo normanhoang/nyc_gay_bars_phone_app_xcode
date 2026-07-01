@@ -4,7 +4,9 @@ import SwiftUI
 /// logging and a clear-history action. Port of RN app/(tabs)/history.tsx.
 struct HistoryView: View {
     @EnvironmentObject private var visits: VisitsStore
+    @EnvironmentObject private var tabSwipe: TabSwipe
 
+    @State private var scrollPos = ScrollPosition()
     @State private var selectedDay = DayKey.key()
     @State private var showPicker = false
     @State private var showClear = false
@@ -87,6 +89,12 @@ struct HistoryView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
                     .padding(.bottom, 104)
+                }
+                .scrollPosition($scrollPos)
+                // Reset scroll once this page goes offscreen so the next visit
+                // always starts at the top.
+                .onChange(of: tabSwipe.page) { _, p in
+                    if p != 2 { scrollPos.scrollTo(edge: .top) }
                 }
                 .transition(.opacity)
             }

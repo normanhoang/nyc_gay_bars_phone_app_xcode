@@ -2,9 +2,11 @@ import SwiftUI
 
 /// Coordinates whether the tab pager responds to horizontal swipes. Explore's
 /// map mode disables it (the map needs horizontal panning). Mirrors RN
-/// components/TabSwipeContext.tsx.
+/// components/TabSwipeContext.tsx. Also broadcasts the current page so each
+/// page can reset its vertical scroll once it goes offscreen.
 final class TabSwipe: ObservableObject {
     @Published var enabled = true
+    @Published var page = 0
 }
 
 /// Root shell: three swipeable pages with a floating glass pill tab bar, plus
@@ -42,7 +44,9 @@ struct RootTabView: View {
             .scrollIndicators(.hidden)
             .ignoresSafeArea(.keyboard)
             .onChange(of: page) { _, newPage in
-                guard let p = newPage, pillPage != p else { return }
+                guard let p = newPage else { return }
+                tabSwipe.page = p
+                guard pillPage != p else { return }
                 withAnimation(Anim.tab) { pillPage = p }
             }
 
