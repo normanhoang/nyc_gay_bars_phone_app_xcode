@@ -26,6 +26,7 @@
 		5400140BF56C00B36BFBC93B /* MonthCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D138CFDDDB1016084CC6BC15 /* MonthCalendar.swift */; };
 		556C958338DE2924A6C1FC48 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69CEA7D06EDF5BB4A5D4172A /* FlowLayout.swift */; };
 		6BC28F013CCF73758193F3A0 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63694E3B3DBC8B8CBAB6CE76 /* RootTabView.swift */; };
+		6D1EE76A8997E43A0182E7EF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 43624EA68687F1389FB37E10 /* PrivacyInfo.xcprivacy */; };
 		73D3419917ADDDBED31BB38B /* NYCGayBarsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C83583F518BDE62626A5E2F /* NYCGayBarsApp.swift */; };
 		763D78EFACF0281C67D3318C /* meta.json in Resources */ = {isa = PBXBuildFile; fileRef = D4D914076E4525196618332F /* meta.json */; };
 		793AB44910CFA0A23FCD98BD /* ZipQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33F5686C61BE3EC9DA41BC0 /* ZipQuery.swift */; };
@@ -82,6 +83,7 @@
 		3AEA18EACEA2E909DE412CA5 /* NYCGayBarsTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NYCGayBarsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FE82916D6F73805684F020A /* zips.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = zips.json; sourceTree = "<group>"; };
 		417A49560F9ECD23C5C0E133 /* Geo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geo.swift; sourceTree = "<group>"; };
+		43624EA68687F1389FB37E10 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		4A489A316640E12D8D230F6B /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBar.swift; sourceTree = "<group>"; };
 		4A6C2ABE78BDC4816F37638D /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
 		555933B060A09C51E958783F /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
@@ -202,6 +204,7 @@
 				B958682051DE0CAAEE2F37C3 /* Assets.xcassets */,
 				7E03F5F703A15AFBA5E7098B /* Info.plist */,
 				7C83583F518BDE62626A5E2F /* NYCGayBarsApp.swift */,
+				43624EA68687F1389FB37E10 /* PrivacyInfo.xcprivacy */,
 				F212EC41F8D5CDD465044BDC /* Components */,
 				77898126E8AB2364F0AED1EE /* Data */,
 				FC7CC2A9695F45A6A5477A14 /* Logic */,
@@ -318,11 +321,11 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					B3442538EA9D35008C8DFEEE = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = DZRPJF9JB6;
 						ProvisioningStyle = Automatic;
 					};
 					E1296999D3C589250D834A69 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = DZRPJF9JB6;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -353,6 +356,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B9D7F6163BFB1020E3D5AA80 /* Assets.xcassets in Resources */,
+				6D1EE76A8997E43A0182E7EF /* PrivacyInfo.xcprivacy in Resources */,
 				3E393A67CE2AE0F06764C1B8 /* bars.json in Resources */,
 				763D78EFACF0281C67D3318C /* meta.json in Resources */,
 				B4C97936F9CCA8F44D31A8BA /* neighborhoods.json in Resources */,
@@ -532,7 +536,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DZRPJF9JB6;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -592,7 +596,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DZRPJF9JB6;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;

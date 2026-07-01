@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NYC Gay Bars — App Store Connect Assets</title>
+<style>
+  :root { --bg:#160a1f; --bg2:#241033; --card:#2a1740; --pink:#ff2d92; --purple:#a855f7; --text:#f4eefb; --muted:#b39dc9; --line:#3a2450; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--text);
+         background:linear-gradient(160deg,var(--bg),var(--bg2)); padding:40px 20px 80px; }
+  .wrap { max-width:900px; margin:0 auto; }
+  h1 { font-size:34px; margin:0 0 4px; }
+  h1 span { background:linear-gradient(90deg,var(--pink),var(--purple)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub { color:var(--muted); margin:0 0 32px; }
+  h2 { font-size:20px; margin:40px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--line); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 20px; margin:14px 0; }
+  .row { display:flex; gap:14px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--line); }
+  .row:last-child { border-bottom:0; }
+  .k { flex:0 0 190px; color:var(--muted); font-size:14px; text-transform:uppercase; letter-spacing:.04em; padding-top:2px; }
+  .v { flex:1; }
+  .copy { position:relative; cursor:pointer; }
+  .copy:hover { outline:1px dashed var(--purple); outline-offset:4px; border-radius:6px; }
+  .badge { display:inline-block; background:var(--pink); color:#fff; font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; vertical-align:middle; }
+  .badge.warn { background:#f59e0b; color:#241033; }
+  .badge.ok { background:#22c55e; color:#08260f; }
+  code { background:#1c0f2b; padding:2px 7px; border-radius:6px; font-size:14px; }
+  .count { color:var(--muted); font-size:12px; float:right; }
+  pre { background:#1c0f2b; border:1px solid var(--line); border-radius:12px; padding:16px; overflow:auto; white-space:pre-wrap; margin:0; }
+  .shots { display:flex; gap:16px; flex-wrap:wrap; }
+  .shots figure { margin:0; flex:1; min-width:200px; }
+  .shots img { width:100%; border-radius:18px; border:1px solid var(--line); display:block; }
+  .shots figcaption { text-align:center; color:var(--muted); font-size:13px; margin-top:8px; }
+  ul { margin:6px 0; padding-left:20px; } li { margin:4px 0; }
+  a { color:var(--pink); }
+  .hint { color:var(--muted); font-size:13px; margin-top:6px; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+           background:var(--pink); color:#fff; padding:10px 20px; border-radius:30px; font-weight:600; transition:transform .25s; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span>NYC Gay Bars</span> — App Store Connect Assets</h1>
+  <p class="sub">Everything to paste into App Store Connect. Click any grey-highlighted value to copy it. Character counts shown against Apple's limits.</p>
+
+  <h2>App Information</h2>
+  <div class="card">
+    <div class="row"><div class="k">App Name <span class="count">30 max</span></div><div class="v copy" data-copy>NYC Gay Bars <span class="count">12</span></div></div>
+    <div class="row"><div class="k">Subtitle <span class="count">30 max</span></div><div class="v copy" data-copy>Track NYC's queer nightlife <span class="count">27</span></div></div>
+    <div class="row"><div class="k">Bundle ID</div><div class="v"><code>com.normanhoang.nycgaybars</code></div></div>
+    <div class="row"><div class="k">SKU</div><div class="v copy" data-copy>nycgaybars-001</div></div>
+    <div class="row"><div class="k">Primary Category</div><div class="v">Lifestyle</div></div>
+    <div class="row"><div class="k">Secondary Category</div><div class="v">Travel <span class="hint">(optional)</span></div></div>
+    <div class="row"><div class="k">Primary Language</div><div class="v">English (U.S.)</div></div>
+  </div>
+
+  <h2>Version — 1.0</h2>
+  <div class="card">
+    <div class="row"><div class="k">Version String</div><div class="v"><code>1.0.0</code> &nbsp; Build <code>1</code></div></div>
+    <div class="row"><div class="k">Copyright</div><div class="v copy" data-copy>2026 Norman Hoang</div></div>
+    <div class="row"><div class="k">Promotional Text <span class="count">170 max</span></div>
+      <div class="v copy" data-copy>Your pocket map to every gay bar in NYC. Check in, log the night, earn badges, and watch your nightlife stats come alive — 100% private, all on your device. <span class="count">152</span></div></div>
+  </div>
+
+  <h2>Description <span class="count" style="float:none">4000 max</span></h2>
+  <div class="card copy" data-copy>
+<pre>NYC Gay Bars is your personal guide to the city's LGBTQ+ nightlife — and a fun way to remember every night out.
+
+Browse 80+ gay bars across Manhattan, Brooklyn, and Queens on an interactive map or a searchable list. Filter by neighborhood, sort by distance, and find your next spot in seconds.
+
+Been somewhere? Check in and log what you drank — tonight or backdated. Your history builds a personal timeline of every bar, every drink, every night.
+
+FEATURES
+• Map + list of 80+ NYC gay bars, by neighborhood
+• Sort by distance to what's closest right now
+• One-tap check-ins and drink logging (today or any past day)
+• A calendar history of your nights out
+• Personal stats: favorite bar, top drink, biggest night, longest streak
+• Neighborhood progress bars — how much of the city have you hit?
+• 30 unlockable badges to chase
+• Beautiful, fast, native design
+
+PRIVATE BY DESIGN
+Everything stays on your iPhone. No account, no sign-up, no tracking, no servers. Your nights out are nobody's business but yours.
+
+Whether you're a local completist or visiting for Pride, NYC Gay Bars makes exploring the scene a game worth playing.</pre>
+  </div>
+  <p class="hint">Click the box to copy the whole description.</p>
+
+  <h2>Keywords <span class="count" style="float:none">100 max, comma-separated, no spaces after commas</span></h2>
+  <div class="card">
+    <div class="row"><div class="k">Keywords</div><div class="v copy" data-copy>gay bar,lgbtq,queer,nyc nightlife,gay nyc,bar crawl,drink log,pride,gay map,bar tracker,manhattan <span class="count">97</span></div></div>
+  </div>
+
+  <h2>URLs</h2>
+  <div class="card">
+    <div class="row"><div class="k">Privacy Policy URL <span class="badge warn">required</span></div>
+      <div class="v">You have <code>docs/privacy.html</code> — host it and paste the public URL.<div class="hint">e.g. GitHub Pages: https://normanhoang.github.io/&lt;repo&gt;/privacy.html</div></div></div>
+    <div class="row"><div class="k">Support URL <span class="badge warn">required</span></div>
+      <div class="v">A page or email people can reach you at. A simple GitHub repo README or a mailto page works.</div></div>
+    <div class="row"><div class="k">Marketing URL</div><div class="v">Optional — skip for v1.</div></div>
+  </div>
+
+  <h2>Screenshots — 6.9" iPhone <span class="badge ok">1320 × 2868 ✓</span></h2>
+  <div class="card">
+    <p class="hint" style="margin-top:0">These three are the required 6.9" size (iPhone 17 Pro Max). Apple auto-scales them for smaller devices, so this one size covers all iPhones. Upload 3–10; order matters (first is the hero).</p>
+    <div class="shots">
+      <figure><img src="screenshots/page-0.png" alt="Map"><figcaption>1 · Map — hero</figcaption></figure>
+      <figure><img src="screenshots/page-1.png" alt="Stats"><figcaption>2 · Stats</figcaption></figure>
+      <figure><img src="screenshots/page-2.png" alt="History"><figcaption>3 · History</figcaption></figure>
+    </div>
+    <p class="hint">Files: <code>docs/appstore/screenshots/page-0.png</code> (map), <code>page-1.png</code> (stats), <code>page-2.png</code> (history). Seed data is demo-only; not shipped.</p>
+  </div>
+
+  <h2>App Icon</h2>
+  <div class="card">
+    <div class="row"><div class="k">1024 × 1024</div><div class="v"><span class="badge ok">1024² · no alpha ✓</span> &nbsp; <code>NYCGayBars/Assets.xcassets/AppIcon.appiconset/icon.png</code><div class="hint">Uploaded automatically inside the build; also usable as the App Store icon.</div></div></div>
+  </div>
+
+  <h2>Age Rating <span class="badge">likely 17+</span></h2>
+  <div class="card">
+    <p style="margin-top:0">In the rating questionnaire, answer honestly — the alcohol content drives the rating:</p>
+    <ul>
+      <li><b>Alcohol, Tobacco, or Drug Use or References</b> → <b>Frequent/Intense</b> (the app is about bars &amp; drink logging)</li>
+      <li>Everything else (violence, sexual content, gambling, etc.) → <b>None</b></li>
+    </ul>
+    <p class="hint">Result is typically 17+. No login/UGC, so no "unrestricted web access" flags.</p>
+  </div>
+
+  <h2>App Privacy <span class="badge ok">Data Not Collected</span></h2>
+  <div class="card">
+    <p style="margin-top:0">The app sends nothing off the device — no servers, no analytics. In the privacy questionnaire select <b>"Data Not Collected."</b></p>
+    <ul>
+      <li>Location is used only on-device to show distance/sort bars. Because it is never transmitted or stored off-device, it is <b>not "collected"</b> under Apple's definition — do not list it.</li>
+      <li>Tracking: <b>No</b>.</li>
+    </ul>
+    <p class="hint">This matches the shipped <code>PrivacyInfo.xcprivacy</code> (UserDefaults reason CA92.1, no collection, no tracking).</p>
+  </div>
+
+  <h2>Export Compliance <span class="badge ok">handled</span></h2>
+  <div class="card">
+    <p style="margin:0"><code>ITSAppUsesNonExemptEncryption = false</code> is set in Info.plist, so App Store Connect won't prompt on upload. Answer "No" if asked about non-exempt encryption.</p>
+  </div>
+
+  <h2>Submission Checklist</h2>
+  <div class="card">
+    <ul>
+      <li>☐ Archive in Xcode → Distribute App → App Store Connect (uploads build 1)</li>
+      <li>☐ Create app record (bundle <code>com.normanhoang.nycgaybars</code>)</li>
+      <li>☐ Paste name, subtitle, promo text, description, keywords (above)</li>
+      <li>☐ Upload the 3 screenshots</li>
+      <li>☐ Host privacy policy + support page, paste URLs</li>
+      <li>☐ Complete age rating (17+) and App Privacy (Data Not Collected)</li>
+      <li>☐ Attach build 1, set price (Free), submit for review</li>
+    </ul>
+  </div>
+</div>
+
+<div class="toast" id="toast">Copied</div>
+<script>
+  const toast = document.getElementById('toast');
+  document.querySelectorAll('[data-copy]').forEach(el => {
+    el.addEventListener('click', () => {
+      const t = (el.querySelector('pre') || el).innerText.replace(/\s*\d+\s*$/,'').trim();
+      navigator.clipboard.writeText(el.querySelector('pre') ? el.innerText.trim() : t);
+      toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 1200);
+    });
+  });
+</script>
+</body>
+</html>
