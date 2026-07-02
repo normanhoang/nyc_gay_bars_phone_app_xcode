@@ -19,10 +19,12 @@ xcodebuild -scheme NYCGayBars -destination 'platform=iOS Simulator,name=iPhone 1
 xcodebuild -scheme NYCGayBars -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' test -only-testing:NYCGayBarsTests/GeoTests/testKnownZip
 ```
 
-Device install (signing team must be set — `DEVELOPMENT_TEAM` is blank in `project.yml`; pass it on the command line or set in Xcode):
+Git remotes: `origin` is the old RN repo (`nyc_gay_bars_phone_app`); this repo's remote is **`xcode`** (`nyc_gay_bars_phone_app_xcode`) and `main` tracks `xcode/main` — push there.
+
+Device install (`DEVELOPMENT_TEAM: DZRPJF9JB6` is set in `project.yml`; find the UDID with `xcrun devicectl list devices`):
 
 ```bash
-xcodebuild -scheme NYCGayBars -destination 'platform=iOS,id=<DEVICE_UDID>' -allowProvisioningUpdates DEVELOPMENT_TEAM=<TEAM> CODE_SIGN_STYLE=Automatic build
+xcodebuild -scheme NYCGayBars -destination 'platform=iOS,id=<DEVICE_UDID>' -allowProvisioningUpdates DEVELOPMENT_TEAM=DZRPJF9JB6 CODE_SIGN_STYLE=Automatic build
 xcrun devicectl device install app --device <DEVICE_UDID> <built>.app   # retry once; first attempt often fails "connection interrupted"
 xcrun devicectl device process launch --device <DEVICE_UDID> com.normanhoang.nycgaybars   # fails if phone is locked
 ```
@@ -36,7 +38,7 @@ xcodebuild -exportArchive -archivePath build/NYCGayBars.xcarchive -exportPath bu
 # a plist dict with method=app-store-connect, teamID=DZRPJF9JB6, signingStyle=automatic, destination=export
 ```
 
-There is no SwiftUI Preview-based screenshot harness. To screenshot a specific tab on the simulator, temporarily seed `ProcessInfo` env reads (e.g. a `START_PAGE` page nudge in `RootTabView`), launch with `SIMCTL_CHILD_START_PAGE=N xcrun simctl launch ...`, capture with `xcrun simctl io booted screenshot`, then **revert the scaffolding**. The MapKit view and a stuck system location alert can block screenshots — boot the sim fresh and `xcrun simctl privacy booted grant location-always com.normanhoang.nycgaybars` first.
+There is no SwiftUI Preview-based screenshot harness. To screenshot a specific tab on the simulator, add temporary `START_PAGE` scaffolding to `RootTabView` that **renders the target page directly, bypassing the pager** (`if let p = startPage { singlePage(p) } else { ScrollView … }`) — merely seeding the `page`/`scrollPosition` state does **not** scroll it (programmatic `scrollPosition(id:)` writes outside a gesture silently no-op here). Launch with `SIMCTL_CHILD_START_PAGE=N xcrun simctl launch ...`, capture with `xcrun simctl io <udid> screenshot`, then **revert the scaffolding**. The first-launch location alert blocks screenshots and `simctl privacy grant location/location-always` does **not** suppress it (even after `erase` + fresh boot) — `xcrun simctl privacy <udid> revoke location com.normanhoang.nycgaybars` does (app just loses distances/Nearest). Host-level AppleScript clicking on the Simulator window is sandbox-blocked (System Events sees 0 windows). For App Store 6.5" shots, create an **iPhone 13 Pro Max** sim — native 1284×2778, no resize step — and clean the status bar with `xcrun simctl status_bar <udid> override --time "9:41" ...`.
 
 To *interact* with the UI (taps/swipes/scrolls), host-level clicking is unreliable (no idb/axe installed; the Simulator window is often offscreen so cliclick can't reach it). What works: add a **temporary `bundle.ui-testing` target** to `project.yml` + an XCUITest that drives the flow and attaches screenshots (`XCTAttachment(screenshot:)`, `.keepAlways`), run with `-only-testing:`, extract via `xcrun xcresulttool export attachments --path <xcresult> --output-path <dir>` (its manifest.json maps exported names), then **revert project.yml, delete the test dir, rerun xcodegen**. XCUITest selector gotchas: `staticTexts["Stats"]/["History"]` also match the tab-bar labels, and stat-card subtitles shadow neighborhood names (FAVORITE BAR shows "Hell's Kitchen") — assert on unique markers like `"TOTALS"` or the calendar month title instead. Seed state before launch: `xcrun simctl spawn booted defaults write com.normanhoang.nycgaybars "@gaybars/visits" -data <hex of JSON [Visit]>` (same for `@gaybars/visited`, a JSON `[String]`).
 
@@ -47,7 +49,7 @@ SourceKit IDE diagnostics routinely flag cross-file types as "Cannot find X in s
 Plain SwiftUI + two `ObservableObject` stores injected as environment objects from `NYCGayBarsApp` (`VisitsStore` → `BadgesStore`). No third-party deps.
 
 ### Data is generated, not hand-written
-`NYCGayBars/Data/Resources/{bars,neighborhoods,zips,meta}.json` are **build artifacts**, decoded once by `AppData` into `AppData.bars/neighborhoodPolygons/zipCentroids/neighborhoods/region`. CLAUDE history references a `legacy-expo/` pipeline (`gay_bars.csv` + `scripts/*.mjs`) as the original source of truth — **that dir is not in the working tree**, so these JSON files are currently edited/regenerated **directly** with throwaway Python scripts.
+`NYCGayBars/Data/Resources/{bars,neighborhoods,zips,meta}.json` are **build artifacts**, decoded once by `AppData` into `AppData.bars/neighborhoodPolygons/zipCentroids/neighborhoods/region`. Use the precomputed `AppData.barsById` / `AppData.barsByNeighborhood` dictionaries for lookups — don't linear-scan `bars`. CLAUDE history references a `legacy-expo/` pipeline (`gay_bars.csv` + `scripts/*.mjs`) as the original source of truth — **that dir is not in the working tree**, so these JSON files are currently edited/regenerated **directly** with throwaway Python scripts.
 
 Neighborhood polygons are built from external NYC neighborhood GeoJSON, not drawn by hand:
 - **Outer boroughs (Brooklyn/Queens)** use the **Pediacities** common-name set (`custom-pedia-cities-nyc-Mar2018.geojson`); **Manhattan** polygons are hand-tuned (12th-Ave west edges; the HK/Chelsea divider follows W 37th St's diagonal).
@@ -56,8 +58,8 @@ Neighborhood polygons are built from external NYC neighborhood GeoJSON, not draw
 - When the neighborhood **set** changes, also update `meta.json`'s `neighborhoods` list, the affected `bar.neighborhood` values, and `Stats.borough()`'s `brooklynHoods`/`queensHoods` sets (a hardcoded name→borough map; stale names silently count as Manhattan and break the boroughs badge). Zip expectations in `LogicTests` are nearest-*bar* based.
 
 ### State + persistence
-- `VisitsStore` — `visits`, `visitedBars`, `hydrated`; persists JSON to UserDefaults keys `@gaybars/visits`, `@gaybars/visited`. A `Visit` aggregates drinks per type for one local calendar day; a **zero-drink check-in** is a valid visit (`setVisited`). Backdated visits are stamped **noon local** so the ISO date round-trips the day key; future days are refused.
-- `BadgesStore` — recomputes badges from visits, persists first-earned timestamps (`@gaybars/badgeDates`), and drives the unlock-toast queue. It is **not** self-subscribing: `RootTabView` calls `badges.reconcile(visits:visitedIds:)` on appear and on `visits.visits` / `visits.visitedBars` changes.
+- `VisitsStore` — `visits`, `visitedBars`, `hydrated`; persists JSON to UserDefaults keys `@gaybars/visits`, `@gaybars/visited`. A `Visit` aggregates drinks per type for one local calendar day; a **zero-drink check-in** is a valid visit (`setVisited`). Backdated visits are stamped **noon local** so the ISO date round-trips the day key; future days are refused. `visitedIds` is a **cached stored `@Published`**, not computed — any new mutation must call `refreshVisitedIds()`. `Visit.dayKey` is derived once at decode/create and **never encoded** (excluded via `CodingKeys`); use it instead of re-parsing `DayKey.key(iso:)`.
+- `BadgesStore` — recomputes badges from visits, persists first-earned timestamps (`@gaybars/badgeDates`), and drives the unlock-toast queue. It is **not** self-subscribing: `RootTabView` calls `badges.reconcile(visits:visitedIds:)` on appear and via a **single** `.onChange` keyed on a combined `ReconcileKey(visits, visitedBars)` so one mutation triggers one reconcile.
 
 ### `DayKey` (gotcha)
 Day keys are `"year-month-day"` with a **0-indexed month** (mirrors JS `getMonth()`), so June 24 2026 is `"2026-5-24"`. `DayKey.toDate` rebuilds noon-local. All streak/badge/calendar logic depends on this round-trip — don't "fix" the month to 1-indexed.
