@@ -33,13 +33,20 @@ enum AppData {
     static let neighborhoodPolygons: [String: [LatLng]] = load("neighborhoods")
     static let zipCentroids: [String: ZipCentroid] = load("zips")
 
+    /// O(1) bar lookup by id.
+    static let barsById: [String: Bar] =
+        Dictionary(uniqueKeysWithValues: bars.map { ($0.id, $0) })
+    /// Bars grouped by their assigned neighborhood.
+    static let barsByNeighborhood: [String: [Bar]] =
+        Dictionary(grouping: bars, by: \.neighborhood)
+
     private static let meta: Meta = load("meta")
     /// Unique neighborhoods present in BARS, sorted — drives the filter UI.
     static var neighborhoods: [String] { meta.neighborhoods }
     /// Map region that frames all NYC bars.
     static var region: Region { meta.region }
 
-    static func bar(id: String) -> Bar? { bars.first { $0.id == id } }
+    static func bar(id: String) -> Bar? { barsById[id] }
 
     private static func load<T: Decodable>(_ name: String) -> T {
         guard let url = Bundle.main.url(forResource: name, withExtension: "json"),

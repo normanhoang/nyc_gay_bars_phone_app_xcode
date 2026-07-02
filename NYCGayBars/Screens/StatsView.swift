@@ -12,6 +12,32 @@ struct StatsView: View {
 
     private var visitedIds: Set<String> { visits.visitedIds }
 
+    /// All visit-derived stats gathered once per body pass instead of being
+    /// recomputed inline per card.
+    private struct Snapshot {
+        let totalDrinks: Int
+        let totalDrinkDays: Int
+        let distinctBars: Int
+        let favoriteBar: Bar?
+        let topDrinkType: (type: String, count: Int)?
+        let biggestNight: (day: String, total: Int)?
+        let streak: Int
+        let boroughs: [BoroughProgress]
+    }
+
+    private func makeSnapshot() -> Snapshot {
+        let v = visits.visits
+        return Snapshot(
+            totalDrinks: Stats.totalDrinks(v),
+            totalDrinkDays: Stats.totalDrinkDays(v),
+            distinctBars: Stats.distinctBarsVisited(v),
+            favoriteBar: Stats.favoriteBar(v),
+            topDrinkType: Stats.topDrinkType(v),
+            biggestNight: Stats.biggestNight(v),
+            streak: Stats.longestDayStreak(v),
+            boroughs: Stats.boroughProgress(visitedIds))
+    }
+
     private var earnedBadges: [Badge] {
         badges.badges.filter { $0.earned }
             .sorted { ($0.earnedAt ?? "") > ($1.earnedAt ?? "") }
@@ -41,13 +67,13 @@ struct StatsView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .transition(.opacity)
             } else {
-                content.transition(.opacity)
+                content(makeSnapshot()).transition(.opacity)
             }
         }
         .sheet(isPresented: $showAllBadges) { allBadgesSheet }
     }
 
-    private var content: some View {
+    private func content(_ snap: Snapshot) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 Text("Stats").font(.system(size: 30, weight: .heavy)).foregroundStyle(.white)
@@ -56,29 +82,28 @@ struct StatsView: View {
                 Text("TOTALS").font(.system(size: 12, weight: .regular)).tracking(0.5)
                     .foregroundStyle(Palette.gray300).padding(.bottom, 8)
                 HStack(spacing: 12) {
-                    totalCell(Stats.totalDrinks(visits.visits), "drinks")
-                    totalCell(Stats.totalDrinkDays(visits.visits), "drink-days")
-                    totalCell(Stats.distinctBarsVisited(visits.visits), "bars")
+                    totalCell(snap.totalDrinks, "drinks")
+                    totalCell(snap.totalDrinkDays, "drink-days")
+                    totalCell(snap.distinctBars, "bars")
                 }
                 .padding(.bottom, 12)
 
-                if let fav = Stats.favoriteBar(visits.visits) {
+                if let fav = snap.favoriteBar {
                     statCard("FAVORITE BAR", fav.name, fav.neighborhood)
                 }
-                if let top = Stats.topDrinkType(visits.visits) {
+                if let top = snap.topDrinkType {
                     statCard("TOP DRINK", "\(drinkEmoji(top.type)) \(top.type)", "\(top.count) logged all-time")
                 }
-                if let big = Stats.biggestNight(visits.visits) {
+                if let big = snap.biggestNight {
                     statCard("BIGGEST NIGHT", "\(big.total) \(big.total == 1 ? "drink" : "drinks")", DayKey.format(big.day))
                 }
-                let streak = Stats.longestDayStreak(visits.visits)
-                if streak > 0 {
-                    statCard("LONGEST STREAK", "\(streak) \(streak == 1 ? "day" : "days")", "Most consecutive days with drinks logged")
+                if snap.streak > 0 {
+                    statCard("LONGEST STREAK", "\(snap.streak) \(snap.streak == 1 ? "day" : "days")", "Most consecutive days with drinks logged")
                 }
 
                 Text("Neighborhoods").font(.system(size: 16, weight: .bold)).foregroundStyle(.white)
                     .padding(.top, 12).padding(.bottom, 8)
-                neighborhoods
+                neighborhoods(snap.boroughs)
 
                 HStack {
                     Text("Recent badges").font(.system(size: 16, weight: .bold)).foregroundStyle(.white)
@@ -144,9 +169,9 @@ struct StatsView: View {
         .padding(.bottom, 12)
     }
 
-    private var neighborhoods: some View {
+    private func neighborhoods(_ boroughs: [BoroughProgress]) -> some View {
         VStack(spacing: 0) {
-            ForEach(Array(Stats.boroughProgress(visitedIds).enumerated()), id: \.element.id) { i, b in
+            ForEach(Array(boroughs.enumerated()), id: \.element.id) { i, b in
                 let complete = b.visited == b.total
                 let expanded = expandedBoroughs.contains(b.borough)
                 Button {

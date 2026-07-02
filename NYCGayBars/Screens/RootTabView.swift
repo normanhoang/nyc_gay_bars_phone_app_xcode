@@ -56,8 +56,16 @@ struct RootTabView: View {
         .environmentObject(tabSwipe)
         .overlay(alignment: .top) { BadgeToast() }
         .onAppear { reconcile() }
-        .onChange(of: visits.visits) { _, _ in reconcile() }
-        .onChange(of: visits.visitedBars) { _, _ in reconcile() }
+        // Single change key so a mutation touching both visits and visitedBars
+        // (e.g. setVisited(false)) triggers one reconcile, not two.
+        .onChange(of: ReconcileKey(visits: visits.visits, visitedBars: visits.visitedBars)) { _, _ in
+            reconcile()
+        }
+    }
+
+    private struct ReconcileKey: Equatable {
+        let visits: [Visit]
+        let visitedBars: [String]
     }
 
     private func reconcile() {

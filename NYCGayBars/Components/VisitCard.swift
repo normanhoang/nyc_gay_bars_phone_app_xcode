@@ -18,7 +18,7 @@ struct VisitCard: View {
                     Text(bar?.neighborhood ?? "")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(Palette.primary)
-                    Text(DayKey.format(DayKey.key(iso: visit.date)))
+                    Text(DayKey.format(visit.dayKey))
                         .font(.system(size: 12))
                         .foregroundStyle(Palette.gray400)
                         .padding(.top, 2)

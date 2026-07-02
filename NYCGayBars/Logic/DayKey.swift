@@ -48,11 +48,15 @@ enum DayKey {
         return calendar.date(from: c) ?? Date()
     }
 
-    /// Human-readable form, e.g. "Tuesday, June 9, 2026".
-    static func format(_ key: String) -> String {
+    private static let displayFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "EEEE, MMMM d, yyyy"
-        return f.string(from: toDate(key))
+        return f
+    }()
+
+    /// Human-readable form, e.g. "Tuesday, June 9, 2026".
+    static func format(_ key: String) -> String {
+        displayFormatter.string(from: toDate(key))
     }
 
     /// True when the day key is after today.

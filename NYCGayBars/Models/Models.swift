@@ -30,9 +30,34 @@ struct Visit: Codable, Identifiable, Hashable {
     var drinks: [DrinkEntry]
     /// Free-form note about the night.
     var note: String?
+    /// Local day key derived from `date`, computed once (never persisted).
+    let dayKey: String
 
     /// Total number of drinks across all types in this visit.
     var drinkTotal: Int { drinks.reduce(0) { $0 + $1.count } }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, barId, date, drinks, note
+    }
+
+    init(id: String, barId: String, date: String, drinks: [DrinkEntry], note: String?) {
+        self.id = id
+        self.barId = barId
+        self.date = date
+        self.drinks = drinks
+        self.note = note
+        self.dayKey = DayKey.key(iso: date)
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        barId = try c.decode(String.self, forKey: .barId)
+        date = try c.decode(String.self, forKey: .date)
+        drinks = try c.decode([DrinkEntry].self, forKey: .drinks)
+        note = try c.decodeIfPresent(String.self, forKey: .note)
+        dayKey = DayKey.key(iso: date)
+    }
 }
 
 /// A badge definition with its earned state; `earnedAt` set when first observed.

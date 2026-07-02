@@ -28,9 +28,8 @@ struct LogDayPicker: View {
         if let c = coords { return Geo.neighborhoodsByProximity(c.lat, c.lng) }
         return AppData.neighborhoods
     }
-    private var filteredBars: [Bar] {
+    private func filteredBars(_ d: [String: Double]?) -> [Bar] {
         let q = zip.query.trimmingCharacters(in: .whitespaces).lowercased()
-        let d = distances
         return AppData.bars.filter { b in
             if neighborhood != "All" && b.neighborhood != neighborhood { return false }
             if !q.isEmpty {
@@ -45,6 +44,9 @@ struct LogDayPicker: View {
     }
 
     var body: some View {
+        // Derived per body pass, not per access (see ExploreView).
+        let d = distances
+        let bars = filteredBars(d)
         ZStack {
             AppBackground()
             VStack(spacing: 0) {
@@ -73,7 +75,7 @@ struct LogDayPicker: View {
                     get: { neighborhood }, set: { selectNeighborhood($0) }))
                     .padding(.leading, 16).padding(.bottom, 8)
 
-                if distances != nil {
+                if d != nil {
                     HStack(spacing: 0) {
                         Spacer()
                         Button { nearest = false } label: {
@@ -92,10 +94,10 @@ struct LogDayPicker: View {
 
                 ScrollView {
                     LazyVStack(spacing: 12) {
-                        ForEach(filteredBars) { bar in
+                        ForEach(bars) { bar in
                             BarListItem(
                                 bar: bar,
-                                distance: distances?[bar.id],
+                                distance: d?[bar.id],
                                 visited: visits.visitedIds.contains(bar.id),
                                 drinkCount: visits.getVisitFor(bar.id, day: day)?.drinkTotal ?? 0,
                                 onTap: { withAnimation(.easeOut(duration: 0.32)) { picked = bar } })

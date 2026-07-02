@@ -32,9 +32,8 @@ struct ExploreView: View {
         return AppData.neighborhoods
     }
 
-    private var filteredBars: [Bar] {
+    private func filteredBars(_ d: [String: Double]?) -> [Bar] {
         let q = zip.query.trimmingCharacters(in: .whitespaces).lowercased()
-        let d = distances
         return AppData.bars.filter { b in
             if neighborhood != "All" && b.neighborhood != neighborhood { return false }
             if !q.isEmpty {
@@ -51,23 +50,23 @@ struct ExploreView: View {
     }
 
     private var neighborhoodBars: [Bar] {
-        neighborhood == "All" ? AppData.bars : AppData.bars.filter { $0.neighborhood == neighborhood }
-    }
-
-    private var visitedCount: Int {
-        let ids = visits.visitedIds
-        return neighborhoodBars.filter { ids.contains($0.id) }.count
+        neighborhood == "All" ? AppData.bars : (AppData.barsByNeighborhood[neighborhood] ?? [])
     }
 
     var body: some View {
+        // Derived per body pass, not per access — distances is ~80 haversines
+        // and filteredBars a filter+sort; both were computed properties read
+        // several times per render.
+        let d = distances
+        let bars = filteredBars(d)
         VStack(spacing: 0) {
             header
             FilterChips(options: ["All"] + neighborhoodOptions, selected: Binding(
                 get: { neighborhood }, set: { selectNeighborhood($0) }))
                 .padding(.leading, 16)
                 .padding(.bottom, 4)
-            statsRow
-            content
+            statsRow(d)
+            content(d, bars)
         }
         .dismissKeyboardOnBackgroundTap()
         .onAppear { location.start(); tabSwipe.enabled = (mode == 1) }
@@ -111,14 +110,17 @@ struct ExploreView: View {
         .padding(.bottom, 12)
     }
 
-    private var statsRow: some View {
-        HStack {
+    private func statsRow(_ distances: [String: Double]?) -> some View {
+        let bars = neighborhoodBars
+        let ids = visits.visitedIds
+        let visitedCount = bars.filter { ids.contains($0.id) }.count
+        return HStack {
             HStack(spacing: 0) {
-                Text("\(visitedCount) / \(neighborhoodBars.count)")
+                Text("\(visitedCount) / \(bars.count)")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Palette.primary)
                 Text(" visited · ").font(.system(size: 12)).foregroundStyle(Palette.gray500)
-                Text(visitMessage(visitedCount, neighborhoodBars.count, neighborhood == "All"))
+                Text(visitMessage(visitedCount, bars.count, neighborhood == "All"))
                     .font(.system(size: 12)).foregroundStyle(Palette.gray400)
             }
             if mode == 1 && distances != nil {
@@ -145,7 +147,7 @@ struct ExploreView: View {
     }
 
     @ViewBuilder
-    private var content: some View {
+    private func content(_ distances: [String: Double]?, _ filteredBars: [Bar]) -> some View {
         if mode == 1 {
             if filteredBars.isEmpty {
                 VStack(spacing: 8) {

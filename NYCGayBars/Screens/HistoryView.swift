@@ -12,7 +12,7 @@ struct HistoryView: View {
     @State private var showClear = false
     @State private var visitToDelete: Visit?
 
-    private var markedDays: Set<String> { Set(visits.visits.map { DayKey.key(iso: $0.date) }) }
+    private var markedDays: Set<String> { Set(visits.visits.map { $0.dayKey }) }
     private var dayVisits: [Visit] { visits.getVisitsForDay(selectedDay) }
     private var dayTotal: Int { dayVisits.reduce(0) { $0 + $1.drinkTotal } }
     private var isFutureDay: Bool { DayKey.isFuture(selectedDay) }

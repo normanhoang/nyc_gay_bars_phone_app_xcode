@@ -13,12 +13,16 @@ final class VisitsStore: ObservableObject {
     @Published private(set) var visitedBars: [String] = []
     /// True once persisted state has loaded (always true after init here).
     @Published private(set) var hydrated = false
+    /// Set of all bar ids the user has ever visited (marked or drink-logged).
+    /// Cached; refreshed whenever visits/visitedBars membership changes.
+    @Published private(set) var visitedIds: Set<String> = []
 
     private let defaults = UserDefaults.standard
 
     init() {
         visits = decode([Visit].self, Self.visitsKey) ?? []
         visitedBars = decode([String].self, Self.visitedKey) ?? []
+        refreshVisitedIds()
         hydrated = true
     }
 
@@ -46,7 +50,7 @@ final class VisitsStore: ObservableObject {
     /// A bar's visit on a given day (default today), or nil if none.
     func getVisitFor(_ barId: String, day: String? = nil) -> Visit? {
         let target = day ?? DayKey.key()
-        return visits.first { $0.barId == barId && DayKey.key(iso: $0.date) == target }
+        return visits.first { $0.barId == barId && $0.dayKey == target }
     }
 
     func getVisitsForBar(_ barId: String) -> [Visit] {
@@ -55,7 +59,7 @@ final class VisitsStore: ObservableObject {
 
     /// All visits on a given local day, most recent first.
     func getVisitsForDay(_ day: String) -> [Visit] {
-        visits.filter { DayKey.key(iso: $0.date) == day }
+        visits.filter { $0.dayKey == day }
     }
 
     /// All-time "been here" flag (marked or any drink logged).
@@ -63,9 +67,8 @@ final class VisitsStore: ObservableObject {
         visitedBars.contains(barId) || visits.contains { $0.barId == barId }
     }
 
-    /// Set of all bar ids the user has ever visited.
-    var visitedIds: Set<String> {
-        Stats.computeVisitedIds(isVisited)
+    private func refreshVisitedIds() {
+        visitedIds = Stats.computeVisitedIds(isVisited)
     }
 
     // MARK: - Mutations
@@ -82,7 +85,7 @@ final class VisitsStore: ObservableObject {
         let targetDay = day ?? DayKey.key()
         guard !DayKey.isFuture(targetDay) else { return }
 
-        if let idx = visits.firstIndex(where: { $0.barId == barId && DayKey.key(iso: $0.date) == targetDay }) {
+        if let idx = visits.firstIndex(where: { $0.barId == barId && $0.dayKey == targetDay }) {
             var drinks = visits[idx].drinks
             if let di = drinks.firstIndex(where: { $0.type.lowercased() == type.lowercased() }) {
                 drinks[di].count += 1
@@ -96,6 +99,7 @@ final class VisitsStore: ObservableObject {
             visits.insert(v, at: 0)
         }
         saveVisits()
+        refreshVisitedIds()
     }
 
     func removeDrink(_ barId: String, _ rawType: String, day: String? = nil) {
@@ -103,7 +107,7 @@ final class VisitsStore: ObservableObject {
         guard !type.isEmpty else { return }
         let targetDay = day ?? DayKey.key()
 
-        guard let idx = visits.firstIndex(where: { $0.barId == barId && DayKey.key(iso: $0.date) == targetDay })
+        guard let idx = visits.firstIndex(where: { $0.barId == barId && $0.dayKey == targetDay })
         else { return }
         var drinks = visits[idx].drinks
         guard let di = drinks.firstIndex(where: { $0.type.lowercased() == type.lowercased() }) else { return }
@@ -117,12 +121,13 @@ final class VisitsStore: ObservableObject {
             visits[idx].drinks = drinks
         }
         saveVisits()
+        refreshVisitedIds()
     }
 
     /// Set/clear the note on a bar's visit for a day; no-op without a visit.
     func setVisitNote(_ barId: String, day: String, note rawNote: String) {
         let note = rawNote.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let idx = visits.firstIndex(where: { $0.barId == barId && DayKey.key(iso: $0.date) == day })
+        guard let idx = visits.firstIndex(where: { $0.barId == barId && $0.dayKey == day })
         else { return }
         if (visits[idx].note ?? "") == note { return }
         visits[idx].note = note.isEmpty ? nil : note
@@ -132,6 +137,7 @@ final class VisitsStore: ObservableObject {
     func clearVisit(_ visitId: String) {
         visits.removeAll { $0.id == visitId }
         saveVisits()
+        refreshVisitedIds()
     }
 
     /// Clear logged drink history. If includeVisited, also wipe visited marks.
@@ -142,6 +148,7 @@ final class VisitsStore: ObservableObject {
             visitedBars = []
             saveVisited()
         }
+        refreshVisitedIds()
     }
 
     /// Toggle the visited flag. Setting true records a zero-drink check-in for
@@ -152,7 +159,7 @@ final class VisitsStore: ObservableObject {
             saveVisited()
 
             let targetDay = day ?? DayKey.key()
-            let existing = visits.contains { $0.barId == barId && DayKey.key(iso: $0.date) == targetDay }
+            let existing = visits.contains { $0.barId == barId && $0.dayKey == targetDay }
             if !existing && !DayKey.isFuture(targetDay) {
                 let checkIn = Visit(id: DayKey.makeId(), barId: barId,
                                     date: stampDate(for: targetDay), drinks: [], note: nil)
@@ -165,5 +172,6 @@ final class VisitsStore: ObservableObject {
             visits.removeAll { $0.barId == barId }
             saveVisits()
         }
+        refreshVisitedIds()
     }
 }

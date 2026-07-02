@@ -32,7 +32,7 @@ enum Stats {
     /// Number of distinct calendar days the user went to a bar (a day at two
     /// bars counts once).
     static func totalDrinkDays(_ visits: [Visit]) -> Int {
-        Set(visits.map { DayKey.key(iso: $0.date) }).count
+        Set(visits.map { $0.dayKey }).count
     }
 
     static func longestDayStreak(_ visits: [Visit]) -> Int {
@@ -88,7 +88,7 @@ enum Stats {
         var byDay: [String: Int] = [:]
         var order: [String] = []
         for v in visits {
-            let key = DayKey.key(iso: v.date)
+            let key = v.dayKey
             if byDay[key] == nil { order.append(key) }
             byDay[key, default: 0] += v.drinkTotal
         }
@@ -110,7 +110,7 @@ enum Stats {
     /// Visited/total bar counts per neighborhood, most-complete first.
     static func neighborhoodProgress(_ visitedIds: Set<String>) -> [NeighborhoodProgress] {
         AppData.neighborhoods.map { neighborhood -> NeighborhoodProgress in
-            let bars = AppData.bars.filter { $0.neighborhood == neighborhood }
+            let bars = AppData.barsByNeighborhood[neighborhood] ?? []
             return NeighborhoodProgress(
                 neighborhood: neighborhood,
                 visited: bars.filter { visitedIds.contains($0.id) }.count,
@@ -152,7 +152,7 @@ enum Stats {
 
     /// The distinct visit days as sorted local-noon timestamps (ms).
     private static func uniqueSortedDayTimes(_ visits: [Visit]) -> [Double] {
-        Set(visits.map { DayKey.key(iso: $0.date) })
+        Set(visits.map { $0.dayKey })
             .map { DayKey.toDate($0).timeIntervalSince1970 * 1000.0 }
             .sorted()
     }
@@ -181,7 +181,7 @@ enum Stats {
 
         var barsPerDay: [String: Set<String>] = [:]
         for v in visits {
-            barsPerDay[DayKey.key(iso: v.date), default: []].insert(v.barId)
+            barsPerDay[v.dayKey, default: []].insert(v.barId)
         }
         let maxBarsInOneDay = barsPerDay.values.map { $0.count }.max() ?? 0
 
@@ -224,7 +224,7 @@ enum Stats {
         let maxRunAtOneBar = visitsByBar.values.map { longestRun(uniqueSortedDayTimes($0)) }.max() ?? 0
 
         let hasCompleteNeighborhood = AppData.neighborhoods.contains { n in
-            AppData.bars.filter { $0.neighborhood == n }.allSatisfy { visitedIds.contains($0.id) }
+            (AppData.barsByNeighborhood[n] ?? []).allSatisfy { visitedIds.contains($0.id) }
         }
 
         let halfTheCity = Int((Double(AppData.bars.count) / 2).rounded(.up))

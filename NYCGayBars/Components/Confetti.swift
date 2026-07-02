@@ -25,6 +25,9 @@ struct Confetti: View {
     private let pieces: [Piece]
     private let start = Date()
     private let gravity: CGFloat = 900
+    /// Pauses the timeline once every piece has finished so the Canvas stops
+    /// redrawing at display refresh rate for the rest of the toast's lifetime.
+    @State private var finished = false
 
     init(count: Int = 48, width: CGFloat = 380) {
         pieces = (0..<count).map { _ in
@@ -43,7 +46,7 @@ struct Confetti: View {
     }
 
     var body: some View {
-        TimelineView(.animation) { ctx in
+        TimelineView(.animation(minimumInterval: nil, paused: finished)) { ctx in
             Canvas { gc, size in
                 let t = ctx.date.timeIntervalSince(start)
                 for p in pieces {
@@ -64,5 +67,10 @@ struct Confetti: View {
             }
         }
         .allowsHitTesting(false)
+        .task {
+            let end = pieces.map { $0.delay + $0.duration }.max() ?? 0
+            try? await Task.sleep(for: .seconds(end))
+            finished = true
+        }
     }
 }
