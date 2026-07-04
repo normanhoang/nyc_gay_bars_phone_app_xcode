@@ -1,0 +1,297 @@
+{
+  "NYCGayBars/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+    "mtime": 1782337731.8227556,
+    "ast_hash": "caa736e55b0804d4d5a339d42b7088ed",
+    "semantic_hash": "caa736e55b0804d4d5a339d42b7088ed"
+  },
+  "NYCGayBars/Assets.xcassets/AppLogo.imageset/Contents.json": {
+    "mtime": 1782353794.929983,
+    "ast_hash": "452118d06d0ef37835895f45ae10d3a6",
+    "semantic_hash": "452118d06d0ef37835895f45ae10d3a6"
+  },
+  "NYCGayBars/Assets.xcassets/Contents.json": {
+    "mtime": 1782337731.8203218,
+    "ast_hash": "6f266f38436c1b8465f1c0b241ffd07e",
+    "semantic_hash": "6f266f38436c1b8465f1c0b241ffd07e"
+  },
+  "NYCGayBars/Components/BadgeTile.swift": {
+    "mtime": 1782338042.8467243,
+    "ast_hash": "4355989dcd00d17cf682ec63fad7cb86",
+    "semantic_hash": "4355989dcd00d17cf682ec63fad7cb86"
+  },
+  "NYCGayBars/Components/BadgeToast.swift": {
+    "mtime": 1782338062.0644495,
+    "ast_hash": "95f831a8051710cffe8ccf97bf12fc99",
+    "semantic_hash": "95f831a8051710cffe8ccf97bf12fc99"
+  },
+  "NYCGayBars/Components/BarListItem.swift": {
+    "mtime": 1782338079.6396232,
+    "ast_hash": "7244d1eb18558765650fc0dec8f369ac",
+    "semantic_hash": "7244d1eb18558765650fc0dec8f369ac"
+  },
+  "NYCGayBars/Components/Confetti.swift": {
+    "mtime": 1782998430.387618,
+    "ast_hash": "a75e9d5924f37ca61e8ed35c568c88dd",
+    "semantic_hash": "a75e9d5924f37ca61e8ed35c568c88dd"
+  },
+  "NYCGayBars/Components/ConfirmDialog.swift": {
+    "mtime": 1782354375.950483,
+    "ast_hash": "60f8149c0a14c291a5badccf87217ece",
+    "semantic_hash": "60f8149c0a14c291a5badccf87217ece"
+  },
+  "NYCGayBars/Components/CountUp.swift": {
+    "mtime": 1782337986.8886926,
+    "ast_hash": "36659d18fae449e4efd448046bc747b1",
+    "semantic_hash": "36659d18fae449e4efd448046bc747b1"
+  },
+  "NYCGayBars/Components/FilterChips.swift": {
+    "mtime": 1782358147.1443112,
+    "ast_hash": "1d7ad9a1557e95d0e5d2a453d59c5618",
+    "semantic_hash": "1d7ad9a1557e95d0e5d2a453d59c5618"
+  },
+  "NYCGayBars/Components/FlowLayout.swift": {
+    "mtime": 1782338139.7836726,
+    "ast_hash": "955f6a67f8f759dd0ef133a90e806bc3",
+    "semantic_hash": "955f6a67f8f759dd0ef133a90e806bc3"
+  },
+  "NYCGayBars/Components/KeyboardDismiss.swift": {
+    "mtime": 1782354326.1393368,
+    "ast_hash": "f52c7db13f348b1ce01f6c8a31d99a41",
+    "semantic_hash": "f52c7db13f348b1ce01f6c8a31d99a41"
+  },
+  "NYCGayBars/Components/MonthCalendar.swift": {
+    "mtime": 1782338106.4795907,
+    "ast_hash": "2f4028c1ef5b15519d8b2e03baf27347",
+    "semantic_hash": "2f4028c1ef5b15519d8b2e03baf27347"
+  },
+  "NYCGayBars/Components/Motion.swift": {
+    "mtime": 1782356795.412256,
+    "ast_hash": "e2236b12defedbbe945ba50598bbb06f",
+    "semantic_hash": "e2236b12defedbbe945ba50598bbb06f"
+  },
+  "NYCGayBars/Components/ProgressBar.swift": {
+    "mtime": 1782337998.7072296,
+    "ast_hash": "9497df674df0b4c5eee2026c76960fbb",
+    "semantic_hash": "9497df674df0b4c5eee2026c76960fbb"
+  },
+  "NYCGayBars/Components/SearchBox.swift": {
+    "mtime": 1782338261.6251314,
+    "ast_hash": "d5eca07c969180e7eb3dca28f241b6c7",
+    "semantic_hash": "d5eca07c969180e7eb3dca28f241b6c7"
+  },
+  "NYCGayBars/Components/SegmentedToggle.swift": {
+    "mtime": 1782337969.2222896,
+    "ast_hash": "4dd1b324d70afcfa6e35fa3c08e39cfb",
+    "semantic_hash": "4dd1b324d70afcfa6e35fa3c08e39cfb"
+  },
+  "NYCGayBars/Components/Splash.swift": {
+    "mtime": 1782337749.8886235,
+    "ast_hash": "ea13947dc65472ef04a7b97511d8a80b",
+    "semantic_hash": "ea13947dc65472ef04a7b97511d8a80b"
+  },
+  "NYCGayBars/Components/VisitCard.swift": {
+    "mtime": 1782966656.1956995,
+    "ast_hash": "472b5e4648d248101183b315cf786a62",
+    "semantic_hash": "472b5e4648d248101183b315cf786a62"
+  },
+  "NYCGayBars/Components/ZipNote.swift": {
+    "mtime": 1782338004.5249708,
+    "ast_hash": "bd81b08c9748ff88e562769956b03ed5",
+    "semantic_hash": "bd81b08c9748ff88e562769956b03ed5"
+  },
+  "NYCGayBars/Data/AppData.swift": {
+    "mtime": 1782966566.5150707,
+    "ast_hash": "419f083f6627775190abe196ee86c2f9",
+    "semantic_hash": "419f083f6627775190abe196ee86c2f9"
+  },
+  "NYCGayBars/Data/Resources/bars.json": {
+    "mtime": 1782452551.098305,
+    "ast_hash": "3d6309f96e8d98fba45cf262ef2959b3",
+    "semantic_hash": "3d6309f96e8d98fba45cf262ef2959b3"
+  },
+  "NYCGayBars/Data/Resources/meta.json": {
+    "mtime": 1782402012.857294,
+    "ast_hash": "8230bee2927481eea9b2bc3f50da7f95",
+    "semantic_hash": "8230bee2927481eea9b2bc3f50da7f95"
+  },
+  "NYCGayBars/Data/Resources/neighborhoods.json": {
+    "mtime": 1782405530.6723156,
+    "ast_hash": "b45360748f9c665e480d6123f8b8796b",
+    "semantic_hash": "b45360748f9c665e480d6123f8b8796b"
+  },
+  "NYCGayBars/Data/Resources/zips.json": {
+    "mtime": 1782337311.0252254,
+    "ast_hash": "912effdb8934f40a086c61c4d9aa139b",
+    "semantic_hash": "912effdb8934f40a086c61c4d9aa139b"
+  },
+  "NYCGayBars/Logic/DayKey.swift": {
+    "mtime": 1782966600.7884486,
+    "ast_hash": "00dccb589a8af477f171a03c67dcdcbe",
+    "semantic_hash": "00dccb589a8af477f171a03c67dcdcbe"
+  },
+  "NYCGayBars/Logic/Drinks.swift": {
+    "mtime": 1782337509.969996,
+    "ast_hash": "8dc64185a75440c96af085abf8cfaa62",
+    "semantic_hash": "8dc64185a75440c96af085abf8cfaa62"
+  },
+  "NYCGayBars/Logic/Geo.swift": {
+    "mtime": 1782337526.749374,
+    "ast_hash": "08af57bf656a1189a768a321a071b06a",
+    "semantic_hash": "08af57bf656a1189a768a321a071b06a"
+  },
+  "NYCGayBars/Logic/Stats.swift": {
+    "mtime": 1782966590.1548228,
+    "ast_hash": "97ff7872ad1b3b56cf70bb277210ae97",
+    "semantic_hash": "97ff7872ad1b3b56cf70bb277210ae97"
+  },
+  "NYCGayBars/Logic/ZipQuery.swift": {
+    "mtime": 1782338014.3448894,
+    "ast_hash": "ed4d474809f40d6a0ef50e501ff2eb66",
+    "semantic_hash": "ed4d474809f40d6a0ef50e501ff2eb66"
+  },
+  "NYCGayBars/Models/Models.swift": {
+    "mtime": 1782966509.3568265,
+    "ast_hash": "ac7f9eed08539223a999063718864290",
+    "semantic_hash": "ac7f9eed08539223a999063718864290"
+  },
+  "NYCGayBars/NYCGayBarsApp.swift": {
+    "mtime": 1782337744.4915707,
+    "ast_hash": "393955642a4d408715662cebdfdf43cc",
+    "semantic_hash": "393955642a4d408715662cebdfdf43cc"
+  },
+  "NYCGayBars/Screens/BarDetailSheet.swift": {
+    "mtime": 1782357395.9956062,
+    "ast_hash": "211770b1a14a00d2972225e4c9918139",
+    "semantic_hash": "211770b1a14a00d2972225e4c9918139"
+  },
+  "NYCGayBars/Screens/BarMapView.swift": {
+    "mtime": 1782418271.3246386,
+    "ast_hash": "23faafa6f07e06dbcfc96ca700f0345a",
+    "semantic_hash": "23faafa6f07e06dbcfc96ca700f0345a"
+  },
+  "NYCGayBars/Screens/DrinkLogger.swift": {
+    "mtime": 1782338382.4566176,
+    "ast_hash": "e14d41ac9a91f5e9c819a8990f1e1f41",
+    "semantic_hash": "e14d41ac9a91f5e9c819a8990f1e1f41"
+  },
+  "NYCGayBars/Screens/ExploreView.swift": {
+    "mtime": 1782998344.0579867,
+    "ast_hash": "a18142a9b00d43e3bcf017cda01eb5ea",
+    "semantic_hash": "a18142a9b00d43e3bcf017cda01eb5ea"
+  },
+  "NYCGayBars/Screens/HistoryView.swift": {
+    "mtime": 1782966655.1870067,
+    "ast_hash": "c42df5f5c166f5cbb81edc25e6e43103",
+    "semantic_hash": "c42df5f5c166f5cbb81edc25e6e43103"
+  },
+  "NYCGayBars/Screens/LogDayPicker.swift": {
+    "mtime": 1782998365.9113495,
+    "ast_hash": "71782079b90c0fca7aae795e973d42a0",
+    "semantic_hash": "71782079b90c0fca7aae795e973d42a0"
+  },
+  "NYCGayBars/Screens/RootTabView.swift": {
+    "mtime": 1783019525.9877152,
+    "ast_hash": "a26296aee714913b3bc6c2d0573b2144",
+    "semantic_hash": "a26296aee714913b3bc6c2d0573b2144"
+  },
+  "NYCGayBars/Screens/StatsView.swift": {
+    "mtime": 1782998391.4908917,
+    "ast_hash": "d37a22fbd202f72415596763d79a4c1d",
+    "semantic_hash": "d37a22fbd202f72415596763d79a4c1d"
+  },
+  "NYCGayBars/Services/Haptics.swift": {
+    "mtime": 1782337602.360028,
+    "ast_hash": "ff3648492d2db5d5620620177c1ea693",
+    "semantic_hash": "ff3648492d2db5d5620620177c1ea693"
+  },
+  "NYCGayBars/Services/LocationManager.swift": {
+    "mtime": 1782337612.488399,
+    "ast_hash": "bbd36b2766afda48edab401883bf08d6",
+    "semantic_hash": "bbd36b2766afda48edab401883bf08d6"
+  },
+  "NYCGayBars/Stores/BadgesStore.swift": {
+    "mtime": 1782337652.5467741,
+    "ast_hash": "f89a5aaf7b73016f5ab5d296bb0527c0",
+    "semantic_hash": "f89a5aaf7b73016f5ab5d296bb0527c0"
+  },
+  "NYCGayBars/Stores/VisitsStore.swift": {
+    "mtime": 1782966552.2619154,
+    "ast_hash": "946a03d579c1a748dc311e4429dbe433",
+    "semantic_hash": "946a03d579c1a748dc311e4429dbe433"
+  },
+  "NYCGayBars/Theme/AppBackground.swift": {
+    "mtime": 1782337681.4320445,
+    "ast_hash": "d67b321acb15aa62126a099ed585513f",
+    "semantic_hash": "d67b321acb15aa62126a099ed585513f"
+  },
+  "NYCGayBars/Theme/Glass.swift": {
+    "mtime": 1782337693.6805875,
+    "ast_hash": "ab03a1ba5e6368d170e37ee264391fb6",
+    "semantic_hash": "ab03a1ba5e6368d170e37ee264391fb6"
+  },
+  "NYCGayBars/Theme/Palette.swift": {
+    "mtime": 1782337672.351147,
+    "ast_hash": "342779d48d3a4a2c2864c3572d29fb7e",
+    "semantic_hash": "342779d48d3a4a2c2864c3572d29fb7e"
+  },
+  "NYCGayBarsTests/LogicTests.swift": {
+    "mtime": 1782947553.1873145,
+    "ast_hash": "e2859d5175d17ffa6ebee55fa7572043",
+    "semantic_hash": "e2859d5175d17ffa6ebee55fa7572043"
+  },
+  "CLAUDE.md": {
+    "mtime": 1783019981.878285,
+    "ast_hash": "e186b84087c10a332d3d87d224b0c63a",
+    "semantic_hash": "e186b84087c10a332d3d87d224b0c63a"
+  },
+  "README.md": {
+    "mtime": 1782339312.149909,
+    "ast_hash": "eeff9a0ad969d384de7b1e864f1530c3",
+    "semantic_hash": "eeff9a0ad969d384de7b1e864f1530c3"
+  },
+  "docs/appstore/index.html": {
+    "mtime": 1782868839.4106536,
+    "ast_hash": "9a17f72a1d317917c632ea578910d722",
+    "semantic_hash": "9a17f72a1d317917c632ea578910d722"
+  },
+  "docs/privacy.html": {
+    "mtime": 1782580841.6200042,
+    "ast_hash": "8f0ee85a0cd18ee30e3f6aa60bdd1f54",
+    "semantic_hash": "8f0ee85a0cd18ee30e3f6aa60bdd1f54"
+  },
+  "docs/support.html": {
+    "mtime": 1782869571.2373524,
+    "ast_hash": "c4c6dcc62d8eb2fdfbe2df4e5a074e67",
+    "semantic_hash": "c4c6dcc62d8eb2fdfbe2df4e5a074e67"
+  },
+  "project.yml": {
+    "mtime": 1783019563.0360787,
+    "ast_hash": "805008a79bfdd92dc5efa4215c74853a",
+    "semantic_hash": "805008a79bfdd92dc5efa4215c74853a"
+  },
+  "NYCGayBars/Assets.xcassets/AppIcon.appiconset/icon.png": {
+    "mtime": 1782580149.1278522,
+    "ast_hash": "5a08ab1fb0f2bb8135e755186198ae15",
+    "semantic_hash": "5a08ab1fb0f2bb8135e755186198ae15"
+  },
+  "NYCGayBars/Assets.xcassets/AppLogo.imageset/splash-icon.png": {
+    "mtime": 1782337731.8169658,
+    "ast_hash": "717877676d0d072a2f3d6489d780779f",
+    "semantic_hash": "717877676d0d072a2f3d6489d780779f"
+  },
+  "docs/appstore/screenshots/page-0.png": {
+    "mtime": 1783019491.9428284,
+    "ast_hash": "dd74da519aedeeeb110da29732bbe23c",
+    "semantic_hash": "dd74da519aedeeeb110da29732bbe23c"
+  },
+  "docs/appstore/screenshots/page-1.png": {
+    "mtime": 1783019491.9498248,
+    "ast_hash": "5a2020171ffb186e8997651e328081b2",
+    "semantic_hash": "5a2020171ffb186e8997651e328081b2"
+  },
+  "docs/appstore/screenshots/page-2.png": {
+    "mtime": 1783019491.955229,
+    "ast_hash": "fedac38148b23216016c86b765d163f2",
+    "semantic_hash": "fedac38148b23216016c86b765d163f2"
+  }
+}
