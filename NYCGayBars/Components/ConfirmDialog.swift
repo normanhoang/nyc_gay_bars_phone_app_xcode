@@ -36,6 +36,7 @@ struct ConfirmDialog: View {
                 VStack(spacing: 10) {
                     ForEach(actions) { action in
                         Button {
+                            if action.style == .destructive { Haptics.warning() }
                             onDismiss()
                             action.handler()
                         } label: {

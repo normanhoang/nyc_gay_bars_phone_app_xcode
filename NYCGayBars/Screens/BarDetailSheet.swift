@@ -96,13 +96,20 @@ struct BarDetailSheet: View {
             Button("Google Maps") { openMaps(google: true) }
             Button("Cancel", role: .cancel) {}
         } message: { Text("Open directions to \(bar.name) in:") }
-        .alert("Mark as never visited?", isPresented: $showRemoveAlert) {
-            Button("Cancel", role: .cancel) {}
-            Button("Remove", role: .destructive) { visits.setVisited(bar.id, false) }
-        } message: {
-            let n = visits.getVisitsForBar(bar.id).count
-            Text("This will remove \(n) logged drink-day\(n == 1 ? "" : "s") for \(bar.name).")
+        .overlay {
+            if showRemoveAlert {
+                let n = visits.getVisitsForBar(bar.id).count
+                ConfirmDialog(
+                    title: "Mark as never visited?",
+                    message: "This will remove \(n) logged drink-day\(n == 1 ? "" : "s") for \(bar.name).",
+                    actions: [
+                        .init(label: "Remove", style: .destructive) { visits.setVisited(bar.id, false) },
+                        .init(label: "Cancel", style: .cancel) {},
+                    ],
+                    onDismiss: { withAnimation(.easeOut(duration: 0.2)) { showRemoveAlert = false } })
+            }
         }
+        .animation(.easeOut(duration: 0.2), value: showRemoveAlert)
         .onAppear { noteDraft = visit?.note ?? "" }
         .onChange(of: visit?.id) { _, _ in noteDraft = visit?.note ?? "" }
     }
@@ -189,12 +196,14 @@ struct BarDetailSheet: View {
 
     private func toggleVisited() {
         if !visited {
+            Haptics.light()
             visits.setVisited(bar.id, true, day: targetDay)
             return
         }
         if visits.getVisitsForBar(bar.id).count > 0 {
             showRemoveAlert = true
         } else {
+            Haptics.light()
             visits.setVisited(bar.id, false)
         }
     }

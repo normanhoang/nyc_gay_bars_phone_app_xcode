@@ -18,7 +18,10 @@ struct SegmentedToggle: View {
 
                 HStack(spacing: 0) {
                     ForEach(Array(options.enumerated()), id: \.offset) { i, label in
-                        Button { selection = i } label: {
+                        Button {
+                            if selection != i { Haptics.selection() }
+                            selection = i
+                        } label: {
                             Text(label)
                                 .font(.scaled(14, weight: .semibold))
                                 .foregroundStyle(selection == i ? .white : Palette.gray200)

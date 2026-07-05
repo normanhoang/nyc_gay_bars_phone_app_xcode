@@ -149,7 +149,7 @@ struct StatsView: View {
                         .font(.scaled(14)).foregroundStyle(Palette.gray300)
                         .frame(maxWidth: .infinity)
                         .padding(16)
-                        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color.white.opacity(0.05)))
+                        .contentPanel()
                 } else {
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(recentBadges) { BadgeTile(badge: $0) }
@@ -170,7 +170,7 @@ struct StatsView: View {
 
     private func totalCell(_ value: Int, _ label: String) -> some View {
         VStack(spacing: 4) {
-            Text("\(value)").font(.scaled(24, weight: .heavy)).foregroundStyle(Palette.primary)
+            CountUp(value: value, font: .scaled(24, weight: .heavy), color: Palette.primary)
             Text(label).font(.scaled(12)).foregroundStyle(Palette.gray400)
         }
         .frame(maxWidth: .infinity)
@@ -189,7 +189,7 @@ struct StatsView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color.white.opacity(0.05)))
+        .contentPanel()
         .padding(.bottom, 12)
     }
 
@@ -248,7 +248,7 @@ struct StatsView: View {
             }
         }
         .padding(.horizontal, 16).padding(.vertical, 4)
-        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color.white.opacity(0.05)))
+        .contentPanel()
     }
 
     private var allBadgesSheet: some View {

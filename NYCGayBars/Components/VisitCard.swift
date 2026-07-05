@@ -87,7 +87,7 @@ struct VisitCard: View {
             .buttonStyle(.plain)
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color.white.opacity(0.05)))
+        .contentPanel()
         .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .onTapGesture { onTap?() }
     }

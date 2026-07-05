@@ -13,4 +13,16 @@ enum Haptics {
         let gen = UINotificationFeedbackGenerator()
         gen.notificationOccurred(.success)
     }
+
+    /// Selection tick for tab and segment switches.
+    static func selection() {
+        let gen = UISelectionFeedbackGenerator()
+        gen.selectionChanged()
+    }
+
+    /// Warning notification fired when confirming a destructive action.
+    static func warning() {
+        let gen = UINotificationFeedbackGenerator()
+        gen.notificationOccurred(.warning)
+    }
 }

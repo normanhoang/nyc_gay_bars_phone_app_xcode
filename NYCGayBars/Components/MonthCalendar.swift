@@ -75,7 +75,7 @@ struct MonthCalendar: View {
             }
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 32, style: .continuous).fill(Color.white.opacity(0.05)))
+        .contentPanel()
         .onAppear(perform: syncToSelected)
     }
 
