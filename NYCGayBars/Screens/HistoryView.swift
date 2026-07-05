@@ -11,6 +11,7 @@ struct HistoryView: View {
     @State private var showPicker = false
     @State private var showClear = false
     @State private var visitToDelete: Visit?
+    @State private var openBar: Bar?
 
     private var markedDays: Set<String> { Set(visits.visits.map { $0.dayKey }) }
     private var dayVisits: [Visit] { visits.getVisitsForDay(selectedDay) }
@@ -64,7 +65,9 @@ struct HistoryView: View {
                         } else {
                             VStack(spacing: 12) {
                                 ForEach(dayVisits) { v in
-                                    VisitCard(visit: v, onDelete: { visitToDelete = v })
+                                    VisitCard(visit: v,
+                                              onDelete: { visitToDelete = v },
+                                              onTap: { openBar = AppData.bar(id: v.barId) })
                                 }
                             }
                             .padding(.top, 16)
@@ -101,6 +104,10 @@ struct HistoryView: View {
         }
         .sheet(isPresented: $showPicker) {
             LogDayPicker(day: selectedDay).environmentObject(visits)
+        }
+        .sheet(item: $openBar) { bar in
+            BarDetailSheet(bar: bar, day: selectedDay)
+                .environmentObject(visits)
         }
         .overlay {
             if showClear {

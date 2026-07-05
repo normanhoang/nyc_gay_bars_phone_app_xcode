@@ -174,6 +174,76 @@ enum Stats {
 
     // MARK: - Badges
 
+    /// Progress toward countable badges, keyed by badge id. Only badges with a
+    /// meaningful running count are included; binary badges are omitted.
+    static func badgeProgress(_ visits: [Visit], _ visitedIds: Set<String>) -> [String: (current: Int, target: Int)] {
+        let neighborhoodsVisited = Set(
+            visitedIds.compactMap { AppData.bar(id: $0)?.neighborhood }
+        ).count
+
+        var barsPerDay: [String: Set<String>] = [:]
+        for v in visits { barsPerDay[v.dayKey, default: []].insert(v.barId) }
+        let maxBarsInOneDay = barsPerDay.values.map { $0.count }.max() ?? 0
+
+        var daysPerBar: [String: Int] = [:]
+        for v in visits { daysPerBar[v.barId, default: 0] += 1 }
+        let maxDaysAtOneBar = daysPerBar.values.max() ?? 0
+
+        var drinkTotalsByType: [String: Int] = [:]
+        for v in visits {
+            for d in v.drinks { drinkTotalsByType[d.type.lowercased(), default: 0] += d.count }
+        }
+
+        let maxShotsInOneVisit = visits.map { v in
+            v.drinks.first { $0.type == "Shot" }?.count ?? 0
+        }.max() ?? 0
+        let maxTypesInOneVisit = visits.map { $0.drinks.count }.max() ?? 0
+        let boroughsVisited = Set(
+            visitedIds.compactMap { AppData.bar(id: $0)?.neighborhood }.map(borough)
+        ).count
+        let streak = longestDayStreak(visits)
+        let drinks = totalDrinks(visits)
+        let maxDrinksInOneDay = biggestNight(visits)?.total ?? 0
+        let halfTheCity = Int((Double(AppData.bars.count) / 2).rounded(.up))
+
+        // Closest-to-complete neighborhood (for Neighborhood Hero).
+        var bestHood = (visited: 0, total: 1)
+        var bestFrac = -1.0
+        for n in AppData.neighborhoods {
+            let bars = AppData.barsByNeighborhood[n] ?? []
+            guard !bars.isEmpty else { continue }
+            let visited = bars.filter { visitedIds.contains($0.id) }.count
+            let frac = Double(visited) / Double(bars.count)
+            if frac > bestFrac { bestFrac = frac; bestHood = (visited, bars.count) }
+        }
+
+        return [
+            "sampler": (neighborhoodsVisited, 3),
+            "crawler": (maxBarsInOneDay, 3),
+            "marathon": (maxBarsInOneDay, 5),
+            "regular": (maxDaysAtOneBar, 5),
+            "old-faithful": (maxDaysAtOneBar, 10),
+            "mixologist": (drinkTotalsByType.count, 5),
+            "shots-shots-shots": (maxShotsInOneVisit, 3),
+            "variety-pack": (maxTypesInOneVisit, 4),
+            "bar-star": (visitedIds.count, 10),
+            "explorer": (visitedIds.count, 25),
+            "half-the-city": (visitedIds.count, halfTheCity),
+            "conqueror": (visitedIds.count, AppData.bars.count),
+            "nifty-fifty": (drinks, 50),
+            "century-club": (drinks, 100),
+            "borough-hopper": (boroughsVisited, 3),
+            "on-a-roll": (streak, 3),
+            "full-week": (streak, 7),
+            "double-digits": (maxDrinksInOneDay, 10),
+            "hophead": (drinkTotalsByType["beer"] ?? 0, 25),
+            "wine-not": (drinkTotalsByType["wine"] ?? 0, 10),
+            "shaken-stirred": (drinkTotalsByType["cocktail"] ?? 0, 25),
+            "grand-tour": (neighborhoodsVisited, AppData.neighborhoods.count),
+            "neighborhood-hero": (bestHood.visited, bestHood.total),
+        ]
+    }
+
     static func badges(_ visits: [Visit], _ visitedIds: Set<String>) -> [Badge] {
         let neighborhoodsVisited = Set(
             visitedIds.compactMap { AppData.bar(id: $0)?.neighborhood }

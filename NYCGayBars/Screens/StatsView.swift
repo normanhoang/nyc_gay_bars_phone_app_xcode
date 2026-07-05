@@ -271,9 +271,12 @@ struct StatsView: View {
                 .padding(.horizontal, 16).padding(.top, 20).padding(.bottom, 12)
 
                 ScrollView {
+                    let progressById = Stats.badgeProgress(visits.visits, visits.visitedIds)
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(milestonesLast(earnedBadges)) { BadgeTile(badge: $0, showDate: true) }
-                        ForEach(milestonesLast(unearnedBadges)) { BadgeTile(badge: $0) }
+                        ForEach(milestonesLast(unearnedBadges)) {
+                            BadgeTile(badge: $0, progress: progressById[$0.id])
+                        }
                     }
                     .padding(16)
                     .padding(.bottom, 40)

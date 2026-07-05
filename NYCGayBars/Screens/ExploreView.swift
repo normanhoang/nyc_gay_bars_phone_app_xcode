@@ -102,9 +102,33 @@ struct ExploreView: View {
             }
 
             SegmentedToggle(options: ["Map", "List"], selection: $mode)
+
+            if location.denied {
+                Button(action: openLocationSettings) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "location.slash")
+                            .font(.scaled(14)).foregroundStyle(Palette.gray300)
+                        Text("Enable location for distances & Nearest sort")
+                            .font(.scaled(13, weight: .medium)).foregroundStyle(Palette.gray300)
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right")
+                            .font(.scaled(12, weight: .semibold)).foregroundStyle(Palette.gray400)
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 10)
+                    .glassSurface(radius: 16, bordered: true)
+                }
+                .buttonStyle(PressableScale())
+                .padding(.top, 12)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 12)
+    }
+
+    private func openLocationSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
+        }
     }
 
     private func statsRow(_ distances: [String: Double]?) -> some View {
@@ -149,8 +173,18 @@ struct ExploreView: View {
             if filteredBars.isEmpty {
                 VStack(spacing: 8) {
                     Text("🔍").font(.scaled(36))
-                    Text("No bars match your search.")
+                    Text("No bars match your search or filters.")
                         .font(.scaled(16)).foregroundStyle(Palette.gray400)
+                    Button { selectNeighborhood("All") } label: {
+                        Text("Clear search & filters")
+                            .font(.scaled(14, weight: .semibold))
+                            .foregroundStyle(Palette.primary)
+                            .padding(.horizontal, 16).padding(.vertical, 10)
+                            .background(Capsule().fill(Palette.primary.opacity(0.15)))
+                            .overlay(Capsule().strokeBorder(Palette.primary.opacity(0.4), lineWidth: 1))
+                    }
+                    .buttonStyle(PressableScale())
+                    .padding(.top, 4)
                 }
                 .padding(.top, 64)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -178,18 +212,36 @@ struct ExploreView: View {
                 }
             }
         } else {
-            BarMapView(
-                bars: filteredBars,
-                showOutlines: neighborhood == "All" && zip.query.trimmingCharacters(in: .whitespaces).isEmpty,
-                visitedIds: visits.visitedIds,
-                frameNonce: frameNonce,
-                onSelectBar: { selectedBar = AppData.bar(id: $0) },
-                onSelectNeighborhood: { selectNeighborhood($0) },
-                onZoomOut: {
-                    if neighborhood == "All" { return false }
-                    neighborhood = "All"
-                    return true
-                })
+            ZStack(alignment: .top) {
+                BarMapView(
+                    bars: filteredBars,
+                    showOutlines: neighborhood == "All" && zip.query.trimmingCharacters(in: .whitespaces).isEmpty,
+                    visitedIds: visits.visitedIds,
+                    frameNonce: frameNonce,
+                    onSelectBar: { selectedBar = AppData.bar(id: $0) },
+                    onSelectNeighborhood: { selectNeighborhood($0) },
+                    onZoomOut: {
+                        if neighborhood == "All" { return false }
+                        neighborhood = "All"
+                        return true
+                    })
+
+                if filteredBars.isEmpty {
+                    HStack(spacing: 12) {
+                        Text("No bars match your search.")
+                            .font(.scaled(14, weight: .medium)).foregroundStyle(.white)
+                        Button { selectNeighborhood("All") } label: {
+                            Text("Clear search")
+                                .font(.scaled(13, weight: .semibold))
+                                .foregroundStyle(Palette.primary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 12)
+                    .glassSurface(radius: 16, bordered: true)
+                    .padding(.top, 12)
+                }
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }

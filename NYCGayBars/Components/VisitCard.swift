@@ -5,6 +5,8 @@ import SwiftUI
 struct VisitCard: View {
     let visit: Visit
     var onDelete: () -> Void
+    /// Tapping the card opens the bar for this visit's day.
+    var onTap: (() -> Void)? = nil
 
     private var bar: Bar? { AppData.bar(id: visit.barId) }
 
@@ -74,13 +76,19 @@ struct VisitCard: View {
             }
 
             Button(action: onDelete) {
-                Text("Delete")
-                    .font(.scaled(12))
-                    .foregroundStyle(Palette.gray400)
+                HStack(spacing: 4) {
+                    Image(systemName: "trash").font(.scaled(12))
+                    Text("Delete").font(.scaled(12, weight: .semibold))
+                }
+                .foregroundStyle(Palette.red)
+                .padding(.vertical, 8)
+                .contentShape(Rectangle())
             }
-            .padding(.top, 8)
+            .buttonStyle(.plain)
         }
         .padding(16)
         .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color.white.opacity(0.05)))
+        .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .onTapGesture { onTap?() }
     }
 }
