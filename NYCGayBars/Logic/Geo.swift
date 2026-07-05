@@ -65,6 +65,36 @@ enum Geo {
         return best
     }
 
+    /// Distances to every bar plus proximity-ordered neighborhoods for one
+    /// coordinate, memoized so repeated view body passes at the same location
+    /// skip the ~320 distance computations. Main-thread only.
+    struct Derived {
+        let distances: [String: Double]
+        let neighborhoodsByProximity: [String]
+    }
+
+    private static var derivedKey: (lat: Double, lng: Double)?
+    private static var derivedCache: Derived?
+
+    static func derived(_ latitude: Double, _ longitude: Double) -> Derived {
+        if let cached = derivedCache, let key = derivedKey,
+           key.lat == latitude, key.lng == longitude {
+            return cached
+        }
+        let cos = Foundation.cos(latitude * .pi / 180)
+        var distances: [String: Double] = [:]
+        distances.reserveCapacity(AppData.bars.count)
+        for bar in AppData.bars {
+            distances[bar.id] = sqrt(sqDist(latitude, longitude, bar, cos)) * milesPerDegLat
+        }
+        let result = Derived(
+            distances: distances,
+            neighborhoodsByProximity: neighborhoodsByProximity(latitude, longitude))
+        derivedKey = (latitude, longitude)
+        derivedCache = result
+        return result
+    }
+
     /// Neighborhoods ordered by how close their nearest bar is (closest first).
     static func neighborhoodsByProximity(_ latitude: Double, _ longitude: Double) -> [String] {
         let cos = Foundation.cos(latitude * .pi / 180)

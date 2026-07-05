@@ -68,7 +68,7 @@ final class VisitsStore: ObservableObject {
     }
 
     private func refreshVisitedIds() {
-        visitedIds = Stats.computeVisitedIds(isVisited)
+        visitedIds = Stats.computeVisitedIds(visits: visits, visitedBars: visitedBars)
     }
 
     // MARK: - Mutations

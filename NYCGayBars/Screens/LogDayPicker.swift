@@ -19,13 +19,10 @@ struct LogDayPicker: View {
         location.coordinate.map { ($0.latitude, $0.longitude) }
     }
     private var distances: [String: Double]? {
-        guard let c = coords else { return nil }
-        var m: [String: Double] = [:]
-        for b in AppData.bars { m[b.id] = Geo.distanceMiles(c.lat, c.lng, b) }
-        return m
+        coords.map { Geo.derived($0.lat, $0.lng).distances }
     }
     private var neighborhoodOptions: [String] {
-        if let c = coords { return Geo.neighborhoodsByProximity(c.lat, c.lng) }
+        if let c = coords { return Geo.derived(c.lat, c.lng).neighborhoodsByProximity }
         return AppData.neighborhoods
     }
     private func filteredBars(_ d: [String: Double]?) -> [Bar] {

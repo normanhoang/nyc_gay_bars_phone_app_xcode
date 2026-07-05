@@ -101,10 +101,10 @@ enum Stats {
     }
 
     /// Set of bar ids the user has ever visited (marked or drink-logged).
-    static func computeVisitedIds(_ isVisited: (String) -> Bool) -> Set<String> {
-        var ids: Set<String> = []
-        for bar in AppData.bars where isVisited(bar.id) { ids.insert(bar.id) }
-        return ids
+    static func computeVisitedIds(visits: [Visit], visitedBars: [String]) -> Set<String> {
+        var ids = Set(visits.map { $0.barId })
+        ids.formUnion(visitedBars)
+        return ids.filter { AppData.barsById[$0] != nil }
     }
 
     /// Visited/total bar counts per neighborhood, most-complete first.
@@ -207,14 +207,9 @@ enum Stats {
 
         // Noon-stamped backdated visits can't produce early-morning hours; only
         // live after-midnight logging can.
-        let hasLateNightVisit = visits.contains {
-            Calendar.current.component(.hour, from: DayKey.parseISO($0.date)) < 4
-        }
+        let hasLateNightVisit = visits.contains { $0.hour < 4 }
 
-        // Weekdays (1=Sun…7=Sat in Swift). Convert to JS 0=Sun…6=Sat.
-        let visitWeekdays = Set(visits.map {
-            Calendar.current.component(.weekday, from: DayKey.parseISO($0.date)) - 1
-        })
+        let visitWeekdays = Set(visits.map { $0.weekdayJS })
 
         let streak = longestDayStreak(visits)
         let maxDrinksInOneDay = biggestNight(visits)?.total ?? 0

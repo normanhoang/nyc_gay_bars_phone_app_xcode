@@ -32,6 +32,11 @@ struct Visit: Codable, Identifiable, Hashable {
     var note: String?
     /// Local day key derived from `date`, computed once (never persisted).
     let dayKey: String
+    /// Local hour of day derived from `date`, computed once (never persisted).
+    let hour: Int
+    /// JS-style weekday (0=Sun…6=Sat) derived from `date`, computed once
+    /// (never persisted).
+    let weekdayJS: Int
 
     /// Total number of drinks across all types in this visit.
     var drinkTotal: Int { drinks.reduce(0) { $0 + $1.count } }
@@ -46,7 +51,7 @@ struct Visit: Codable, Identifiable, Hashable {
         self.date = date
         self.drinks = drinks
         self.note = note
-        self.dayKey = DayKey.key(iso: date)
+        (dayKey, hour, weekdayJS) = Visit.derive(date)
     }
 
     init(from decoder: Decoder) throws {
@@ -56,7 +61,14 @@ struct Visit: Codable, Identifiable, Hashable {
         date = try c.decode(String.self, forKey: .date)
         drinks = try c.decode([DrinkEntry].self, forKey: .drinks)
         note = try c.decodeIfPresent(String.self, forKey: .note)
-        dayKey = DayKey.key(iso: date)
+        (dayKey, hour, weekdayJS) = Visit.derive(date)
+    }
+
+    /// Parse the ISO date once and derive all cached fields from it.
+    private static func derive(_ iso: String) -> (dayKey: String, hour: Int, weekdayJS: Int) {
+        let parsed = DayKey.parseISO(iso)
+        let c = Calendar.current.dateComponents([.hour, .weekday], from: parsed)
+        return (DayKey.key(parsed), c.hour!, c.weekday! - 1)
     }
 }
 

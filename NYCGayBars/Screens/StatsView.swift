@@ -9,6 +9,10 @@ struct StatsView: View {
     @State private var showAllBadges = false
     @State private var expandedBoroughs: Set<String> = []
     @State private var scrollPos = ScrollPosition()
+    // Cached so mutations made on other pages don't recompute the full stats
+    // aggregation while this page is offscreen; refreshed on becoming active.
+    @State private var snap: Snapshot?
+    @State private var snapStale = false
 
     private var visitedIds: Set<String> { visits.visitedIds }
 
@@ -67,10 +71,30 @@ struct StatsView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .transition(.opacity)
             } else {
-                content(makeSnapshot()).transition(.opacity)
+                content(snap ?? makeSnapshot()).transition(.opacity)
             }
         }
         .sheet(isPresented: $showAllBadges) { allBadgesSheet }
+        .onAppear { snap = makeSnapshot() }
+        .onChange(of: SnapshotKey(visits: visits.visits, visitedIds: visits.visitedIds)) { _, _ in
+            if tabSwipe.page == 1 {
+                snap = makeSnapshot()
+            } else {
+                snapStale = true
+            }
+        }
+        .onChange(of: tabSwipe.page) { _, p in
+            if p == 1 && snapStale {
+                snap = makeSnapshot()
+                snapStale = false
+            }
+        }
+    }
+
+    /// Change key for the data the snapshot is derived from.
+    private struct SnapshotKey: Equatable {
+        let visits: [Visit]
+        let visitedIds: Set<String>
     }
 
     private func content(_ snap: Snapshot) -> some View {
