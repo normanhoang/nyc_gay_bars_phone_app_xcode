@@ -19,20 +19,20 @@ struct BadgeTile: View {
     var body: some View {
         VStack(spacing: 0) {
             Text(badge.emoji)
-                .font(.system(size: 40))
+                .font(.scaled(40))
             Text(badge.title)
-                .font(.system(size: 14, weight: .bold))
+                .font(.scaled(14, weight: .bold))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
                 .padding(.top, 12)
             Text(badge.description)
-                .font(.system(size: 12))
+                .font(.scaled(12))
                 .foregroundStyle(Palette.gray400)
                 .multilineTextAlignment(.center)
                 .padding(.top, 4)
             if let date = earnedDateText {
                 Text(date)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.scaled(10, weight: .semibold))
                     .foregroundStyle(Palette.primary)
                     .padding(.top, 8)
             }

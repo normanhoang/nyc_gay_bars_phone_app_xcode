@@ -6,6 +6,7 @@ struct ProgressBar: View {
     var progress: Double
     var delay: Double = 0
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var w: Double = 0
 
     var body: some View {
@@ -21,9 +22,11 @@ struct ProgressBar: View {
         }
         .frame(height: 8)
         .onAppear {
+            if reduceMotion { w = progress; return }
             withAnimation(Anim.progress.delay(delay)) { w = progress }
         }
         .onChange(of: progress) { _, nv in
+            if reduceMotion { w = nv; return }
             withAnimation(Anim.progress) { w = nv }
         }
     }

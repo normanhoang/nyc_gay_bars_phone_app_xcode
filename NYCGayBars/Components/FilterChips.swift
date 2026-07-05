@@ -36,7 +36,7 @@ struct FilterChips: View {
         let active = selected == label
         Button { selected = label } label: {
             Text(label)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.scaled(14, weight: .semibold))
                 .foregroundStyle(active ? .white : Palette.gray300)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)

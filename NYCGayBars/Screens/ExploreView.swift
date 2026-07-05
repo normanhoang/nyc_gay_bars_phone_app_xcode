@@ -79,7 +79,7 @@ struct ExploreView: View {
         VStack(spacing: 0) {
             HStack(alignment: .center) {
                 Text("NYC Gay Bars")
-                    .font(.system(size: 30, weight: .heavy))
+                    .font(.scaled(30, weight: .heavy))
                     .foregroundStyle(.white)
                 Spacer()
                 Button(action: openInstagram) {
@@ -114,22 +114,22 @@ struct ExploreView: View {
         return HStack {
             HStack(spacing: 0) {
                 Text("\(visitedCount) / \(bars.count)")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.scaled(12, weight: .semibold))
                     .foregroundStyle(Palette.primary)
-                Text(" visited · ").font(.system(size: 12)).foregroundStyle(Palette.gray500)
+                Text(" visited · ").font(.scaled(12)).foregroundStyle(Palette.gray500)
                 Text(visitMessage(visitedCount, bars.count, neighborhood == "All"))
-                    .font(.system(size: 12)).foregroundStyle(Palette.gray400)
+                    .font(.scaled(12)).foregroundStyle(Palette.gray400)
             }
             if mode == 1 && distances != nil {
                 Spacer()
                 HStack(spacing: 0) {
                     Button { nearest = false } label: {
-                        Text("A–Z").font(.system(size: 12, weight: nearest ? .semibold : .bold))
+                        Text("A–Z").font(.scaled(12, weight: nearest ? .semibold : .bold))
                             .foregroundStyle(nearest ? Palette.gray500 : Palette.primary)
                     }
-                    Text(" · ").font(.system(size: 12)).foregroundStyle(Palette.gray600)
+                    Text(" · ").font(.scaled(12)).foregroundStyle(Palette.gray600)
                     Button { nearest = true } label: {
-                        Text("Nearest").font(.system(size: 12, weight: nearest ? .bold : .semibold))
+                        Text("Nearest").font(.scaled(12, weight: nearest ? .bold : .semibold))
                             .foregroundStyle(nearest ? Palette.primary : Palette.gray500)
                     }
                 }
@@ -148,9 +148,9 @@ struct ExploreView: View {
         if mode == 1 {
             if filteredBars.isEmpty {
                 VStack(spacing: 8) {
-                    Text("🔍").font(.system(size: 36))
+                    Text("🔍").font(.scaled(36))
                     Text("No bars match your search.")
-                        .font(.system(size: 16)).foregroundStyle(Palette.gray400)
+                        .font(.scaled(16)).foregroundStyle(Palette.gray400)
                 }
                 .padding(.top, 64)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

@@ -14,12 +14,12 @@ struct SearchBox: View {
     var body: some View {
         HStack(spacing: 0) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 16))
+                .font(.scaled(16))
                 .foregroundStyle(Palette.gray400)
             TextField("", text: Binding(get: { text }, set: onChangeText),
-                      prompt: Text(placeholder).foregroundStyle(Palette.gray600))
+                      prompt: Text(placeholder).foregroundStyle(Palette.gray400))
                 .foregroundStyle(.white)
-                .font(.system(size: 16))
+                .font(.scaled(16))
                 .autocorrectionDisabled()
                 .submitLabel(.search)
                 .focused($focused)
@@ -28,7 +28,7 @@ struct SearchBox: View {
             if !text.isEmpty {
                 Button { onChangeText("") } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 18))
+                        .font(.scaled(18))
                         .foregroundStyle(Palette.gray400)
                 }
                 .buttonStyle(.plain)

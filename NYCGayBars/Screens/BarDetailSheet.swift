@@ -32,10 +32,10 @@ struct BarDetailSheet: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         Text(bar.name)
-                            .font(.system(size: 24, weight: .heavy))
+                            .font(.scaled(24, weight: .heavy))
                             .foregroundStyle(.white)
                         Text(bar.neighborhood)
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.scaled(14, weight: .semibold))
                             .foregroundStyle(Palette.primary)
                             .padding(.top, 4)
 
@@ -43,7 +43,7 @@ struct BarDetailSheet: View {
                             FlowLayout(spacing: 8) {
                                 ForEach(tags, id: \.self) { tag in
                                     Text(tag)
-                                        .font(.system(size: 12, weight: .medium))
+                                        .font(.scaled(12, weight: .medium))
                                         .foregroundStyle(Palette.gray300)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 4)
@@ -56,9 +56,9 @@ struct BarDetailSheet: View {
 
                         Button { showDirections = true } label: {
                             HStack(alignment: .top, spacing: 4) {
-                                Image(systemName: "location").font(.system(size: 14))
+                                Image(systemName: "location").font(.scaled(14))
                                     .foregroundStyle(Palette.gray400)
-                                Text(bar.address).font(.system(size: 14)).foregroundStyle(Palette.gray400)
+                                Text(bar.address).font(.scaled(14)).foregroundStyle(Palette.gray400)
                                 Spacer(minLength: 0)
                             }
                         }
@@ -66,7 +66,7 @@ struct BarDetailSheet: View {
                         .padding(.top, 8)
 
                         if let desc = bar.description, !desc.isEmpty {
-                            Text(desc).font(.system(size: 14)).foregroundStyle(Palette.gray300)
+                            Text(desc).font(.scaled(14)).foregroundStyle(Palette.gray300)
                                 .padding(.top, 12)
                         }
 
@@ -74,7 +74,7 @@ struct BarDetailSheet: View {
                         drinkCountBox.padding(.vertical, 16)
 
                         Text("Log a drink")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.scaled(16, weight: .bold))
                             .foregroundStyle(.white)
                             .padding(.bottom, 12)
                         DrinkLogger(
@@ -111,11 +111,14 @@ struct BarDetailSheet: View {
         HStack {
             Spacer()
             Button { commitNote(); if let onClose { onClose() } else { dismiss() } } label: {
-                Image(systemName: "xmark").font(.system(size: 20)).foregroundStyle(.white)
+                Image(systemName: "xmark").font(.scaled(20)).foregroundStyle(.white)
                     .frame(width: 36, height: 36)
                     .glassSurface(radius: 18)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Close")
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
@@ -128,13 +131,13 @@ struct BarDetailSheet: View {
         Button(action: toggleVisited) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Visited").font(.system(size: 16, weight: .semibold)).foregroundStyle(.white)
+                    Text("Visited").font(.scaled(16, weight: .semibold)).foregroundStyle(.white)
                     Text(visited ? "You've been here" : "Tap if you've been here")
-                        .font(.system(size: 12)).foregroundStyle(Palette.gray400)
+                        .font(.scaled(12)).foregroundStyle(Palette.gray400)
                 }
                 Spacer()
                 Image(systemName: visited ? "checkmark.square.fill" : "square")
-                    .font(.system(size: 28))
+                    .font(.scaled(28))
                     .foregroundStyle(visited ? Palette.green : Palette.gray500)
             }
             .padding(.horizontal, 16)
@@ -147,9 +150,9 @@ struct BarDetailSheet: View {
     private var drinkCountBox: some View {
         HStack {
             Text(isTargetToday ? "Today's drinks" : "Drinks on \(DayKey.format(targetDay))")
-                .font(.system(size: 14, weight: .medium)).foregroundStyle(.white)
+                .font(.scaled(14, weight: .medium)).foregroundStyle(.white)
             Spacer()
-            CountUp(value: total, font: .system(size: 24, weight: .heavy), color: Palette.primary)
+            CountUp(value: total, font: .scaled(24, weight: .heavy), color: Palette.primary)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -159,14 +162,14 @@ struct BarDetailSheet: View {
 
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Notes").font(.system(size: 16, weight: .bold)).foregroundStyle(.white)
+            Text("Notes").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
             if visit != nil {
                 TextField("", text: $noteDraft,
-                          prompt: Text("How was the night?…").foregroundStyle(Palette.gray500),
+                          prompt: Text("How was the night?…").foregroundStyle(Palette.gray400),
                           axis: .vertical)
                     .lineLimit(3...)
                     .foregroundStyle(.white)
-                    .font(.system(size: 16))
+                    .font(.scaled(16))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .frame(minHeight: 80, alignment: .topLeading)
@@ -175,7 +178,7 @@ struct BarDetailSheet: View {
                     .onChange(of: noteDraft) { _, _ in commitNote() }
             } else {
                 Text("Log a drink to add a note about this visit.")
-                    .font(.system(size: 14)).foregroundStyle(Palette.gray500)
+                    .font(.scaled(14)).foregroundStyle(Palette.gray500)
                     .padding(.horizontal, 16).padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.white.opacity(0.04)))

@@ -26,16 +26,16 @@ struct DrinkLogger: View {
 
             HStack(spacing: 8) {
                 TextField("", text: $custom,
-                          prompt: Text("Add a custom drink…").foregroundStyle(Palette.gray600))
+                          prompt: Text("Add a custom drink…").foregroundStyle(Palette.gray400))
                     .foregroundStyle(.white)
-                    .font(.system(size: 16))
+                    .font(.scaled(16))
                     .submitLabel(.done)
                     .onSubmit(addCustom)
                     .padding(.vertical, 8)
                 Button(action: addCustom) {
                     HStack(spacing: 4) {
-                        Image(systemName: "plus").font(.system(size: 16))
-                        Text("Add").font(.system(size: 14, weight: .semibold))
+                        Image(systemName: "plus").font(.scaled(16))
+                        Text("Add").font(.scaled(14, weight: .semibold))
                     }
                     .foregroundStyle(.white)
                     .padding(.horizontal, 12)
@@ -54,31 +54,37 @@ struct DrinkLogger: View {
     private func row(_ type: String) -> some View {
         let c = count(type)
         HStack(spacing: 0) {
-            Text(drinkEmoji(type)).font(.system(size: 24)).padding(.trailing, 12)
-            Text(type).font(.system(size: 16, weight: .medium)).foregroundStyle(.white)
+            Text(drinkEmoji(type)).font(.scaled(24)).padding(.trailing, 12)
+            Text(type).font(.scaled(16, weight: .medium)).foregroundStyle(.white)
             Spacer()
             HStack(spacing: 0) {
                 Button { Haptics.light(); onRemove(type) } label: {
-                    Image(systemName: "minus").font(.system(size: 20)).foregroundStyle(.white)
+                    Image(systemName: "minus").font(.scaled(20)).foregroundStyle(.white)
                         .frame(width: 36, height: 36)
                         .background(Circle().fill(Color.white.opacity(c == 0 ? 0.06 : 0.12)))
                         .overlay(Circle().strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
                         .opacity(c == 0 ? 0.4 : 1)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(c == 0)
+                .accessibilityLabel("Remove \(type)")
 
                 Text("\(c)")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.scaled(16, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: 32)
 
                 Button { Haptics.light(); onLog(type) } label: {
-                    Image(systemName: "plus").font(.system(size: 20)).foregroundStyle(.white)
+                    Image(systemName: "plus").font(.scaled(20)).foregroundStyle(.white)
                         .frame(width: 36, height: 36)
                         .background(Circle().fill(Palette.primary))
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Add \(type)")
             }
         }
         .padding(.horizontal, 16)

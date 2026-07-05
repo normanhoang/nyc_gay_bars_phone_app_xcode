@@ -13,13 +13,13 @@ struct VisitCard: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(bar?.name ?? visit.barId)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.scaled(16, weight: .semibold))
                         .foregroundStyle(.white)
                     Text(bar?.neighborhood ?? "")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.scaled(12, weight: .medium))
                         .foregroundStyle(Palette.primary)
                     Text(DayKey.format(visit.dayKey))
-                        .font(.system(size: 12))
+                        .font(.scaled(12))
                         .foregroundStyle(Palette.gray400)
                         .padding(.top, 2)
                 }
@@ -28,10 +28,10 @@ struct VisitCard: View {
 
                 VStack(alignment: .trailing, spacing: 1) {
                     Text("\(visit.drinkTotal)")
-                        .font(.system(size: 18, weight: .heavy))
+                        .font(.scaled(18, weight: .heavy))
                         .foregroundStyle(Palette.primary)
                     Text("DRINKS")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.scaled(10, weight: .medium))
                         .tracking(0.5)
                         .foregroundStyle(Palette.gray400)
                 }
@@ -39,7 +39,7 @@ struct VisitCard: View {
 
             if visit.drinks.isEmpty {
                 Text("Checked in · no drinks")
-                    .font(.system(size: 14))
+                    .font(.scaled(14))
                     .foregroundStyle(Palette.gray400)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
@@ -49,10 +49,10 @@ struct VisitCard: View {
                 FlowLayout(spacing: 8) {
                     ForEach(visit.drinks, id: \.type) { d in
                         HStack(spacing: 2) {
-                            Text(drinkEmoji(d.type)).font(.system(size: 14))
-                            Text(d.type).font(.system(size: 14)).foregroundStyle(.white)
+                            Text(drinkEmoji(d.type)).font(.scaled(14))
+                            Text(d.type).font(.scaled(14)).foregroundStyle(.white)
                             Text("×\(d.count)")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.scaled(14, weight: .bold))
                                 .foregroundStyle(Palette.primary)
                                 .padding(.leading, 4)
                         }
@@ -67,7 +67,7 @@ struct VisitCard: View {
 
             if let note = visit.note, !note.isEmpty {
                 Text("“\(note)”")
-                    .font(.system(size: 14))
+                    .font(.scaled(14))
                     .italic()
                     .foregroundStyle(Palette.gray400)
                     .padding(.top, 12)
@@ -75,7 +75,7 @@ struct VisitCard: View {
 
             Button(action: onDelete) {
                 Text("Delete")
-                    .font(.system(size: 12))
+                    .font(.scaled(12))
                     .foregroundStyle(Palette.gray400)
             }
             .padding(.top, 8)

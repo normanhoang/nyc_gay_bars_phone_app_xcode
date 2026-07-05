@@ -48,19 +48,22 @@ struct LogDayPicker: View {
             AppBackground()
             VStack(spacing: 0) {
                 HStack {
-                    Text("Pick a bar").font(.system(size: 18, weight: .heavy)).foregroundStyle(.white)
+                    Text("Pick a bar").font(.scaled(18, weight: .heavy)).foregroundStyle(.white)
                     Spacer()
                     Button { dismiss() } label: {
-                        Image(systemName: "xmark").font(.system(size: 20)).foregroundStyle(.white)
+                        Image(systemName: "xmark").font(.scaled(20)).foregroundStyle(.white)
                             .frame(width: 36, height: 36).glassSurface(radius: 18)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Close")
                 }
                 .padding(.horizontal, 16).padding(.top, 16).padding(.bottom, 4)
 
                 VStack(spacing: 0) {
                     Text("Logging drinks for \(DayKey.format(day)) — which bar were you at?")
-                        .font(.system(size: 14)).foregroundStyle(Palette.gray400)
+                        .font(.scaled(14)).foregroundStyle(Palette.gray400)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.bottom, 12)
                     SearchBox(text: zip.query, onChangeText: { zip.change($0) })
@@ -76,12 +79,12 @@ struct LogDayPicker: View {
                     HStack(spacing: 0) {
                         Spacer()
                         Button { nearest = false } label: {
-                            Text("A–Z").font(.system(size: 12, weight: nearest ? .semibold : .bold))
+                            Text("A–Z").font(.scaled(12, weight: nearest ? .semibold : .bold))
                                 .foregroundStyle(nearest ? Palette.gray500 : Palette.primary)
                         }
-                        Text(" · ").font(.system(size: 12)).foregroundStyle(Palette.gray600)
+                        Text(" · ").font(.scaled(12)).foregroundStyle(Palette.gray600)
                         Button { nearest = true } label: {
-                            Text("Nearest").font(.system(size: 12, weight: nearest ? .bold : .semibold))
+                            Text("Nearest").font(.scaled(12, weight: nearest ? .bold : .semibold))
                                 .foregroundStyle(nearest ? Palette.primary : Palette.gray500)
                         }
                     }

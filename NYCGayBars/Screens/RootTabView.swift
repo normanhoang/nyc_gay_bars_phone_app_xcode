@@ -52,7 +52,11 @@ struct RootTabView: View {
 
             tabBar
                 .padding(.bottom, 4)
+                // Fixed-width tabs; unbounded text sizes would clip the labels.
+                .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         }
+        // Scaled fonts support Dynamic Type up to a cap the layouts can hold.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
         .environmentObject(tabSwipe)
         .overlay(alignment: .top) { BadgeToast() }
         .onAppear { reconcile() }
@@ -88,8 +92,8 @@ struct RootTabView: View {
                     page = i
                 } label: {
                     VStack(spacing: 3) {
-                        Image(systemName: tab.icon).font(.system(size: 15, weight: .semibold))
-                        Text(tab.label).font(.system(size: 10, weight: .semibold))
+                        Image(systemName: tab.icon).font(.scaled(15, weight: .semibold))
+                        Text(tab.label).font(.scaled(10, weight: .semibold))
                     }
                     .foregroundStyle(active ? .white : Palette.gray400)
                     .frame(width: 92)

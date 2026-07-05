@@ -8,10 +8,10 @@ struct ZipNote: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "location.fill")
-                .font(.system(size: 11))
+                .font(.scaled(11))
                 .foregroundStyle(Palette.primary)
             Text(text)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.scaled(12, weight: .semibold))
                 .foregroundStyle(Palette.primary)
         }
         .padding(.horizontal, 4)

@@ -62,9 +62,9 @@ struct StatsView: View {
                 Color.clear
             } else if visits.visits.isEmpty && visitedIds.isEmpty {
                 VStack(spacing: 12) {
-                    Text("📊").font(.system(size: 36))
+                    Text("📊").font(.scaled(36))
                     Text("Log your first drink to start earning stats and badges.")
-                        .font(.system(size: 16)).foregroundStyle(Palette.gray400)
+                        .font(.scaled(16)).foregroundStyle(Palette.gray400)
                         .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 32)
@@ -100,10 +100,10 @@ struct StatsView: View {
     private func content(_ snap: Snapshot) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Stats").font(.system(size: 30, weight: .heavy)).foregroundStyle(.white)
+                Text("Stats").font(.scaled(30, weight: .heavy)).foregroundStyle(.white)
                     .padding(.bottom, 16)
 
-                Text("TOTALS").font(.system(size: 12, weight: .regular)).tracking(0.5)
+                Text("TOTALS").font(.scaled(12, weight: .regular)).tracking(0.5)
                     .foregroundStyle(Palette.gray300).padding(.bottom, 8)
                 HStack(spacing: 12) {
                     totalCell(snap.totalDrinks, "drinks")
@@ -125,18 +125,18 @@ struct StatsView: View {
                     statCard("LONGEST STREAK", "\(snap.streak) \(snap.streak == 1 ? "day" : "days")", "Most consecutive days with drinks logged")
                 }
 
-                Text("Neighborhoods").font(.system(size: 16, weight: .bold)).foregroundStyle(.white)
+                Text("Neighborhoods").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
                     .padding(.top, 12).padding(.bottom, 8)
                 neighborhoods(snap.boroughs)
 
                 HStack {
-                    Text("Recent badges").font(.system(size: 16, weight: .bold)).foregroundStyle(.white)
+                    Text("Recent badges").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
                     Spacer()
                     Button { showAllBadges = true } label: {
                         HStack(spacing: 2) {
                             Text("All badges (\(earnedBadges.count)/\(badges.badges.count))")
-                                .font(.system(size: 14, weight: .semibold))
-                            Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
+                                .font(.scaled(14, weight: .semibold))
+                            Image(systemName: "chevron.right").font(.scaled(12, weight: .semibold))
                         }
                         .foregroundStyle(Palette.primary)
                     }
@@ -146,7 +146,7 @@ struct StatsView: View {
 
                 if recentBadges.isEmpty {
                     Text("No badges yet — log a drink to start earning.")
-                        .font(.system(size: 14)).foregroundStyle(Palette.gray300)
+                        .font(.scaled(14)).foregroundStyle(Palette.gray300)
                         .frame(maxWidth: .infinity)
                         .padding(16)
                         .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color.white.opacity(0.05)))
@@ -170,8 +170,8 @@ struct StatsView: View {
 
     private func totalCell(_ value: Int, _ label: String) -> some View {
         VStack(spacing: 4) {
-            Text("\(value)").font(.system(size: 24, weight: .heavy)).foregroundStyle(Palette.primary)
-            Text(label).font(.system(size: 12)).foregroundStyle(Palette.gray400)
+            Text("\(value)").font(.scaled(24, weight: .heavy)).foregroundStyle(Palette.primary)
+            Text(label).font(.scaled(12)).foregroundStyle(Palette.gray400)
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 8).padding(.vertical, 16)
@@ -181,10 +181,10 @@ struct StatsView: View {
 
     private func statCard(_ label: String, _ value: String, _ detail: String?) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(label).font(.system(size: 12)).tracking(0.5).foregroundStyle(Palette.gray300)
-            Text(value).font(.system(size: 20, weight: .heavy)).foregroundStyle(.white).padding(.top, 4)
+            Text(label).font(.scaled(12)).tracking(0.5).foregroundStyle(Palette.gray300)
+            Text(value).font(.scaled(20, weight: .heavy)).foregroundStyle(.white).padding(.top, 4)
             if let detail {
-                Text(detail).font(.system(size: 12)).foregroundStyle(Palette.gray400).padding(.top, 2)
+                Text(detail).font(.scaled(12)).foregroundStyle(Palette.gray400).padding(.top, 2)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -207,14 +207,14 @@ struct StatsView: View {
                     VStack(spacing: 6) {
                         HStack {
                             Text(b.borough + (complete ? " 👑" : ""))
-                                .font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                                .font(.scaled(15, weight: .bold)).foregroundStyle(.white)
                             Image(systemName: "chevron.down")
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(.scaled(11, weight: .semibold))
                                 .foregroundStyle(Palette.gray400)
                                 .rotationEffect(.degrees(expanded ? 0 : -90))
                             Spacer()
                             Text("\(b.visited) / \(b.total)")
-                                .font(.system(size: 12, weight: complete ? .bold : .semibold))
+                                .font(.scaled(12, weight: complete ? .bold : .semibold))
                                 .foregroundStyle(complete ? Palette.primary : Palette.gray400)
                         }
                         ProgressBar(progress: Double(b.visited) / Double(b.total), delay: Double(i) * 0.06)
@@ -231,10 +231,10 @@ struct StatsView: View {
                             VStack(spacing: 6) {
                                 HStack {
                                     Text(p.neighborhood + (done ? " 👑" : ""))
-                                        .font(.system(size: 14)).foregroundStyle(.white)
+                                        .font(.scaled(14)).foregroundStyle(.white)
                                     Spacer()
                                     Text("\(p.visited) / \(p.total)")
-                                        .font(.system(size: 12, weight: done ? .bold : .semibold))
+                                        .font(.scaled(12, weight: done ? .bold : .semibold))
                                         .foregroundStyle(done ? Palette.primary : Palette.gray400)
                                 }
                                 ProgressBar(progress: Double(p.visited) / Double(p.total))
@@ -257,13 +257,16 @@ struct StatsView: View {
             VStack(spacing: 0) {
                 HStack {
                     Text("Badges · \(earnedBadges.count)/\(badges.badges.count) earned")
-                        .font(.system(size: 18, weight: .heavy)).foregroundStyle(.white)
+                        .font(.scaled(18, weight: .heavy)).foregroundStyle(.white)
                     Spacer()
                     Button { showAllBadges = false } label: {
-                        Image(systemName: "xmark").font(.system(size: 20)).foregroundStyle(.white)
+                        Image(systemName: "xmark").font(.scaled(20)).foregroundStyle(.white)
                             .frame(width: 36, height: 36).glassSurface(radius: 18)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Close")
                 }
                 .padding(.horizontal, 16).padding(.top, 20).padding(.bottom, 12)
 

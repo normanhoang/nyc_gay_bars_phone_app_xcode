@@ -18,13 +18,15 @@ struct SegmentedToggle: View {
 
                 HStack(spacing: 0) {
                     ForEach(Array(options.enumerated()), id: \.offset) { i, label in
-                        Text(label)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(selection == i ? .white : Palette.gray200)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 34)
-                            .contentShape(Rectangle())
-                            .onTapGesture { selection = i }
+                        Button { selection = i } label: {
+                            Text(label)
+                                .font(.scaled(14, weight: .semibold))
+                                .foregroundStyle(selection == i ? .white : Palette.gray200)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 34)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }

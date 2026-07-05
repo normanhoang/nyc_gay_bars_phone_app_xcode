@@ -24,11 +24,11 @@ struct ConfirmDialog: View {
 
             VStack(spacing: 0) {
                 Text(title)
-                    .font(.system(size: 18, weight: .heavy))
+                    .font(.scaled(18, weight: .heavy))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                 Text(message)
-                    .font(.system(size: 14))
+                    .font(.scaled(14))
                     .foregroundStyle(Palette.gray400)
                     .multilineTextAlignment(.center)
                     .padding(.top, 8)
@@ -40,7 +40,7 @@ struct ConfirmDialog: View {
                             action.handler()
                         } label: {
                             Text(action.label)
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(.scaled(16, weight: .semibold))
                                 .foregroundStyle(foreground(action.style))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)

@@ -37,21 +37,27 @@ struct MonthCalendar: View {
             HStack {
                 Button { step(-1) } label: {
                     Image(systemName: "chevron.left").foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
+                .accessibilityLabel("Previous month")
                 Spacer()
                 Text(monthTitle)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.scaled(16, weight: .bold))
                     .foregroundStyle(.white)
                 Spacer()
                 Button { step(1) } label: {
                     Image(systemName: "chevron.right").foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
+                .accessibilityLabel("Next month")
             }
 
             HStack(spacing: 0) {
                 ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, s in
                     Text(s)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.scaled(12, weight: .semibold))
                         .foregroundStyle(Palette.gray500)
                         .frame(maxWidth: .infinity)
                 }
@@ -88,8 +94,8 @@ struct MonthCalendar: View {
                 Circle().strokeBorder(Palette.gray600, lineWidth: 1).frame(width: 36, height: 36)
             }
             Text("\(day)")
-                .font(.system(size: 14))
-                .foregroundStyle(isSelected ? .white : (isFuture ? Palette.gray700 : Palette.gray200))
+                .font(.scaled(14))
+                .foregroundStyle(isSelected ? .white : (isFuture ? Palette.gray500 : Palette.gray200))
             if isMarked && !isSelected {
                 Circle().fill(Palette.primary).frame(width: 4, height: 4)
                     .offset(y: 14)

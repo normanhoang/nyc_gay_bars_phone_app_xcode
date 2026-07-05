@@ -67,7 +67,7 @@ struct BarMapView: View {
     private func pin(for bar: Bar) -> some View {
         let visited = visitedIds.contains(bar.id)
         Text("🍸")
-            .font(.system(size: 16))
+            .font(.scaled(16))
             .frame(width: 36, height: 36)
             .background(Circle().fill(visited ? Palette.primary.opacity(0.4) : Palette.ink.opacity(0.8)))
             .overlay(Circle().strokeBorder(

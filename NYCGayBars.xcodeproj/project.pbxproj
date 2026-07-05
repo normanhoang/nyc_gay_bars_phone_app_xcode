@@ -45,6 +45,7 @@
 		B809A54429E2F7DDBE280087 /* BarDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D32F0B9D8891FFCD2251FCF /* BarDetailSheet.swift */; };
 		B9D7F6163BFB1020E3D5AA80 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B958682051DE0CAAEE2F37C3 /* Assets.xcassets */; };
 		C11056DE5B9E5DFEE8E02267 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69382DB16334001E4E16A08 /* HistoryView.swift */; };
+		C7E5036E981DF09D9063144B /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2ACA18741B8743721CE125 /* Typography.swift */; };
 		C98F9CD367151DD4E3DDF7BB /* DrinkLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0715C93C3976A142C4727245 /* DrinkLogger.swift */; };
 		D1198B08BF67143233BA5E3B /* SearchBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BFCDF02E2E3E27F41CB176 /* SearchBox.swift */; };
 		D6523D1A363FEA6346ED62C8 /* VisitCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D55F9E01785AD115D5B129 /* VisitCard.swift */; };
@@ -105,6 +106,7 @@
 		B2214C8409D0F4CAFB214885 /* VisitsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitsStore.swift; sourceTree = "<group>"; };
 		B5AB110A7AC0A69A887C6B98 /* BadgeToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeToast.swift; sourceTree = "<group>"; };
 		B958682051DE0CAAEE2F37C3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BB2ACA18741B8743721CE125 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
 		BF80EE4FDD07B59D62F75213 /* Drinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drinks.swift; sourceTree = "<group>"; };
 		BFD6942ED933E6060ED253DC /* NYCGayBars.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NYCGayBars.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4E32EF1AC4DB4BC48297EE6 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
@@ -256,6 +258,7 @@
 				3A9A7174D5CE19C0673CCAAF /* AppBackground.swift */,
 				6D2B0A2A50C65FD2F71DA1E8 /* Glass.swift */,
 				4A6C2ABE78BDC4816F37638D /* Palette.swift */,
+				BB2ACA18741B8743721CE125 /* Typography.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -415,6 +418,7 @@
 				9D3E88C6D81D366913604E6D /* Splash.swift in Sources */,
 				952894F791F016E77CD89B3E /* Stats.swift in Sources */,
 				14779FB2C4502F579723A355 /* StatsView.swift in Sources */,
+				C7E5036E981DF09D9063144B /* Typography.swift in Sources */,
 				D6523D1A363FEA6346ED62C8 /* VisitCard.swift in Sources */,
 				E06E8F4EF980D17C8D745133 /* VisitsStore.swift in Sources */,
 				0198E0C76EA124A0D253E88C /* ZipNote.swift in Sources */,
