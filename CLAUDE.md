@@ -67,6 +67,9 @@ Day keys are `"year-month-day"` with a **0-indexed month** (mirrors JS `getMonth
 ### Logic lives in `Logic/` (pure, unit-tested)
 `Stats` (all 30 badges + `MILESTONE_BADGE_IDS` + totals/streaks), `Geo` (distance, proximity ordering, ZIP lookup), `DayKey`, `Drinks`, `ZipQuery`. `NYCGayBarsTests` covers these.
 
+### `Services/`
+`LocationManager` wraps CoreLocation (one-shot when-in-use request; feeds `Geo`'s proximity ordering — losing permission just drops distances, per the CLAUDE.md screenshot note above). `Haptics` centralizes `UIImpactFeedbackGenerator`/`UINotificationFeedbackGenerator` calls used from drink logging and badge unlocks.
+
 ### Liquid Glass (`Theme/Glass.swift`) — chrome vs panels
 `.glassSurface(radius:bordered:)` (native `.glassEffect`) is for **interactive chrome only** (search bars, toggles, tab bar, buttons, toasts). Static content (stat cards, calendar, visit cards, badge tiles) uses a plain `.contentPanel()` / `Color.white.opacity(0.05)` rounded rect — native glass draws a luminous rim that reads as a border. Never put an `opacity` modifier on a glass element. `AppBackground` (gradient) must sit behind glass so it has colour to refract.
 
