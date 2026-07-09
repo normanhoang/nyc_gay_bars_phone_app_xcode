@@ -79,10 +79,11 @@ FEATURES
 • Personal stats: favorite bar, top drink, biggest night, longest streak
 • Neighborhood progress bars — how much of the city have you hit?
 • 30 unlockable badges to chase
+• Optional Friends: share a check-in and ping exactly the friends you choose — with per-friend controls for who gets your check-ins and who can notify you
 • Beautiful, fast, native design
 
 PRIVATE BY DESIGN
-Everything stays on your iPhone. No account, no sign-up, no tracking, no servers. Your nights out are nobody's business but yours.
+Your drink log stays on your iPhone — no account, no sign-up, no tracking, no third-party servers. Friends is optional, runs on your iCloud, uses invite codes instead of a directory, and only shares a check-in when you tap the button.
 
 Whether you're a local completist or visiting for Pride, NYC Gay Bars makes exploring the scene a game worth playing.</pre>
   </div>
@@ -125,17 +126,20 @@ Whether you're a local completist or visiting for Pride, NYC Gay Bars makes expl
       <li><b>Alcohol, Tobacco, or Drug Use or References</b> → <b>Frequent/Intense</b> (the app is about bars &amp; drink logging)</li>
       <li>Everything else (violence, sexual content, gambling, etc.) → <b>None</b></li>
     </ul>
-    <p class="hint">Result is typically 17+. No login/UGC, so no "unrestricted web access" flags.</p>
+    <p class="hint">Result is typically 17+. Friends content (display names + check-ins) is shared only between mutually accepted friends — no public UGC or unrestricted web access flags.</p>
   </div>
 
-  <h2>App Privacy <span class="badge ok">Data Not Collected</span></h2>
+  <h2>App Privacy <span class="badge warn">updated for Friends</span></h2>
   <div class="card">
-    <p style="margin-top:0">The app sends nothing off the device — no servers, no analytics. In the privacy questionnaire select <b>"Data Not Collected."</b></p>
+    <p style="margin-top:0">The optional Friends feature stores data in CloudKit, so "Data Not Collected" no longer applies. In the privacy questionnaire declare, all <b>linked to the user</b>, <b>not used for tracking</b>, purpose <b>App Functionality</b>:</p>
     <ul>
-      <li>Location is used only on-device to show distance/sort bars. Because it is never transmitted or stored off-device, it is <b>not "collected"</b> under Apple's definition — do not list it.</li>
+      <li><b>Name</b> — the display name chosen for Friends</li>
+      <li><b>User ID</b> — the CloudKit user identifier / invite code</li>
+      <li><b>Other User Content</b> — shared check-ins (display name + bar + time, sent only to selected friends; auto-deleted within ~24h)</li>
+      <li>Location is still used only on-device to show distance/sort bars — never transmitted, so <b>not "collected"</b>; do not list it.</li>
       <li>Tracking: <b>No</b>.</li>
     </ul>
-    <p class="hint">This matches the shipped <code>PrivacyInfo.xcprivacy</code> (UserDefaults reason CA92.1, no collection, no tracking).</p>
+    <p class="hint">This matches the shipped <code>PrivacyInfo.xcprivacy</code> (UserDefaults reason CA92.1; Name / User ID / Other User Content collected, linked, no tracking).</p>
   </div>
 
   <h2>Export Compliance <span class="badge ok">handled</span></h2>
