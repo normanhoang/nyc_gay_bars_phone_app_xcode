@@ -22,6 +22,14 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.normanhoang.nycgaybars
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1"
+    entitlements:
+      path: NYCGayBars/NYCGayBars.entitlements
+      properties:
+        aps-environment: development
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.normanhoang.nycgaybars
     info:
       path: NYCGayBars/Info.plist
       properties:
@@ -33,6 +41,8 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+        UIBackgroundModes:
+          - remote-notification
         NSLocationWhenInUseUsageDescription: "Used to show your distance to bars and sort them by proximity."
         LSApplicationQueriesSchemes:
           - instagram

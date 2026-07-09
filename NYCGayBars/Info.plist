@@ -28,6 +28,10 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Used to show your distance to bars and sort them by proximity.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

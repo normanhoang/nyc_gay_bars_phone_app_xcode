@@ -1,0 +1,3 @@
+/* CloudKit subscription push alert bodies (args come from record fields). */
+"FRIEND_CHECKIN_ALERT" = "%1$@ is at %2$@";
+"FRIEND_REQUEST_ALERT" = "%@ sent you a friend request";

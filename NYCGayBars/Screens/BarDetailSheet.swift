@@ -12,11 +12,14 @@ struct BarDetailSheet: View {
     var onClose: (() -> Void)?
 
     @EnvironmentObject private var visits: VisitsStore
+    @EnvironmentObject private var social: SocialStore
     @Environment(\.dismiss) private var dismiss
 
     @State private var noteDraft = ""
     @State private var showRemoveAlert = false
     @State private var showDirections = false
+    @State private var sharedWithFriends = false
+    @State private var shareError: String?
 
     private var targetDay: String { day ?? DayKey.key() }
     private var isTargetToday: Bool { targetDay == DayKey.key() }
@@ -71,6 +74,11 @@ struct BarDetailSheet: View {
                         }
 
                         visitedToggle.padding(.top, 20)
+                        // Presence broadcast is a deliberate, separate action —
+                        // logging drinks never notifies anyone.
+                        if social.onboarded && isTargetToday {
+                            shareWithFriends.padding(.top, 12)
+                        }
                         drinkCountBox.padding(.vertical, 16)
 
                         Text("Log a drink")
@@ -152,6 +160,41 @@ struct BarDetailSheet: View {
             .glassSurface(radius: 16, bordered: true)
         }
         .buttonStyle(.plain)
+    }
+
+    private var shareWithFriends: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Button {
+                guard !sharedWithFriends else { return }
+                Haptics.light()
+                shareError = nil
+                Task {
+                    if await social.shareCheckIn(bar: bar) {
+                        Haptics.success()
+                        sharedWithFriends = true
+                    } else {
+                        shareError = social.errorMessage ?? "Couldn't share — try again."
+                    }
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: sharedWithFriends ? "checkmark" : "person.2.fill")
+                        .font(.scaled(15, weight: .semibold))
+                    Text(sharedWithFriends ? "Shared with friends" : "Share with friends")
+                        .font(.scaled(16, weight: .semibold))
+                }
+                .foregroundStyle(sharedWithFriends ? Palette.green : .white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .glassSurface(radius: 16, bordered: true)
+            }
+            .buttonStyle(.plain)
+            .disabled(sharedWithFriends)
+
+            if let shareError {
+                Text(shareError).font(.scaled(12)).foregroundStyle(Palette.gray400)
+            }
+        }
     }
 
     private var drinkCountBox: some View {

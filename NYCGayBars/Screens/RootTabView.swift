@@ -14,16 +14,20 @@ final class TabSwipe: ObservableObject {
 struct RootTabView: View {
     @EnvironmentObject var visits: VisitsStore
     @EnvironmentObject var badges: BadgesStore
+    @EnvironmentObject var social: SocialStore
     @StateObject private var tabSwipe = TabSwipe()
     @Namespace private var tabNS
 
     @State private var page: Int? = 0
     @State private var pillPage: Int = 0
+    /// Bar opened from a tapped friend check-in notification.
+    @State private var deepLinkBar: Bar?
 
     private let tabs: [(icon: String, label: String)] = [
         ("wineglass.fill", "Explore"),
         ("chart.bar.fill", "Stats"),
         ("calendar", "History"),
+        ("person.2.fill", "Friends"),
     ]
 
     var body: some View {
@@ -33,6 +37,7 @@ struct RootTabView: View {
                     ExploreView().containerRelativeFrame(.horizontal).id(0)
                     StatsView().containerRelativeFrame(.horizontal).id(1)
                     HistoryView().containerRelativeFrame(.horizontal).id(2)
+                    FriendsView().containerRelativeFrame(.horizontal).id(3)
                 }
                 .scrollTargetLayout()
             }
@@ -66,6 +71,18 @@ struct RootTabView: View {
         .onChange(of: ReconcileKey(visits: visits.visits, visitedBars: visits.visitedBars)) { _, _ in
             reconcile()
         }
+        .onAppear { consumeDeepLink() }
+        .onChange(of: social.deepLinkBarId) { _, _ in consumeDeepLink() }
+        .sheet(item: $deepLinkBar) { bar in
+            BarDetailSheet(bar: bar, day: nil)
+        }
+    }
+
+    /// Open the bar detail for a tapped "friend is at …" notification.
+    private func consumeDeepLink() {
+        guard let id = social.deepLinkBarId else { return }
+        social.deepLinkBarId = nil
+        if let bar = AppData.barsById[id] { deepLinkBar = bar }
     }
 
     private struct ReconcileKey: Equatable {
@@ -97,7 +114,9 @@ struct RootTabView: View {
                         Text(tab.label).font(.scaled(10, weight: .semibold))
                     }
                     .foregroundStyle(active ? .white : Palette.gray400)
-                    .frame(width: 92)
+                    // 80pt (was 92 with three tabs) so four tabs clear the
+                    // screen margins on the smallest supported width.
+                    .frame(width: 80)
                     .padding(.vertical, 8)
                     .background {
                         if active {
