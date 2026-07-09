@@ -21,6 +21,7 @@ final class SocialStore: ObservableObject {
 
     private static let profileKey = "@gaybars/socialProfile"
     private static let friendsKey = "@gaybars/socialFriends"
+    private static let prefsKey = "@gaybars/socialPrefs"
 
     @Published private(set) var accountState: AccountState = .unknown
     /// Nil until the user completes friends onboarding (picks a display name).
@@ -29,6 +30,8 @@ final class SocialStore: ObservableObject {
     @Published private(set) var incomingRequests: [FriendRequestItem] = []
     @Published private(set) var outgoingRequests: [FriendRequestItem] = []
     @Published private(set) var tonight: [FriendCheckIn] = []
+    /// Per-friend send/get toggles (device-local; new friends default on).
+    @Published private(set) var prefs = SocialPrefs()
     @Published private(set) var busy = false
     /// Last operation error, for inline display in FriendsView.
     @Published var errorMessage: String?
@@ -48,6 +51,10 @@ final class SocialStore: ObservableObject {
         if let data = defaults.data(forKey: Self.friendsKey),
            let cached = try? JSONDecoder().decode([FriendProfile].self, from: data) {
             friends = cached
+        }
+        if let data = defaults.data(forKey: Self.prefsKey),
+           let cached = try? JSONDecoder().decode(SocialPrefs.self, from: data) {
+            prefs = cached
         }
     }
 
@@ -91,8 +98,10 @@ final class SocialStore: ObservableObject {
                 $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
             }
             persistFriends()
-            try await ck.syncSubscriptions(userID: me, friendIDs: ids)
-            tonight = try await ck.tonightCheckIns(friendIDs: ids)
+            prefs.prune(keeping: ids)
+            persistPrefs()
+            try await ck.syncSubscriptions(userID: me, subscribedFriendIDs: prefs.subscribed(of: ids))
+            tonight = try await ck.tonightCheckIns(userID: me)
         } catch {
             errorMessage = friendlyError(error)
         }
@@ -189,23 +198,52 @@ final class SocialStore: ObservableObject {
             try await ck.removeFriendship(ownerID: me, friendID: friend.id)
             friends.removeAll { $0.id == friend.id }
             persistFriends()
-            try await ck.syncSubscriptions(userID: me, friendIDs: friends.map(\.id))
+            prefs.prune(keeping: friends.map(\.id))
+            persistPrefs()
+            try await ck.syncSubscriptions(userID: me,
+                                           subscribedFriendIDs: prefs.subscribed(of: friends.map(\.id)))
             tonight.removeAll { $0.authorID == friend.id }
         } catch {
             errorMessage = friendlyError(error)
         }
     }
 
+    // MARK: - Notification prefs
+
+    /// "Send to" toggle: unchecked friends get no record addressed to them —
+    /// no push and nothing in their Tonight feed.
+    func toggleSend(_ friend: FriendProfile) {
+        prefs.toggleSend(friend.id)
+        persistPrefs()
+    }
+
+    /// "Get from" toggle: mutes their pushes by dropping the subscription.
+    /// Their check-ins still appear in the Tonight feed.
+    func toggleGet(_ friend: FriendProfile) async {
+        prefs.toggleGet(friend.id)
+        persistPrefs()
+        guard let me = userID else { return }
+        try? await ck.syncSubscriptions(userID: me,
+                                        subscribedFriendIDs: prefs.subscribed(of: friends.map(\.id)))
+    }
+
     // MARK: - Check-ins
 
-    /// Broadcast presence at a bar. Returns true on success.
+    /// Broadcast presence at a bar to send-enabled friends. Returns true on success.
     @discardableResult
     func shareCheckIn(bar: Bar) async -> Bool {
         guard let me = profile else { return false }
+        let recipients = prefs.recipients(of: friends.map(\.id))
+        guard !recipients.isEmpty else {
+            errorMessage = friends.isEmpty
+                ? "Add friends first to share check-ins."
+                : "Sharing is switched off for all your friends."
+            return false
+        }
         busy = true
         defer { busy = false }
         do {
-            try await ck.createCheckIn(author: me, bar: bar)
+            try await ck.createCheckIn(author: me, bar: bar, recipients: recipients)
             return true
         } catch {
             errorMessage = friendlyError(error)
@@ -214,9 +252,9 @@ final class SocialStore: ObservableObject {
     }
 
     func refreshTonight() async {
-        guard onboarded else { return }
+        guard let me = userID, onboarded else { return }
         do {
-            tonight = try await ck.tonightCheckIns(friendIDs: friends.map(\.id))
+            tonight = try await ck.tonightCheckIns(userID: me)
         } catch {
             errorMessage = friendlyError(error)
         }
@@ -249,6 +287,12 @@ final class SocialStore: ObservableObject {
     private func persistFriends() {
         if let data = try? JSONEncoder().encode(friends) {
             defaults.set(data, forKey: Self.friendsKey)
+        }
+    }
+
+    private func persistPrefs() {
+        if let data = try? JSONEncoder().encode(prefs) {
+            defaults.set(data, forKey: Self.prefsKey)
         }
     }
 

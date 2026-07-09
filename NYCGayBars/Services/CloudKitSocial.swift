@@ -11,9 +11,13 @@ import Foundation
 /// - Pushes are CloudKit query subscriptions — no server involved. Alert text
 ///   comes from `Localizable.strings` keys with args pulled off the record.
 ///
+/// Check-ins are fanned out client-side: one record per recipient
+/// (`recipientID`), so a friend who was unchecked or removed never has a
+/// record addressed to them and their subscription can never fire.
+///
 /// Requires queryable indexes (CloudKit dashboard) on: Profile.code,
 /// FriendRequest.fromID/toID, Friendship.ownerID/friendID,
-/// CheckIn.authorID/ts (ts also sortable).
+/// CheckIn.authorID/recipientID/ts (ts also sortable).
 struct CloudKitSocial {
     static let containerID = "iCloud.com.normanhoang.nycgaybars"
 
@@ -143,22 +147,27 @@ struct CloudKitSocial {
 
     // MARK: - Check-ins
 
-    func createCheckIn(author: FriendProfile, bar: Bar, now: Date = Date()) async throws {
-        let rec = CKRecord(recordType: RT.checkIn)
-        rec["authorID"] = author.id
-        rec["authorName"] = author.displayName
-        rec["barId"] = bar.id
-        rec["barName"] = bar.name
-        rec["ts"] = now
-        _ = try await db.save(rec)
+    /// Broadcast presence: one small record per recipient, batch-saved.
+    func createCheckIn(author: FriendProfile, bar: Bar, recipients: [String], now: Date = Date()) async throws {
+        guard !recipients.isEmpty else { return }
+        let records = recipients.map { recipient in
+            let rec = CKRecord(recordType: RT.checkIn)
+            rec["authorID"] = author.id
+            rec["authorName"] = author.displayName
+            rec["recipientID"] = recipient
+            rec["barId"] = bar.id
+            rec["barName"] = bar.name
+            rec["ts"] = now
+            return rec
+        }
+        _ = try await db.modifyRecords(saving: records, deleting: [])
     }
 
-    /// Friends' check-ins inside the Tonight window, newest first.
-    func tonightCheckIns(friendIDs: [String], now: Date = Date()) async throws -> [FriendCheckIn] {
-        guard !friendIDs.isEmpty else { return [] }
+    /// Check-ins addressed to me inside the Tonight window, newest first.
+    func tonightCheckIns(userID: String, now: Date = Date()) async throws -> [FriendCheckIn] {
         let cutoff = now.addingTimeInterval(-Social.tonightWindow)
         let q = CKQuery(recordType: RT.checkIn,
-                        predicate: NSPredicate(format: "authorID IN %@ AND ts > %@", friendIDs, cutoff as NSDate))
+                        predicate: NSPredicate(format: "recipientID == %@ AND ts > %@", userID, cutoff as NSDate))
         q.sortDescriptors = [NSSortDescriptor(key: "ts", ascending: false)]
         return try await records(q).compactMap(Self.checkIn(from:))
     }
@@ -176,16 +185,17 @@ struct CloudKitSocial {
     // MARK: - Subscriptions
 
     /// Reconcile server subscriptions with the current friend list:
-    /// core request/friendship subs plus one check-in alert sub per friend.
-    /// Idempotent; also removes check-in subs for unfriended users.
-    func syncSubscriptions(userID: String, friendIDs: [String]) async throws {
+    /// core request/friendship subs plus one check-in alert sub per un-muted
+    /// friend. Idempotent; also removes check-in subs for unfriended or
+    /// newly muted users.
+    func syncSubscriptions(userID: String, subscribedFriendIDs: [String]) async throws {
         var wanted: [String: CKSubscription] = [
             Self.requestSubID: requestSubscription(userID: userID),
             Self.friendshipSubID: friendshipSubscription(userID: userID),
         ]
-        for friendID in friendIDs {
+        for friendID in subscribedFriendIDs {
             let id = Self.checkInSubID(friendID: friendID)
-            wanted[id] = checkInSubscription(friendID: friendID)
+            wanted[id] = checkInSubscription(friendID: friendID, userID: userID)
         }
 
         let existing = try await db.allSubscriptions()
@@ -198,10 +208,13 @@ struct CloudKitSocial {
         _ = try await db.modifySubscriptions(saving: toSave, deleting: toDelete)
     }
 
-    /// Alert push when a friend shares a check-in: "<name> is at <bar>".
-    private func checkInSubscription(friendID: String) -> CKQuerySubscription {
+    /// Alert push when a friend shares a check-in addressed to me:
+    /// "<name> is at <bar>". Scoped to recipientID so records addressed to
+    /// other friends can never fire it.
+    private func checkInSubscription(friendID: String, userID: String) -> CKQuerySubscription {
         let sub = CKQuerySubscription(recordType: RT.checkIn,
-                                      predicate: NSPredicate(format: "authorID == %@", friendID),
+                                      predicate: NSPredicate(format: "authorID == %@ AND recipientID == %@",
+                                                             friendID, userID),
                                       subscriptionID: Self.checkInSubID(friendID: friendID),
                                       options: .firesOnRecordCreation)
         let info = CKSubscription.NotificationInfo()
