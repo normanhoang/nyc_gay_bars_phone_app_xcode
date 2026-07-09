@@ -60,6 +60,12 @@ final class SocialStore: ObservableObject {
 
     var onboarded: Bool { profile != nil }
 
+    /// At least one friend is send-enabled. Drives the share button's
+    /// visibility; recomputed live as friends/prefs change.
+    var canShareCheckIns: Bool {
+        onboarded && !prefs.recipients(of: friends.map(\.id)).isEmpty
+    }
+
     // MARK: - Lifecycle
 
     /// Check iCloud, then pull everything fresh. Call on appear of FriendsView

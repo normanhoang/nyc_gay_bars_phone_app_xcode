@@ -75,8 +75,9 @@ struct BarDetailSheet: View {
 
                         visitedToggle.padding(.top, 20)
                         // Presence broadcast is a deliberate, separate action —
-                        // logging drinks never notifies anyone.
-                        if social.onboarded && isTargetToday {
+                        // logging drinks never notifies anyone. Hidden until at
+                        // least one friend is send-enabled (and hides again at 0).
+                        if social.canShareCheckIns && isTargetToday {
                             shareWithFriends.padding(.top, 12)
                         }
                         drinkCountBox.padding(.vertical, 16)
