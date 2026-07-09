@@ -33,3 +33,29 @@ enum Social {
         now.timeIntervalSince(date) > checkInTTL
     }
 }
+
+/// Per-friend notification preferences, device-local. Sparse "off" sets keyed
+/// by friend ID so new friends default to both toggles on.
+struct SocialPrefs: Codable, Equatable {
+    /// Friends who should NOT receive my check-ins (no record addressed to them).
+    var sendOff: Set<String> = []
+    /// Friends whose check-ins should NOT ping me (no subscription; Tonight feed unaffected).
+    var getOff: Set<String> = []
+
+    func sendsTo(_ id: String) -> Bool { !sendOff.contains(id) }
+    func getsFrom(_ id: String) -> Bool { !getOff.contains(id) }
+
+    /// Friends who receive a shared check-in, preserving input order.
+    func recipients(of friendIDs: [String]) -> [String] { friendIDs.filter(sendsTo) }
+    /// Friends whose check-ins should have an alert subscription.
+    func subscribed(of friendIDs: [String]) -> [String] { friendIDs.filter(getsFrom) }
+
+    mutating func toggleSend(_ id: String) { sendOff.formSymmetricDifference([id]) }
+    mutating func toggleGet(_ id: String) { getOff.formSymmetricDifference([id]) }
+
+    /// Drop entries for IDs no longer in the friends list.
+    mutating func prune(keeping ids: [String]) {
+        sendOff.formIntersection(ids)
+        getOff.formIntersection(ids)
+    }
+}

@@ -59,6 +59,47 @@ final class SocialTests: XCTestCase {
         XCTAssertEqual(Social.tonightFeed([ahead], now: now).count, 1)
     }
 
+    // MARK: Per-friend notification prefs
+
+    func testPrefsDefaultOn() {
+        let p = SocialPrefs()
+        XCTAssertTrue(p.sendsTo("a"))
+        XCTAssertTrue(p.getsFrom("a"))
+        XCTAssertEqual(p.recipients(of: ["a", "b"]), ["a", "b"])
+        XCTAssertEqual(p.subscribed(of: ["a", "b"]), ["a", "b"])
+    }
+
+    func testPrefsToggle() {
+        var p = SocialPrefs()
+        p.toggleSend("a")
+        p.toggleGet("b")
+        XCTAssertFalse(p.sendsTo("a"))
+        XCTAssertTrue(p.getsFrom("a"))
+        XCTAssertFalse(p.getsFrom("b"))
+        XCTAssertEqual(p.recipients(of: ["a", "b"]), ["b"])
+        XCTAssertEqual(p.subscribed(of: ["a", "b"]), ["a"])
+        p.toggleSend("a")
+        XCTAssertTrue(p.sendsTo("a"))
+    }
+
+    func testPrefsPrune() {
+        var p = SocialPrefs()
+        p.toggleSend("gone")
+        p.toggleGet("gone")
+        p.toggleGet("kept")
+        p.prune(keeping: ["kept"])
+        XCTAssertTrue(p.sendOff.isEmpty)
+        XCTAssertEqual(p.getOff, ["kept"])
+    }
+
+    func testPrefsCodableRoundTrip() throws {
+        var p = SocialPrefs()
+        p.toggleSend("a")
+        p.toggleGet("b")
+        let back = try JSONDecoder().decode(SocialPrefs.self, from: JSONEncoder().encode(p))
+        XCTAssertEqual(back, p)
+    }
+
     // MARK: 24h TTL for own check-in records
 
     func testIsExpired() {
