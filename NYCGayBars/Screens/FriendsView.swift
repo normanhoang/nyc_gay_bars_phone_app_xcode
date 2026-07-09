@@ -340,31 +340,63 @@ struct FriendsView: View {
                     .padding(16)
                     .contentPanel()
             } else {
-                VStack(spacing: 8) {
-                    ForEach(social.friends) { friend in
-                        HStack {
-                            Text(friend.displayName)
-                                .font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
-                            Spacer()
-                            Button {
-                                removeTarget = friend
-                                showRemoveConfirm = true
-                            } label: {
-                                Image(systemName: "person.fill.xmark")
-                                    .font(.scaled(14)).foregroundStyle(Palette.gray500)
-                                    .frame(width: 36, height: 36)
-                                    .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Remove \(friend.displayName)")
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .contentPanel(radius: 16)
-                    }
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(social.friends) { friendRow($0) }
+                    Text("Paper plane: they get your check-ins. Bell: their check-ins notify you.")
+                        .font(.scaled(12)).foregroundStyle(Palette.gray500)
+                        .padding(.top, 4)
                 }
             }
         }
+    }
+
+    private func friendRow(_ friend: FriendProfile) -> some View {
+        HStack(spacing: 0) {
+            Text(friend.displayName)
+                .font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            prefToggle(on: social.prefs.sendsTo(friend.id),
+                       onIcon: "paperplane.fill", offIcon: "paperplane",
+                       label: "Send your check-ins to \(friend.displayName): \(social.prefs.sendsTo(friend.id) ? "on" : "off")") {
+                social.toggleSend(friend)
+            }
+            prefToggle(on: social.prefs.getsFrom(friend.id),
+                       onIcon: "bell.fill", offIcon: "bell.slash",
+                       label: "Get notified about \(friend.displayName): \(social.prefs.getsFrom(friend.id) ? "on" : "off")") {
+                Task { await social.toggleGet(friend) }
+            }
+            Button {
+                removeTarget = friend
+                showRemoveConfirm = true
+            } label: {
+                Image(systemName: "person.fill.xmark")
+                    .font(.scaled(14)).foregroundStyle(Palette.gray500)
+                    .frame(width: 36, height: 36)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Remove \(friend.displayName)")
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .contentPanel(radius: 16)
+    }
+
+    private func prefToggle(on: Bool, onIcon: String, offIcon: String,
+                            label: String, action: @escaping () -> Void) -> some View {
+        Button {
+            Haptics.light()
+            action()
+        } label: {
+            Image(systemName: on ? onIcon : offIcon)
+                .font(.scaled(14, weight: .semibold))
+                .foregroundStyle(on ? Palette.primary : Palette.gray500)
+                .frame(width: 36, height: 36)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
     }
 
     // MARK: - Helpers
