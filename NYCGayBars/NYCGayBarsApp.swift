@@ -61,6 +61,10 @@ struct NYCGayBarsApp: App {
                 }
             }
             .preferredColorScheme(.dark)
+            // nycgaybars://addfriend?code=X from the add-friend web page / QR.
+            .onOpenURL { url in
+                social.handleAddFriendLink(url)
+            }
             .task {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 withAnimation(.easeOut(duration: 0.4)) { showSplash = false }

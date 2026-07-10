@@ -46,6 +46,10 @@ targets:
         NSLocationWhenInUseUsageDescription: "Used to show your distance to bars and sort them by proximity."
         LSApplicationQueriesSchemes:
           - instagram
+        CFBundleURLTypes:
+          - CFBundleURLName: com.normanhoang.nycgaybars
+            CFBundleURLSchemes:
+              - nycgaybars
   NYCGayBarsTests:
     type: bundle.unit-test
     platform: iOS

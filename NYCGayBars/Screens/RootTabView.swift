@@ -73,6 +73,13 @@ struct RootTabView: View {
         }
         .onAppear { consumeDeepLink() }
         .onChange(of: social.deepLinkBarId) { _, _ in consumeDeepLink() }
+        // Add-friend link/QR: land the user on the Friends tab so they see
+        // the auto-sent request (or onboarding, if not set up yet).
+        .onChange(of: social.pendingAddCode) { _, code in
+            guard code != nil, pillPage != 3 else { return }
+            withAnimation(.snappy(duration: 0.18)) { pillPage = 3 }
+            page = 3
+        }
         .sheet(item: $deepLinkBar) { bar in
             BarDetailSheet(bar: bar, day: nil)
         }

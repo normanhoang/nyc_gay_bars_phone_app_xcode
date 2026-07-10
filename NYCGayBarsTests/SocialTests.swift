@@ -59,6 +59,27 @@ final class SocialTests: XCTestCase {
         XCTAssertEqual(Social.tonightFeed([ahead], now: now).count, 1)
     }
 
+    // MARK: Add-friend links
+
+    func testAddFriendLinkEmbedsCodeInFragment() {
+        let url = Social.addFriendLink(code: "QRS234")
+        XCTAssertEqual(url.absoluteString,
+                       "https://normanhoang.github.io/nyc_gay_bars_phone_app_xcode/add-friend.html#QRS234")
+    }
+
+    func testParseAddFriendURLAccepts() {
+        XCTAssertEqual(Social.parseAddFriendURL(URL(string: "nycgaybars://addfriend?code=QRS234")!), "QRS234")
+        // Normalizes case like manual entry does.
+        XCTAssertEqual(Social.parseAddFriendURL(URL(string: "nycgaybars://addfriend?code=qrs234")!), "QRS234")
+    }
+
+    func testParseAddFriendURLRejects() {
+        XCTAssertNil(Social.parseAddFriendURL(URL(string: "https://example.com/addfriend?code=QRS234")!))
+        XCTAssertNil(Social.parseAddFriendURL(URL(string: "nycgaybars://other?code=QRS234")!))
+        XCTAssertNil(Social.parseAddFriendURL(URL(string: "nycgaybars://addfriend")!))
+        XCTAssertNil(Social.parseAddFriendURL(URL(string: "nycgaybars://addfriend?code=BAD")!))
+    }
+
     // MARK: Per-friend notification prefs
 
     func testPrefsDefaultOn() {

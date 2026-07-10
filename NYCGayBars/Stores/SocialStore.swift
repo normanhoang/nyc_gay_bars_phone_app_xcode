@@ -37,6 +37,11 @@ final class SocialStore: ObservableObject {
     @Published var errorMessage: String?
     /// Bar to open from a tapped check-in notification (consumed by RootTabView).
     @Published var deepLinkBarId: String?
+    /// Friend code from an add-friend link/QR, held until the store can act
+    /// on it (also cues RootTabView to switch to the Friends tab).
+    @Published var pendingAddCode: String?
+    /// Transient success feedback (e.g. auto-sent friend request).
+    @Published var infoMessage: String?
 
     private let ck = CloudKitSocial()
     private let defaults = UserDefaults.standard
@@ -85,10 +90,34 @@ final class SocialStore: ObservableObject {
             }
             guard onboarded else { return }
             await refresh()
+            await consumePendingAddCode()
             try? await ck.deleteExpiredCheckIns(authorID: userID!)
         } catch {
             errorMessage = friendlyError(error)
         }
+    }
+
+    // MARK: - Add-friend links
+
+    /// Entry point for nycgaybars://addfriend?code=X (onOpenURL).
+    func handleAddFriendLink(_ url: URL) {
+        guard let code = Social.parseAddFriendURL(url) else { return }
+        pendingAddCode = code
+        Task { await consumePendingAddCode() }
+    }
+
+    /// Auto-send the held request once signed in + onboarded. A cold launch
+    /// holds the code until start() finishes; a not-yet-onboarded user keeps
+    /// it through onboarding.
+    private func consumePendingAddCode() async {
+        guard accountState == .ready, onboarded, let code = pendingAddCode else { return }
+        pendingAddCode = nil
+        let friendsBefore = friends.count
+        await addFriend(code: code)
+        guard errorMessage == nil else { return }
+        infoMessage = friends.count > friendsBefore
+            ? "Friend added!"
+            : "Friend request sent — they'll need to accept."
     }
 
     /// Re-fetch requests, friendships (completing any accepted handshakes),
@@ -142,6 +171,7 @@ final class SocialStore: ObservableObject {
             profile = try await ck.createProfile(userID: me, displayName: name)
             persistProfile()
             await refresh()
+            await consumePendingAddCode()
         } catch {
             errorMessage = friendlyError(error)
         }

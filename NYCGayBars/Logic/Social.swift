@@ -32,6 +32,28 @@ enum Social {
     static func isExpired(_ date: Date, now: Date) -> Bool {
         now.timeIntervalSince(date) > checkInTTL
     }
+
+    // MARK: Add-friend links
+
+    /// Web bounce page (GitHub Pages) that opens the app via nycgaybars://.
+    static let addFriendPage = "https://normanhoang.github.io/nyc_gay_bars_phone_app_xcode/add-friend.html"
+
+    /// Shareable https link; the code rides in the fragment so it never
+    /// appears in server logs.
+    static func addFriendLink(code: String) -> URL {
+        URL(string: "\(addFriendPage)#\(code)")!
+    }
+
+    /// Code from a `nycgaybars://addfriend?code=X` deep link, normalized;
+    /// nil for anything else.
+    static func parseAddFriendURL(_ url: URL) -> String? {
+        guard let comps = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              comps.scheme == "nycgaybars",
+              comps.host == "addfriend",
+              let raw = comps.queryItems?.first(where: { $0.name == "code" })?.value
+        else { return nil }
+        return normalizeCode(raw)
+    }
 }
 
 /// Per-friend notification preferences, device-local. Sparse "off" sets keyed

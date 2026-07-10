@@ -16,6 +16,7 @@ struct FriendsView: View {
     @State private var selectedBar: Bar?
     @State private var removeTarget: FriendProfile?
     @State private var showRemoveConfirm = false
+    @State private var showQR = false
     @State private var scrollPos = ScrollPosition()
 
     var body: some View {
@@ -145,6 +146,9 @@ struct FriendsView: View {
                 if let err = social.errorMessage {
                     errorBanner(err).padding(.bottom, 12)
                 }
+                if let info = social.infoMessage {
+                    infoBanner(info).padding(.bottom, 12)
+                }
 
                 sectionTitle("TONIGHT")
                 tonightSection.padding(.bottom, 20)
@@ -201,6 +205,15 @@ struct FriendsView: View {
             .padding(12)
             .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.red.opacity(0.25)))
             .onTapGesture { social.errorMessage = nil }
+    }
+
+    private func infoBanner(_ message: String) -> some View {
+        Text(message)
+            .font(.scaled(14)).foregroundStyle(.white)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Palette.green.opacity(0.2)))
+            .onTapGesture { social.infoMessage = nil }
     }
 
     // MARK: Tonight
@@ -260,17 +273,76 @@ struct FriendsView: View {
                     .font(.scaled(12)).foregroundStyle(Palette.gray400)
             }
             Spacer()
-            ShareLink(item: "Add me on NYC Gay Bars — my friend code is \(social.profile?.code ?? "")") {
+            Button {
+                Haptics.light()
+                showQR = true
+            } label: {
+                Image(systemName: "qrcode")
+                    .font(.scaled(18, weight: .semibold)).foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .glassSurface(radius: 22)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Show QR code")
+            .padding(.trailing, 8)
+            ShareLink(item: shareText) {
                 Image(systemName: "square.and.arrow.up")
                     .font(.scaled(18, weight: .semibold)).foregroundStyle(.white)
                     .frame(width: 44, height: 44)
                     .glassSurface(radius: 22)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Share friend code")
+            .accessibilityLabel("Share friend link")
         }
         .padding(16)
         .contentPanel()
+        .sheet(isPresented: $showQR) { qrSheet }
+    }
+
+    /// Texted share: the https page link is tappable in Messages and bounces
+    /// into the app via nycgaybars://.
+    private var shareText: String {
+        let code = social.profile?.code ?? ""
+        return "Add me on NYC Gay Bars — my friend code is \(code). \(Social.addFriendLink(code: code).absoluteString)"
+    }
+
+    private var qrSheet: some View {
+        ZStack {
+            AppBackground()
+            VStack(spacing: 14) {
+                Text(social.profile?.displayName ?? "")
+                    .font(.scaled(20, weight: .heavy)).foregroundStyle(.white)
+                Text("Scan with the iPhone Camera to add me")
+                    .font(.scaled(13)).foregroundStyle(Palette.gray400)
+                if let code = social.profile?.code,
+                   let qr = qrCodeImage(for: Social.addFriendLink(code: code).absoluteString) {
+                    Image(uiImage: qr)
+                        .interpolation(.none)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 220, height: 220)
+                        .padding(14)
+                        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(.white))
+                }
+                Text(social.profile?.code ?? "")
+                    .font(.system(size: 24, weight: .heavy, design: .monospaced))
+                    .foregroundStyle(Palette.primary)
+                ShareLink(item: shareText) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "square.and.arrow.up").font(.scaled(15, weight: .semibold))
+                        Text("Share link").font(.scaled(16, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .glassSurface(radius: 22, bordered: true)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(24)
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 
     // MARK: Add friend
