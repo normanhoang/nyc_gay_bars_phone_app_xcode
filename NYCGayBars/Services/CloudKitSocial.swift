@@ -172,6 +172,16 @@ struct CloudKitSocial {
         return try await records(q).compactMap(Self.checkIn(from:))
     }
 
+    /// Retract own check-ins addressed to one recipient (unfriend revoke).
+    func deleteCheckIns(authorID: String, recipientID: String) async throws {
+        let q = CKQuery(recordType: RT.checkIn,
+                        predicate: NSPredicate(format: "authorID == %@ AND recipientID == %@",
+                                               authorID, recipientID))
+        let sent = try await records(q).map(\.recordID)
+        guard !sent.isEmpty else { return }
+        _ = try await db.modifyRecords(saving: [], deleting: sent)
+    }
+
     /// Delete own check-in records past the 24h TTL.
     func deleteExpiredCheckIns(authorID: String, now: Date = Date()) async throws {
         let cutoff = now.addingTimeInterval(-Social.checkInTTL)
@@ -279,7 +289,8 @@ struct CloudKitSocial {
     private static func request(from rec: CKRecord) -> FriendRequestItem? {
         guard let fromID = rec["fromID"] as? String,
               let fromName = rec["fromName"] as? String,
-              let toID = rec["toID"] as? String else { return nil }
+              let toID = rec["toID"] as? String,
+              creatorMatches(rec, claimedID: fromID) else { return nil }
         return FriendRequestItem(id: rec.recordID.recordName, fromID: fromID, fromName: fromName, toID: toID)
     }
 
@@ -288,8 +299,21 @@ struct CloudKitSocial {
               let authorName = rec["authorName"] as? String,
               let barId = rec["barId"] as? String,
               let barName = rec["barName"] as? String,
-              let ts = rec["ts"] as? Date else { return nil }
+              let ts = rec["ts"] as? Date,
+              creatorMatches(rec, claimedID: authorID) else { return nil }
         return FriendCheckIn(id: rec.recordID.recordName, authorID: authorID, authorName: authorName,
                              barId: barId, barName: barName, date: ts)
+    }
+
+    /// Audit finding #1: reject records whose self-declared author/sender ID
+    /// doesn't match CloudKit's system-stamped creator — an attacker can set a
+    /// record field to any ID, but not `creatorUserRecordID`. Gated by
+    /// `Social.verifyRecordCreator` (see FINDINGS.md) until verified against a
+    /// second iCloud account; when off, this is a no-op. Own records read back
+    /// report the creator as `__defaultOwner__`, so those are always allowed.
+    private static func creatorMatches(_ rec: CKRecord, claimedID: String) -> Bool {
+        guard Social.verifyRecordCreator else { return true }
+        guard let creator = rec.creatorUserRecordID?.recordName else { return true }
+        return creator == claimedID || creator == "__defaultOwner__"
     }
 }

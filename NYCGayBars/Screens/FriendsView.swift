@@ -16,7 +16,8 @@ struct FriendsView: View {
     @State private var selectedBar: Bar?
     @State private var removeTarget: FriendProfile?
     @State private var showRemoveConfirm = false
-    @State private var showQR = false
+    @State private var showAddSheet = false
+    @State private var sheetDetent: PresentationDetent = .medium
     @State private var scrollPos = ScrollPosition()
 
     var body: some View {
@@ -52,7 +53,7 @@ struct FriendsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("You'll stop getting their check-ins. They may still get yours until they remove you.")
+            Text("You'll stop getting their check-ins, and they'll stop getting yours.")
         }
     }
 
@@ -140,8 +141,23 @@ struct FriendsView: View {
     private var content: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Friends").font(.scaled(30, weight: .heavy)).foregroundStyle(.white)
-                    .padding(.bottom, 16)
+                HStack {
+                    Text("Friends").font(.scaled(30, weight: .heavy)).foregroundStyle(.white)
+                    Spacer()
+                    Button {
+                        Haptics.light()
+                        sheetDetent = .medium
+                        showAddSheet = true
+                    } label: {
+                        Image(systemName: "person.badge.plus")
+                            .font(.scaled(18, weight: .semibold)).foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .glassSurface(radius: 22)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("My code and add a friend")
+                }
+                .padding(.bottom, 16)
 
                 if let err = social.errorMessage {
                     errorBanner(err).padding(.bottom, 12)
@@ -152,19 +168,6 @@ struct FriendsView: View {
 
                 sectionTitle("TONIGHT")
                 tonightSection.padding(.bottom, 20)
-
-                sectionTitle("MY CODE")
-                myCodeCard.padding(.bottom, 20)
-
-                sectionTitle("ADD A FRIEND")
-                addFriendRow
-                ForEach(social.outgoingRequests) { req in
-                    Text("Waiting for your request to be accepted…")
-                        .font(.scaled(12)).foregroundStyle(Palette.gray500)
-                        .padding(.top, 6)
-                        .id(req.id)
-                }
-                Color.clear.frame(height: 20)
 
                 if !social.incomingRequests.isEmpty {
                     sectionTitle("REQUESTS")
@@ -191,6 +194,7 @@ struct FriendsView: View {
         // Tap anywhere outside the text field to drop the keyboard; buttons
         // and the field itself win the gesture, so they're unaffected.
         .onTapGesture { focusedField = nil }
+        .sheet(isPresented: $showAddSheet) { addFriendSheet }
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -229,29 +233,33 @@ struct FriendsView: View {
                     .padding(16)
                     .contentPanel()
             } else {
-                VStack(spacing: 8) {
-                    ForEach(social.tonight) { checkIn in
-                        Button {
-                            if let bar = AppData.barsById[checkIn.barId] { selectedBar = bar }
-                        } label: {
-                            HStack(spacing: 12) {
-                                Text("🍸").font(.scaled(22))
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("\(checkIn.authorName) is at \(checkIn.barName)")
-                                        .font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
-                                        .multilineTextAlignment(.leading)
-                                    Text(Self.relativeTime.localizedString(for: checkIn.date, relativeTo: Date()))
-                                        .font(.scaled(12)).foregroundStyle(Palette.gray400)
+                // Periodic timeline so "5 minutes ago" keeps ticking while
+                // the page is visible.
+                TimelineView(.periodic(from: .now, by: 60)) { context in
+                    VStack(spacing: 8) {
+                        ForEach(social.tonight) { checkIn in
+                            Button {
+                                if let bar = AppData.barsById[checkIn.barId] { selectedBar = bar }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Text("🍸").font(.scaled(22))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("\(checkIn.authorName) is at \(checkIn.barName)")
+                                            .font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
+                                            .multilineTextAlignment(.leading)
+                                        Text(Self.relativeTime.localizedString(for: checkIn.date, relativeTo: context.date))
+                                            .font(.scaled(12)).foregroundStyle(Palette.gray400)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.scaled(12, weight: .semibold)).foregroundStyle(Palette.gray500)
                                 }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.scaled(12, weight: .semibold)).foregroundStyle(Palette.gray500)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .contentPanel(radius: 16)
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .contentPanel(radius: 16)
+                            .buttonStyle(PressableScale())
                         }
-                        .buttonStyle(PressableScale())
                     }
                 }
             }
@@ -260,44 +268,7 @@ struct FriendsView: View {
 
     private static let relativeTime = RelativeDateTimeFormatter()
 
-    // MARK: My code
-
-    private var myCodeCard: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(social.profile?.code ?? "")
-                    .font(.system(size: 28, weight: .heavy, design: .monospaced))
-                    .foregroundStyle(Palette.primary)
-                    .textSelection(.enabled)
-                Text("Friends enter this code to add you.")
-                    .font(.scaled(12)).foregroundStyle(Palette.gray400)
-            }
-            Spacer()
-            Button {
-                Haptics.light()
-                showQR = true
-            } label: {
-                Image(systemName: "qrcode")
-                    .font(.scaled(18, weight: .semibold)).foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-                    .glassSurface(radius: 22)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Show QR code")
-            .padding(.trailing, 8)
-            ShareLink(item: shareText) {
-                Image(systemName: "square.and.arrow.up")
-                    .font(.scaled(18, weight: .semibold)).foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-                    .glassSurface(radius: 22)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Share friend link")
-        }
-        .padding(16)
-        .contentPanel()
-        .sheet(isPresented: $showQR) { qrSheet }
-    }
+    // MARK: My code + add friend sheet
 
     /// Texted share: the https page link is tappable in Messages and bounces
     /// into the app via nycgaybars://.
@@ -306,42 +277,64 @@ struct FriendsView: View {
         return "Add me on NYC Gay Bars — my friend code is \(code). \(Social.addFriendLink(code: code).absoluteString)"
     }
 
-    private var qrSheet: some View {
+    private var addFriendSheet: some View {
         ZStack {
             AppBackground()
-            VStack(spacing: 14) {
-                Text(social.profile?.displayName ?? "")
-                    .font(.scaled(20, weight: .heavy)).foregroundStyle(.white)
-                Text("Scan with the iPhone Camera to add me")
-                    .font(.scaled(13)).foregroundStyle(Palette.gray400)
-                if let code = social.profile?.code,
-                   let qr = qrCodeImage(for: Social.addFriendDeepLink(code: code).absoluteString) {
-                    Image(uiImage: qr)
-                        .interpolation(.none)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 220, height: 220)
-                        .padding(14)
-                        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(.white))
-                }
-                Text(social.profile?.code ?? "")
-                    .font(.system(size: 24, weight: .heavy, design: .monospaced))
-                    .foregroundStyle(Palette.primary)
-                ShareLink(item: shareText) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "square.and.arrow.up").font(.scaled(15, weight: .semibold))
-                        Text("Share link").font(.scaled(16, weight: .semibold))
+            ScrollView {
+                VStack(spacing: 10) {
+                    Text(social.profile?.displayName ?? "")
+                        .font(.scaled(20, weight: .heavy)).foregroundStyle(.white)
+                    if let code = social.profile?.code,
+                       let qr = qrCodeImage(for: Social.addFriendDeepLink(code: code).absoluteString) {
+                        Image(uiImage: qr)
+                            .interpolation(.none)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 150, height: 150)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(.white))
                     }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .glassSurface(radius: 22, bordered: true)
+                    Text("Scan with the iPhone Camera to add me")
+                        .font(.scaled(13)).foregroundStyle(Palette.gray400)
+                    HStack(spacing: 12) {
+                        Text(social.profile?.code ?? "")
+                            .font(.system(size: 24, weight: .heavy, design: .monospaced))
+                            .foregroundStyle(Palette.primary)
+                            .textSelection(.enabled)
+                        ShareLink(item: shareText) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.scaled(16, weight: .semibold)).foregroundStyle(.white)
+                                .frame(width: 40, height: 40)
+                                .glassSurface(radius: 20)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Share friend link")
+                    }
+
+                    sectionTitle("ADD A FRIEND")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 8)
+                    addFriendRow
+                    ForEach(social.outgoingRequests) { req in
+                        Text("Waiting for your request to be accepted…")
+                            .font(.scaled(12)).foregroundStyle(Palette.gray500)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .id(req.id)
+                    }
                 }
-                .buttonStyle(.plain)
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
+                .padding(.bottom, 24)
             }
-            .padding(24)
+            .scrollDismissesKeyboard(.interactively)
         }
-        .presentationDetents([.medium])
+        .onTapGesture { focusedField = nil }
+        // Jump to the large detent while the code field is focused so the
+        // field isn't hidden behind the keyboard at the medium height.
+        .onChange(of: focusedField) { _, f in
+            if f == .code { sheetDetent = .large }
+        }
+        .presentationDetents([.medium, .large], selection: $sheetDetent)
         .presentationDragIndicator(.visible)
     }
 

@@ -10,6 +10,15 @@ enum Social {
     static let tonightWindow: TimeInterval = 6 * 3600
     /// Own CheckIn records older than this are deleted from CloudKit.
     static let checkInTTL: TimeInterval = 24 * 3600
+    /// Max display-name length (no server enforces it; shown in others' pushes).
+    static let maxDisplayNameLength = 40
+
+    /// Gate for the CloudKit creator-authenticity check (audit finding #1).
+    /// OFF until verified against a second iCloud account — a wrong assumption
+    /// about `creatorUserRecordID` here would silently drop real check-ins /
+    /// requests. See FINDINGS.md "Finding #1 verification". Flip to `true`
+    /// only after that test passes.
+    static let verifyRecordCreator = false
 
     static func generateFriendCode() -> String {
         String((0..<codeLength).map { _ in codeAlphabet.randomElement()! })
@@ -22,11 +31,27 @@ enum Social {
         return code
     }
 
-    /// Check-ins from the last 6h, newest first. Future-dated entries (friend clock skew) are kept.
+    /// Check-ins from the last 6h, newest first. Future-dated entries (friend
+    /// clock skew) are kept. Repeated shares collapse to the newest per
+    /// friend + bar (the same friend at a different bar stays a separate row).
     static func tonightFeed(_ checkIns: [FriendCheckIn], now: Date) -> [FriendCheckIn] {
-        checkIns
+        var seen = Set<String>()
+        return checkIns
             .filter { $0.date > now.addingTimeInterval(-tonightWindow) }
             .sorted { $0.date > $1.date }
+            .filter { seen.insert($0.authorID + "|" + $0.barId).inserted }
+    }
+
+    /// Friends whose own Friendship{them→me} record is gone and who have no
+    /// request pending in either direction: they unfriended me, so my mirror
+    /// record should be deleted too. A pending request marks the acceptance
+    /// handshake window, where only one side's record exists yet — never a
+    /// removal.
+    static func removedFriendIDs(friends: [String], friendedBy: Set<String>,
+                                 pendingIn: Set<String>, pendingOut: Set<String>) -> Set<String> {
+        Set(friends.filter {
+            !friendedBy.contains($0) && !pendingIn.contains($0) && !pendingOut.contains($0)
+        })
     }
 
     static func isExpired(_ date: Date, now: Date) -> Bool {
@@ -69,6 +94,9 @@ struct SocialPrefs: Codable, Equatable {
     var sendOff: Set<String> = []
     /// Friends whose check-ins should NOT ping me (no subscription; Tonight feed unaffected).
     var getOff: Set<String> = []
+    /// Ignored friend-request record names. The sender owns the record, so it
+    /// can't be deleted — hide it until it disappears from the server.
+    var ignored: Set<String> = []
 
     func sendsTo(_ id: String) -> Bool { !sendOff.contains(id) }
     func getsFrom(_ id: String) -> Bool { !getOff.contains(id) }
@@ -85,5 +113,18 @@ struct SocialPrefs: Codable, Equatable {
     mutating func prune(keeping ids: [String]) {
         sendOff.formIntersection(ids)
         getOff.formIntersection(ids)
+    }
+}
+
+extension SocialPrefs {
+    private enum CodingKeys: String, CodingKey { case sendOff, getOff, ignored }
+
+    /// decodeIfPresent throughout so prefs persisted before a key existed
+    /// still decode instead of resetting to defaults.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        sendOff = try c.decodeIfPresent(Set<String>.self, forKey: .sendOff) ?? []
+        getOff = try c.decodeIfPresent(Set<String>.self, forKey: .getOff) ?? []
+        ignored = try c.decodeIfPresent(Set<String>.self, forKey: .ignored) ?? []
     }
 }

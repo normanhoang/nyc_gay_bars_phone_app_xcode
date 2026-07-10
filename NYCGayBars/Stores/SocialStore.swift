@@ -125,45 +125,85 @@ final class SocialStore: ObservableObject {
     func refresh() async {
         guard let me = userID, onboarded else { return }
         do {
-            try await reconcileAcceptances(me: me)
-            incomingRequests = try await ck.incomingRequests(userID: me)
-            outgoingRequests = try await ck.outgoingRequests(userID: me)
-            let ids = try await ck.friendIDs(ownerID: me)
+            // The four base queries are independent — fetch concurrently.
+            async let incomingFetch = ck.incomingRequests(userID: me)
+            async let outgoingFetch = ck.outgoingRequests(userID: me)
+            async let idsFetch = ck.friendIDs(ownerID: me)
+            async let friendedByFetch = ck.friendedByIDs(userID: me)
+            var incoming = try await incomingFetch
+            var outgoing = try await outgoingFetch
+            var ids = try await idsFetch
+            let friendedBy = Set(try await friendedByFetch)
+
+            // Someone I sent a request to created their Friendship{them→me}:
+            // finish the handshake by creating the mirror and dropping the
+            // request. Only mirrors users I actually requested — a stranger
+            // creating a Friendship pointing at me is ignored.
+            for request in outgoing where friendedBy.contains(request.toID) {
+                try await ck.createFriendship(ownerID: me, friendID: request.toID)
+                try await ck.deleteRequest(recordName: request.id)
+                if !ids.contains(request.toID) { ids.append(request.toID) }
+                outgoing.removeAll { $0.id == request.id }
+            }
+
+            // Mirror removals: a friend whose own Friendship{them→me} record is
+            // gone has unfriended me — delete my record too so removal takes
+            // effect on both sides, and retract my check-ins addressed to them.
+            let removedBy = Social.removedFriendIDs(friends: ids, friendedBy: friendedBy,
+                                                    pendingIn: Set(incoming.map(\.fromID)),
+                                                    pendingOut: Set(outgoing.map(\.toID)))
+            for id in removedBy {
+                try await ck.removeFriendship(ownerID: me, friendID: id)
+                try? await ck.deleteCheckIns(authorID: me, recipientID: id)
+            }
+            ids.removeAll(where: removedBy.contains)
+
+            // Ignored requests stay hidden (only the sender can delete the
+            // record); prune once the record is gone so the set can't grow.
+            prefs.ignored.formIntersection(incoming.map(\.id))
+            incoming.removeAll { prefs.ignored.contains($0.id) }
             // A request from someone who's already a friend is stale — the
             // sender deletes their record only when their device next syncs.
             let friendIDSet = Set(ids)
-            incomingRequests.removeAll { friendIDSet.contains($0.fromID) }
-            friends = try await ck.profiles(userIDs: ids).sorted {
+            incoming.removeAll { friendIDSet.contains($0.fromID) }
+            incomingRequests = incoming
+            outgoingRequests = outgoing
+
+            async let profilesFetch = ck.profiles(userIDs: ids)
+            async let tonightFetch = ck.tonightCheckIns(userID: me)
+            friends = try await profilesFetch.sorted {
                 $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
             }
             persistFriends()
             prefs.prune(keeping: ids)
             persistPrefs()
-            try await ck.syncSubscriptions(userID: me, subscribedFriendIDs: prefs.subscribed(of: ids))
-            tonight = try await ck.tonightCheckIns(userID: me)
+            // Drop check-ins from anyone no longer a friend (their unexpired
+            // records can outlive the friendship by up to the Tonight window).
+            tonight = Social.tonightFeed(
+                try await tonightFetch.filter { friendIDSet.contains($0.authorID) }, now: Date())
+            try await syncSubscriptionsIfNeeded(me: me, friendIDs: ids)
         } catch {
             errorMessage = friendlyError(error)
         }
     }
 
-    /// Someone I sent a request to created their Friendship{them→me}:
-    /// finish the handshake by creating the mirror and dropping the request.
-    /// Only mirrors users I actually requested — a stranger creating a
-    /// Friendship pointing at me is ignored.
-    private func reconcileAcceptances(me: String) async throws {
-        let outgoing = try await ck.outgoingRequests(userID: me)
-        guard !outgoing.isEmpty else { return }
-        let accepted = Set(try await ck.friendedByIDs(userID: me))
-        for request in outgoing where accepted.contains(request.toID) {
-            try await ck.createFriendship(ownerID: me, friendID: request.toID)
-            try await ck.deleteRequest(recordName: request.id)
-        }
+    /// Wanted subscription IDs as of the last successful server sync; skips
+    /// the fetch-all-subscriptions round trip when nothing changed.
+    private var syncedSubIDs: Set<String>?
+
+    private func syncSubscriptionsIfNeeded(me: String, friendIDs: [String]) async throws {
+        let wanted = Set(prefs.subscribed(of: friendIDs))
+        guard wanted != syncedSubIDs else { return }
+        try await ck.syncSubscriptions(userID: me, subscribedFriendIDs: Array(wanted))
+        syncedSubIDs = wanted
     }
 
     // MARK: - Onboarding
 
     func createProfile(displayName rawName: String) async {
-        let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Cap length: no server enforces this, and the name is shown in other
+        // users' push alerts and friend UI.
+        let name = String(rawName.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Social.maxDisplayNameLength))
         guard !name.isEmpty, let me = userID else { return }
         busy = true
         defer { busy = false }
@@ -227,21 +267,26 @@ final class SocialStore: ObservableObject {
         }
     }
 
-    /// Hide an incoming request locally (we can't delete the sender's record).
+    /// Hide an incoming request (we can't delete the sender's record, so the
+    /// ID is persisted and filtered out of every refresh until it's gone).
     func ignore(_ request: FriendRequestItem) {
         incomingRequests.removeAll { $0.id == request.id }
+        prefs.ignored.insert(request.id)
+        persistPrefs()
     }
 
     func removeFriend(_ friend: FriendProfile) async {
         guard let me = userID else { return }
         do {
             try await ck.removeFriendship(ownerID: me, friendID: friend.id)
+            // Best effort: retract already-sent check-ins so nothing lingers
+            // in their feed. Leftovers expire at the 24h TTL anyway.
+            try? await ck.deleteCheckIns(authorID: me, recipientID: friend.id)
             friends.removeAll { $0.id == friend.id }
             persistFriends()
             prefs.prune(keeping: friends.map(\.id))
             persistPrefs()
-            try await ck.syncSubscriptions(userID: me,
-                                           subscribedFriendIDs: prefs.subscribed(of: friends.map(\.id)))
+            try await syncSubscriptionsIfNeeded(me: me, friendIDs: friends.map(\.id))
             tonight.removeAll { $0.authorID == friend.id }
         } catch {
             errorMessage = friendlyError(error)
@@ -263,8 +308,7 @@ final class SocialStore: ObservableObject {
         prefs.toggleGet(friend.id)
         persistPrefs()
         guard let me = userID else { return }
-        try? await ck.syncSubscriptions(userID: me,
-                                        subscribedFriendIDs: prefs.subscribed(of: friends.map(\.id)))
+        try? await syncSubscriptionsIfNeeded(me: me, friendIDs: friends.map(\.id))
     }
 
     // MARK: - Check-ins
@@ -294,7 +338,10 @@ final class SocialStore: ObservableObject {
     func refreshTonight() async {
         guard let me = userID, onboarded else { return }
         do {
-            tonight = try await ck.tonightCheckIns(userID: me)
+            let friendIDSet = Set(friends.map(\.id))
+            tonight = Social.tonightFeed(
+                try await ck.tonightCheckIns(userID: me).filter { friendIDSet.contains($0.authorID) },
+                now: Date())
         } catch {
             errorMessage = friendlyError(error)
         }

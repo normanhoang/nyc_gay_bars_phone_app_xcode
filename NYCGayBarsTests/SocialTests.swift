@@ -59,6 +59,44 @@ final class SocialTests: XCTestCase {
         XCTAssertEqual(Social.tonightFeed([ahead], now: now).count, 1)
     }
 
+    func testTonightFeedDedupesRepeatSharesKeepingNewest() {
+        let now = Date()
+        let older = checkIn("a", "bar1", minutesAgo: 90, now: now)
+        let newer = checkIn("a", "bar1", minutesAgo: 10, now: now)
+        let feed = Social.tonightFeed([older, newer], now: now)
+        XCTAssertEqual(feed.map(\.id), [newer.id])
+    }
+
+    func testTonightFeedKeepsSameFriendAtDifferentBars() {
+        let now = Date()
+        let bar1 = checkIn("a", "bar1", minutesAgo: 90, now: now)
+        let bar2 = checkIn("a", "bar2", minutesAgo: 10, now: now)
+        XCTAssertEqual(Social.tonightFeed([bar1, bar2], now: now).map(\.id), [bar2.id, bar1.id])
+    }
+
+    // MARK: Mirror removal (unfriend seen from the other side)
+
+    func testRemovedFriendIDsDetectsRemoval() {
+        let removed = Social.removedFriendIDs(friends: ["a", "b"], friendedBy: ["b"],
+                                              pendingIn: [], pendingOut: [])
+        XCTAssertEqual(removed, ["a"])
+    }
+
+    func testRemovedFriendIDsMutualFriendsUntouched() {
+        XCTAssertTrue(Social.removedFriendIDs(friends: ["a", "b"], friendedBy: ["a", "b"],
+                                              pendingIn: [], pendingOut: []).isEmpty)
+    }
+
+    func testRemovedFriendIDsSkipsHandshakeWindow() {
+        // I just accepted a's request (their request record still exists) —
+        // a's mirror is missing but this is not a removal.
+        XCTAssertTrue(Social.removedFriendIDs(friends: ["a"], friendedBy: [],
+                                              pendingIn: ["a"], pendingOut: []).isEmpty)
+        // Same for an outgoing request that hasn't fully settled.
+        XCTAssertTrue(Social.removedFriendIDs(friends: ["a"], friendedBy: [],
+                                              pendingIn: [], pendingOut: ["a"]).isEmpty)
+    }
+
     // MARK: Add-friend links
 
     func testAddFriendLinkEmbedsCodeInFragment() {
@@ -123,8 +161,17 @@ final class SocialTests: XCTestCase {
         var p = SocialPrefs()
         p.toggleSend("a")
         p.toggleGet("b")
+        p.ignored.insert("request-x-y")
         let back = try JSONDecoder().decode(SocialPrefs.self, from: JSONEncoder().encode(p))
         XCTAssertEqual(back, p)
+    }
+
+    func testPrefsDecodeWithoutIgnoredKey() throws {
+        // Prefs persisted before the ignored set existed must still decode.
+        let legacy = #"{"sendOff":["a"],"getOff":[]}"#.data(using: .utf8)!
+        let p = try JSONDecoder().decode(SocialPrefs.self, from: legacy)
+        XCTAssertEqual(p.sendOff, ["a"])
+        XCTAssertTrue(p.ignored.isEmpty)
     }
 
     // MARK: 24h TTL for own check-in records

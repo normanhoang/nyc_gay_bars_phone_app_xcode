@@ -50,7 +50,10 @@ struct RootTabView: View {
             .ignoresSafeArea(.keyboard)
             .onChange(of: page) { _, newPage in
                 guard let p = newPage else { return }
-                if tabSwipe.page != p { Haptics.selection() }
+                if tabSwipe.page != p {
+                    Haptics.selection()
+                    dismissKeyboard()
+                }
                 tabSwipe.page = p
                 guard pillPage != p else { return }
                 withAnimation(Anim.tab) { pillPage = p }
