@@ -16,6 +16,7 @@
             color:#ff2d92; letter-spacing:.15em; margin:12px 0 24px; user-select:all; }
     a.btn { display:block; background:#ff2d92; color:#fff; font-weight:700; text-decoration:none;
             padding:14px 20px; border-radius:30px; margin-bottom:12px; }
+    a.btn.appstore { background:none; border:1px solid #3a2450; color:#f4eefb; }
     button.copy { background:none; border:1px solid #3a2450; color:#b39dc9; padding:10px 18px;
                   border-radius:30px; font:inherit; font-size:.9rem; cursor:pointer; }
     .hint { font-size:.8rem; color:#7d6795; margin-top:24px; }
@@ -27,16 +28,19 @@
     <p>My friend code:</p>
     <div class="code" id="code">——————</div>
     <a class="btn" id="open" href="#">Open in NYC Gay Bars</a>
+    <a class="btn appstore" id="store" href="#">Get it on the App Store</a>
     <button class="copy" id="copy">Copy code</button>
-    <p class="hint">Don't have the app yet? NYC Gay Bars is coming to the App Store — grab the code above and add me once you're in.</p>
+    <p class="hint">Have the app? Tap “Open”. New here? Get the app, then add me with the code above.</p>
   </div>
   <script>
+    const APP_STORE_URL = 'https://apps.apple.com/us/app/nycgaybars/id6786098139';
     // Code rides in the fragment so it never reaches server logs.
     const code = (location.hash || '').replace('#', '').trim().toUpperCase();
     if (code) {
       document.getElementById('code').textContent = code;
       document.getElementById('open').href = 'nycgaybars://addfriend?code=' + encodeURIComponent(code);
     }
+    document.getElementById('store').href = APP_STORE_URL;
     document.getElementById('copy').addEventListener('click', () => {
       navigator.clipboard.writeText(code);
       document.getElementById('copy').textContent = 'Copied!';

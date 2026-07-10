@@ -67,6 +67,12 @@ final class SocialTests: XCTestCase {
                        "https://normanhoang.github.io/nyc_gay_bars_phone_app_xcode/add-friend.html#QRS234")
     }
 
+    func testDeepLinkRoundTrips() {
+        let url = Social.addFriendDeepLink(code: "QRS234")
+        XCTAssertEqual(url.scheme, "nycgaybars")
+        XCTAssertEqual(Social.parseAddFriendURL(url), "QRS234")
+    }
+
     func testParseAddFriendURLAccepts() {
         XCTAssertEqual(Social.parseAddFriendURL(URL(string: "nycgaybars://addfriend?code=QRS234")!), "QRS234")
         // Normalizes case like manual entry does.

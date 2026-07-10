@@ -44,6 +44,12 @@ enum Social {
         URL(string: "\(addFriendPage)#\(code)")!
     }
 
+    /// Raw deep link that opens the app directly — offline, no web page.
+    /// Used for the QR code. Inverse of `parseAddFriendURL`.
+    static func addFriendDeepLink(code: String) -> URL {
+        URL(string: "nycgaybars://addfriend?code=\(code)")!
+    }
+
     /// Code from a `nycgaybars://addfriend?code=X` deep link, normalized;
     /// nil for anything else.
     static func parseAddFriendURL(_ url: URL) -> String? {

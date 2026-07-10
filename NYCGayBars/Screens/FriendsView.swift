@@ -315,7 +315,7 @@ struct FriendsView: View {
                 Text("Scan with the iPhone Camera to add me")
                     .font(.scaled(13)).foregroundStyle(Palette.gray400)
                 if let code = social.profile?.code,
-                   let qr = qrCodeImage(for: Social.addFriendLink(code: code).absoluteString) {
+                   let qr = qrCodeImage(for: Social.addFriendDeepLink(code: code).absoluteString) {
                     Image(uiImage: qr)
                         .interpolation(.none)
                         .resizable()
