@@ -100,6 +100,10 @@ final class SocialStore: ObservableObject {
             incomingRequests = try await ck.incomingRequests(userID: me)
             outgoingRequests = try await ck.outgoingRequests(userID: me)
             let ids = try await ck.friendIDs(ownerID: me)
+            // A request from someone who's already a friend is stale — the
+            // sender deletes their record only when their device next syncs.
+            let friendIDSet = Set(ids)
+            incomingRequests.removeAll { friendIDSet.contains($0.fromID) }
             friends = try await ck.profiles(userIDs: ids).sorted {
                 $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
             }

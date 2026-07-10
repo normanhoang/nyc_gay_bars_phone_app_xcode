@@ -8,8 +8,11 @@ struct FriendsView: View {
     @EnvironmentObject private var social: SocialStore
     @EnvironmentObject private var tabSwipe: TabSwipe
 
+    private enum Field { case name, code }
+
     @State private var nameDraft = ""
     @State private var codeDraft = ""
+    @FocusState private var focusedField: Field?
     @State private var selectedBar: Bar?
     @State private var removeTarget: FriendProfile?
     @State private var showRemoveConfirm = false
@@ -83,6 +86,7 @@ struct FriendsView: View {
                         .foregroundStyle(Palette.gray300).padding(.top, 8)
                     TextField("", text: $nameDraft,
                               prompt: Text("What friends will see…").foregroundStyle(Palette.gray400))
+                        .focused($focusedField, equals: .name)
                         .foregroundStyle(.white)
                         .font(.scaled(16))
                         .padding(.horizontal, 16)
@@ -120,6 +124,10 @@ struct FriendsView: View {
             .padding(.top, 8)
             .padding(.bottom, 104)
         }
+        .scrollDismissesKeyboard(.interactively)
+        // Tap anywhere outside the text field to drop the keyboard; buttons
+        // and the field itself win the gesture, so they're unaffected.
+        .onTapGesture { focusedField = nil }
     }
 
     private var startDisabled: Bool {
@@ -175,6 +183,10 @@ struct FriendsView: View {
         }
         .scrollPosition($scrollPos)
         .refreshable { await social.refresh() }
+        .scrollDismissesKeyboard(.interactively)
+        // Tap anywhere outside the text field to drop the keyboard; buttons
+        // and the field itself win the gesture, so they're unaffected.
+        .onTapGesture { focusedField = nil }
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -267,6 +279,7 @@ struct FriendsView: View {
         HStack(spacing: 8) {
             TextField("", text: $codeDraft,
                       prompt: Text("Friend code…").foregroundStyle(Palette.gray400))
+                .focused($focusedField, equals: .code)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
                 .foregroundStyle(.white)
