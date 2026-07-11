@@ -18,7 +18,7 @@ enum Social {
     /// about `creatorUserRecordID` here would silently drop real check-ins /
     /// requests. See FINDINGS.md "Finding #1 verification". Flip to `true`
     /// only after that test passes.
-    static let verifyRecordCreator = false
+    static let verifyRecordCreator = true
 
     static func generateFriendCode() -> String {
         String((0..<codeLength).map { _ in codeAlphabet.randomElement()! })
