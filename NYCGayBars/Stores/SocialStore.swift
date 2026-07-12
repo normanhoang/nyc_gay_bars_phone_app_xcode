@@ -192,7 +192,11 @@ final class SocialStore: ObservableObject {
     private var syncedSubIDs: Set<String>?
 
     private func syncSubscriptionsIfNeeded(me: String, friendIDs: [String]) async throws {
-        let wanted = Set(prefs.subscribed(of: friendIDs))
+        // Check-in pushes are gated off (Social.checkInPushEnabled). With no
+        // wanted check-in subs, syncSubscriptions also deletes any that already
+        // exist server-side, so devices stop receiving check-in alerts — the
+        // Tonight feed (a query) is unaffected. Request/friendship subs stay.
+        let wanted = Social.checkInPushEnabled ? Set(prefs.subscribed(of: friendIDs)) : []
         guard wanted != syncedSubIDs else { return }
         try await ck.syncSubscriptions(userID: me, subscribedFriendIDs: Array(wanted))
         syncedSubIDs = wanted
@@ -215,6 +219,73 @@ final class SocialStore: ObservableObject {
         } catch {
             errorMessage = friendlyError(error)
         }
+    }
+
+    /// Rename yourself: update the CloudKit Profile in place (code preserved) and
+    /// rewrite the name copies you own so friends stop seeing the old one. Local
+    /// name updates instantly; friends' cached copy refreshes on their next sync.
+    func updateDisplayName(_ rawName: String) async {
+        let name = String(rawName.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Social.maxDisplayNameLength))
+        guard !name.isEmpty, let me = userID, let current = profile, current.displayName != name else { return }
+        let previous = current
+        profile = FriendProfile(id: current.id, displayName: name, code: current.code)
+        persistProfile()
+        busy = true
+        defer { busy = false }
+        do {
+            profile = try await ck.updateProfileName(userID: me, displayName: name)
+            persistProfile()
+            // Best-effort: leftover old-name copies expire on their own (24h for
+            // check-ins) and don't block the rename.
+            try? await ck.renameOutgoingRequests(fromID: me, newName: name)
+            try? await ck.renameCheckIns(authorID: me, newName: name)
+        } catch {
+            errorMessage = friendlyError(error)
+            profile = previous
+            persistProfile()
+        }
+    }
+
+    // MARK: - Friend groups (device-local; bulk send/get)
+
+    func createGroup(name: String) {
+        let trimmed = String(name.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Social.maxDisplayNameLength))
+        guard !trimmed.isEmpty else { return }
+        prefs.groups.append(FriendGroup(name: trimmed))
+        persistPrefs()
+    }
+
+    func renameGroup(_ group: FriendGroup, to name: String) {
+        let trimmed = String(name.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Social.maxDisplayNameLength))
+        guard !trimmed.isEmpty, let i = prefs.groups.firstIndex(where: { $0.id == group.id }) else { return }
+        prefs.groups[i].name = trimmed
+        persistPrefs()
+    }
+
+    func deleteGroup(_ group: FriendGroup) {
+        prefs.groups.removeAll { $0.id == group.id }
+        persistPrefs()
+    }
+
+    func setMembership(_ friend: FriendProfile, in group: FriendGroup, member: Bool) {
+        guard let i = prefs.groups.firstIndex(where: { $0.id == group.id }) else { return }
+        if member { prefs.groups[i].members.insert(friend.id) }
+        else { prefs.groups[i].members.remove(friend.id) }
+        persistPrefs()
+    }
+
+    /// Bulk-flip send for every member of a group.
+    func setGroupSend(_ group: FriendGroup, on: Bool) {
+        prefs.setSend(group.members, on: on)
+        persistPrefs()
+    }
+
+    /// Bulk-flip get for every member, then reconcile subscriptions once.
+    func setGroupGet(_ group: FriendGroup, on: Bool) async {
+        prefs.setGet(group.members, on: on)
+        persistPrefs()
+        guard let me = userID else { return }
+        try? await syncSubscriptionsIfNeeded(me: me, friendIDs: friends.map(\.id))
     }
 
     // MARK: - Friends
@@ -256,14 +327,32 @@ final class SocialStore: ObservableObject {
 
     func accept(_ request: FriendRequestItem) async {
         guard let me = userID else { return }
-        busy = true
-        defer { busy = false }
+        // Optimistic: drop the request and show the new friend immediately so
+        // the tap feels instant. A full refresh() here would re-fetch from
+        // CloudKit before it's consistent — re-adding the still-present request
+        // record and missing the just-written friendship — which is what makes
+        // the row flicker out and back. Reconcile the real profile narrowly.
+        incomingRequests.removeAll { $0.id == request.id }
+        prefs.ignored.remove(request.id)
+        if !friends.contains(where: { $0.id == request.fromID }) {
+            friends.append(FriendProfile(id: request.fromID, displayName: request.fromName, code: ""))
+            friends.sort { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
+            persistFriends()
+        }
         do {
             try await ck.createFriendship(ownerID: me, friendID: request.fromID)
-            incomingRequests.removeAll { $0.id == request.id }
-            await refresh()
+            try await syncSubscriptionsIfNeeded(me: me, friendIDs: friends.map(\.id))
+            // Fill in the real profile (proper code, canonical name) without a
+            // broad refresh that could clobber the optimistic row.
+            if let real = try? await ck.profiles(userIDs: [request.fromID]).first,
+               let idx = friends.firstIndex(where: { $0.id == real.id }) {
+                friends[idx] = real
+                persistFriends()
+            }
         } catch {
             errorMessage = friendlyError(error)
+            friends.removeAll { $0.id == request.fromID }
+            persistFriends()
         }
     }
 
@@ -354,12 +443,37 @@ final class SocialStore: ObservableObject {
     func handleRemoteNotification(_ userInfo: [AnyHashable: Any]) async {
         guard let note = CKNotification(fromRemoteNotificationDictionary: userInfo) else { return }
         switch note.subscriptionID {
-        case CloudKitSocial.friendshipSubID, CloudKitSocial.requestSubID:
+        case CloudKitSocial.friendshipSubID:
+            // Someone created a Friendship pointing at me — almost always an
+            // acceptance. Retry through CloudKit's consistency lag so the new
+            // friend lands even if the push beat the record becoming queryable.
+            await reconcilePendingAcceptances()
+        case CloudKitSocial.requestSubID:
             await start()
         case .some(let id) where id.hasPrefix("sub-checkin-"):
             await refreshTonight()
         default:
             break
+        }
+    }
+
+    /// Complete accepted handshakes, retrying against CloudKit eventual
+    /// consistency. A friendship push (or app foreground) can arrive before the
+    /// accepter's `Friendship{them→me}` is queryable via `friendedByIDs`; a
+    /// single refresh would miss it and never try again, so poll briefly until
+    /// an outgoing request resolves. Safe to call with nothing pending.
+    func reconcilePendingAcceptances() async {
+        if userID == nil { await start() }
+        guard onboarded, !outgoingRequests.isEmpty else {
+            await refresh(); return
+        }
+        for attempt in 0..<4 {
+            let before = outgoingRequests.count
+            await refresh()
+            // A resolved acceptance shrinks the outgoing list (mirror created,
+            // request deleted). Stop as soon as that happens or nothing's left.
+            if outgoingRequests.count < before || outgoingRequests.isEmpty { return }
+            if attempt < 3 { try? await Task.sleep(nanoseconds: 1_500_000_000) }
         }
     }
 

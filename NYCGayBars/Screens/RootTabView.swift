@@ -7,6 +7,9 @@ import SwiftUI
 final class TabSwipe: ObservableObject {
     @Published var enabled = true
     @Published var page = 0
+    /// Bumped each time the Explore tab button is tapped (even when already on
+    /// Explore) so ExploreView can reset its filter to "All".
+    @Published var exploreResetTick = 0
 }
 
 /// Root shell: three swipeable pages with a floating glass pill tab bar, plus
@@ -15,6 +18,7 @@ struct RootTabView: View {
     @EnvironmentObject var visits: VisitsStore
     @EnvironmentObject var badges: BadgesStore
     @EnvironmentObject var social: SocialStore
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var tabSwipe = TabSwipe()
     @Namespace private var tabNS
 
@@ -67,7 +71,11 @@ struct RootTabView: View {
         // Scaled fonts support Dynamic Type up to a cap the layouts can hold.
         .dynamicTypeSize(...DynamicTypeSize.accessibility2)
         .environmentObject(tabSwipe)
-        .overlay(alignment: .top) { BadgeToast() }
+        // Hidden while a sheet with its own BadgeToast is up, so an unlock
+        // during logging shows once (in the sheet) rather than here too.
+        .overlay(alignment: .top) {
+            if badges.toastModalDepth == 0 { BadgeToast() }
+        }
         .onAppear { reconcile() }
         // Single change key so a mutation touching both visits and visitedBars
         // (e.g. setVisited(false)) triggers one reconcile, not two.
@@ -76,6 +84,12 @@ struct RootTabView: View {
         }
         .onAppear { consumeDeepLink() }
         .onChange(of: social.deepLinkBarId) { _, _ in consumeDeepLink() }
+        // Returning to the app reconciles any acceptance whose silent push was
+        // dropped or arrived before CloudKit was consistent, so a new friend
+        // shows up without a manual pull-to-refresh.
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await social.reconcilePendingAcceptances() } }
+        }
         // Add-friend link/QR: land the user on the Friends tab so they see
         // the auto-sent request (or onboarding, if not set up yet).
         .onChange(of: social.pendingAddCode) { _, code in
@@ -113,6 +127,9 @@ struct RootTabView: View {
             ForEach(Array(tabs.enumerated()), id: \.offset) { i, tab in
                 let active = pillPage == i
                 Button {
+                    // Tapping Explore always resets its filter to All, even when
+                    // already on Explore (page won't change, so signal via tick).
+                    if i == 0 { tabSwipe.exploreResetTick += 1 }
                     // Snappy (not bouncy) so the move feels instant on tap yet
                     // still rides an animation transaction — without one the
                     // matched-geometry pill is removed+reinserted and flashes.

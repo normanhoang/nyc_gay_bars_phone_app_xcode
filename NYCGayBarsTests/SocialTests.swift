@@ -172,6 +172,50 @@ final class SocialTests: XCTestCase {
         let p = try JSONDecoder().decode(SocialPrefs.self, from: legacy)
         XCTAssertEqual(p.sendOff, ["a"])
         XCTAssertTrue(p.ignored.isEmpty)
+        XCTAssertTrue(p.groups.isEmpty)
+    }
+
+    // MARK: Friend groups
+
+    func testGroupSendGetAggregate() {
+        var p = SocialPrefs()
+        let g = FriendGroup(name: "Close", members: ["a", "b"])
+        p.groups = [g]
+        XCTAssertTrue(p.groupSends(g))          // all default on
+        XCTAssertTrue(p.groupGets(g))
+        p.toggleSend("a")                       // one member off → group off
+        XCTAssertFalse(p.groupSends(p.groups[0]))
+    }
+
+    func testEmptyGroupIsOff() {
+        let p = SocialPrefs()
+        XCTAssertFalse(p.groupSends(FriendGroup(name: "Empty")))
+        XCTAssertFalse(p.groupGets(FriendGroup(name: "Empty")))
+    }
+
+    func testGroupBulkSetSendGet() {
+        var p = SocialPrefs()
+        let ids: Set<String> = ["a", "b", "c"]
+        p.setSend(ids, on: false)
+        XCTAssertEqual(p.recipients(of: ["a", "b", "c", "d"]), ["d"])
+        p.setSend(["a", "b"], on: true)
+        XCTAssertEqual(Set(p.recipients(of: ["a", "b", "c"])), ["a", "b"])
+        p.setGet(ids, on: false)
+        XCTAssertEqual(p.subscribed(of: ["a", "b", "c", "d"]), ["d"])
+    }
+
+    func testPrunePrunesGroupMembers() {
+        var p = SocialPrefs()
+        p.groups = [FriendGroup(name: "G", members: ["kept", "gone"])]
+        p.prune(keeping: ["kept"])
+        XCTAssertEqual(p.groups[0].members, ["kept"])
+    }
+
+    func testGroupsCodableRoundTrip() throws {
+        var p = SocialPrefs()
+        p.groups = [FriendGroup(id: "g1", name: "Close", members: ["a", "b"])]
+        let back = try JSONDecoder().decode(SocialPrefs.self, from: JSONEncoder().encode(p))
+        XCTAssertEqual(back, p)
     }
 
     // MARK: 24h TTL for own check-in records

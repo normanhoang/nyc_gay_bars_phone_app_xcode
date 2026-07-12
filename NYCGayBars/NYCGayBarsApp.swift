@@ -21,10 +21,13 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         return .newData
     }
 
-    /// Show friend pushes as banners while the app is foregrounded.
+    /// Show friend pushes as banners while the app is foregrounded — and
+    /// refresh state so an incoming request's Accept button appears instantly,
+    /// not on the next manual refresh.
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
-        [.banner, .sound]
+        await SocialStore.shared.handleRemoteNotification(notification.request.content.userInfo)
+        return [.banner, .sound]
     }
 
     /// Tap on "<name> is at <bar>" → open that bar's detail sheet.

@@ -19,6 +19,16 @@ struct FriendsView: View {
     @State private var showAddSheet = false
     @State private var sheetDetent: PresentationDetent = .medium
     @State private var scrollPos = ScrollPosition()
+    // Rename own name (in the code sheet).
+    @State private var editingName = false
+    @State private var renameDraft = ""
+    // Friend groups.
+    @State private var showNewGroup = false
+    @State private var groupNameDraft = ""
+    @State private var renameGroupTarget: FriendGroup?
+    @State private var editMembersGroup: FriendGroup?
+    @State private var groupsForFriend: FriendProfile?
+    @State private var deleteGroupTarget: FriendGroup?
 
     var body: some View {
         Group {
@@ -147,6 +157,7 @@ struct FriendsView: View {
                     Button {
                         Haptics.light()
                         sheetDetent = .medium
+                        editingName = false
                         showAddSheet = true
                     } label: {
                         Image(systemName: "person.badge.plus")
@@ -177,6 +188,23 @@ struct FriendsView: View {
                     .padding(.bottom, 20)
                 }
 
+                if !social.friends.isEmpty {
+                    HStack {
+                        sectionTitle("GROUPS")
+                        Spacer()
+                        Button {
+                            groupNameDraft = ""
+                            showNewGroup = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.scaled(13, weight: .bold)).foregroundStyle(Palette.primary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("New group")
+                    }
+                    groupsSection.padding(.bottom, 20)
+                }
+
                 sectionTitle("YOUR FRIENDS")
                 friendsSection
 
@@ -195,6 +223,171 @@ struct FriendsView: View {
         // and the field itself win the gesture, so they're unaffected.
         .onTapGesture { focusedField = nil }
         .sheet(isPresented: $showAddSheet) { addFriendSheet }
+        .sheet(item: $editMembersGroup) { group in membersSheet(group) }
+        .sheet(item: $groupsForFriend) { friend in friendGroupsSheet(friend) }
+        .alert("New group", isPresented: $showNewGroup) {
+            TextField("Group name", text: $groupNameDraft)
+            Button("Create") { social.createGroup(name: groupNameDraft) }
+            Button("Cancel", role: .cancel) {}
+        }
+        .alert("Rename group", isPresented: Binding(
+            get: { renameGroupTarget != nil },
+            set: { if !$0 { renameGroupTarget = nil } })) {
+            TextField("Group name", text: $groupNameDraft)
+            Button("Save") {
+                if let g = renameGroupTarget { social.renameGroup(g, to: groupNameDraft) }
+                renameGroupTarget = nil
+            }
+            Button("Cancel", role: .cancel) { renameGroupTarget = nil }
+        }
+        .confirmationDialog("Delete \(deleteGroupTarget?.name ?? "group")?",
+                            isPresented: Binding(get: { deleteGroupTarget != nil },
+                                                 set: { if !$0 { deleteGroupTarget = nil } }),
+                            titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                if let g = deleteGroupTarget { social.deleteGroup(g) }
+                deleteGroupTarget = nil
+            }
+            Button("Cancel", role: .cancel) { deleteGroupTarget = nil }
+        } message: {
+            Text("This only deletes the group, not the friends in it.")
+        }
+    }
+
+    // MARK: Groups
+
+    private var groupsSection: some View {
+        Group {
+            if social.prefs.groups.isEmpty {
+                Text("Create a group to toggle several friends' check-ins at once.")
+                    .font(.scaled(14)).foregroundStyle(Palette.gray400)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .contentPanel()
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(social.prefs.groups) { groupRow($0) }
+                }
+            }
+        }
+    }
+
+    private func groupRow(_ group: FriendGroup) -> some View {
+        let sends = social.prefs.groupSends(group)
+        let gets = social.prefs.groupGets(group)
+        return HStack(spacing: 0) {
+            Button {
+                editMembersGroup = group
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(group.name).font(.scaled(15, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                    Text("\(group.members.count) friend\(group.members.count == 1 ? "" : "s")")
+                        .font(.scaled(12)).foregroundStyle(Palette.gray400)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Edit members of \(group.name)")
+            Spacer(minLength: 8)
+            prefToggle(on: sends, onIcon: "paperplane.fill", offIcon: "paperplane",
+                       label: "Send your check-ins to everyone in \(group.name): \(sends ? "on" : "off")") {
+                social.setGroupSend(group, on: !sends)
+            }
+            .disabled(group.members.isEmpty)
+            prefToggle(on: gets, onIcon: "bell.fill", offIcon: "bell.slash",
+                       label: "Get notified about everyone in \(group.name): \(gets ? "on" : "off")") {
+                Task { await social.setGroupGet(group, on: !gets) }
+            }
+            .disabled(group.members.isEmpty)
+            Menu {
+                Button { groupNameDraft = group.name; renameGroupTarget = group } label: { Label("Rename", systemImage: "pencil") }
+                Button(role: .destructive) { deleteGroupTarget = group } label: { Label("Delete", systemImage: "trash") }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.scaled(14, weight: .semibold)).foregroundStyle(Palette.gray400)
+                    .frame(width: 36, height: 36).contentShape(Rectangle())
+            }
+            .accessibilityLabel("\(group.name) options")
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .contentPanel(radius: 16)
+    }
+
+    private func membersSheet(_ group: FriendGroup) -> some View {
+        // Re-read the live group so checkmarks reflect taps immediately.
+        let live = social.prefs.groups.first { $0.id == group.id } ?? group
+        return ZStack {
+            AppBackground()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(live.name).font(.scaled(22, weight: .heavy)).foregroundStyle(.white)
+                    Text("Tap friends to add or remove them from this group.")
+                        .font(.scaled(13)).foregroundStyle(Palette.gray400).padding(.bottom, 4)
+                    ForEach(social.friends) { friend in
+                        let isMember = live.members.contains(friend.id)
+                        Button {
+                            Haptics.light()
+                            social.setMembership(friend, in: live, member: !isMember)
+                        } label: {
+                            HStack {
+                                Text(friend.displayName).font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
+                                Spacer()
+                                Image(systemName: isMember ? "checkmark.circle.fill" : "circle")
+                                    .font(.scaled(18)).foregroundStyle(isMember ? Palette.primary : Palette.gray500)
+                            }
+                            .padding(.horizontal, 16).padding(.vertical, 12)
+                            .contentPanel(radius: 16)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(24)
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+
+    // Groups a single friend belongs to; tap a row to add/remove.
+    private func friendGroupsSheet(_ friend: FriendProfile) -> some View {
+        ZStack {
+            AppBackground()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(friend.displayName).font(.scaled(22, weight: .heavy)).foregroundStyle(.white)
+                    Text("Groups \(friend.displayName) is in. Tap to add or remove.")
+                        .font(.scaled(13)).foregroundStyle(Palette.gray400).padding(.bottom, 4)
+                    if social.prefs.groups.isEmpty {
+                        Text("No groups yet. Create one from the Groups section.")
+                            .font(.scaled(14)).foregroundStyle(Palette.gray400)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(16).contentPanel()
+                    } else {
+                        ForEach(social.prefs.groups) { group in
+                            let isMember = group.members.contains(friend.id)
+                            Button {
+                                Haptics.light()
+                                social.setMembership(friend, in: group, member: !isMember)
+                            } label: {
+                                HStack {
+                                    Text(group.name).font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
+                                    Spacer()
+                                    Image(systemName: isMember ? "checkmark.circle.fill" : "circle")
+                                        .font(.scaled(18)).foregroundStyle(isMember ? Palette.primary : Palette.gray500)
+                                }
+                                .padding(.horizontal, 16).padding(.vertical, 12)
+                                .contentPanel(radius: 16)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .padding(24)
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -282,8 +475,44 @@ struct FriendsView: View {
             AppBackground()
             ScrollView {
                 VStack(spacing: 10) {
-                    Text(social.profile?.displayName ?? "")
-                        .font(.scaled(20, weight: .heavy)).foregroundStyle(.white)
+                    if editingName {
+                        HStack(spacing: 8) {
+                            TextField("", text: $renameDraft,
+                                      prompt: Text("Your name").foregroundStyle(Palette.gray400))
+                                .focused($focusedField, equals: .name)
+                                .foregroundStyle(.white).font(.scaled(18, weight: .semibold))
+                                .padding(.horizontal, 14).padding(.vertical, 10)
+                                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white.opacity(0.06)))
+                                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
+                            Button {
+                                let n = renameDraft
+                                editingName = false
+                                focusedField = nil
+                                Task { await social.updateDisplayName(n) }
+                            } label: {
+                                Text("Save").font(.scaled(15, weight: .bold)).foregroundStyle(.white)
+                                    .padding(.horizontal, 16).padding(.vertical, 10)
+                                    .background(Capsule().fill(Palette.primary.opacity(
+                                        renameDraft.trimmingCharacters(in: .whitespaces).isEmpty ? 0.4 : 1)))
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(renameDraft.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                    } else {
+                        HStack(spacing: 8) {
+                            Text(social.profile?.displayName ?? "")
+                                .font(.scaled(20, weight: .heavy)).foregroundStyle(.white)
+                            Button {
+                                renameDraft = social.profile?.displayName ?? ""
+                                editingName = true
+                            } label: {
+                                Image(systemName: "pencil")
+                                    .font(.scaled(15, weight: .semibold)).foregroundStyle(Palette.gray400)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Edit your name")
+                        }
+                    }
                     if let code = social.profile?.code,
                        let qr = qrCodeImage(for: Social.addFriendDeepLink(code: code).absoluteString) {
                         Image(uiImage: qr)
@@ -329,10 +558,10 @@ struct FriendsView: View {
             .scrollDismissesKeyboard(.interactively)
         }
         .onTapGesture { focusedField = nil }
-        // Jump to the large detent while the code field is focused so the
-        // field isn't hidden behind the keyboard at the medium height.
+        // Jump to the large detent while a field is focused so it isn't hidden
+        // behind the keyboard at the medium height.
         .onChange(of: focusedField) { _, f in
-            if f == .code { sheetDetent = .large }
+            if f != nil { sheetDetent = .large }
         }
         .presentationDetents([.medium, .large], selection: $sheetDetent)
         .presentationDragIndicator(.visible)
@@ -429,10 +658,25 @@ struct FriendsView: View {
     }
 
     private func friendRow(_ friend: FriendProfile) -> some View {
-        HStack(spacing: 0) {
-            Text(friend.displayName)
-                .font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
-                .lineLimit(1)
+        let inGroups = social.prefs.groups.filter { $0.members.contains(friend.id) }
+        return HStack(spacing: 0) {
+            Button {
+                groupsForFriend = friend
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(friend.displayName)
+                        .font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
+                        .lineLimit(1)
+                    if !inGroups.isEmpty {
+                        Text(inGroups.map(\.name).joined(separator: " · "))
+                            .font(.scaled(11)).foregroundStyle(Palette.gray400)
+                            .lineLimit(1)
+                    }
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(friend.displayName), show groups")
             Spacer(minLength: 8)
             prefToggle(on: social.prefs.sendsTo(friend.id),
                        onIcon: "paperplane.fill", offIcon: "paperplane",

@@ -13,6 +13,7 @@ struct BarDetailSheet: View {
 
     @EnvironmentObject private var visits: VisitsStore
     @EnvironmentObject private var social: SocialStore
+    @EnvironmentObject private var badges: BadgesStore
     @Environment(\.dismiss) private var dismiss
 
     @State private var noteDraft = ""
@@ -97,7 +98,10 @@ struct BarDetailSheet: View {
                     .padding(.bottom, 24)
                 }
             }
+            // Push below the grabber so the banner sits fully inside the sheet
+            // instead of being clipped by its top edge.
             BadgeToast()
+                .padding(.top, 52)
         }
         .presentationDragIndicator(.hidden)
         .confirmationDialog("Get directions", isPresented: $showDirections, titleVisibility: .visible) {
@@ -121,6 +125,9 @@ struct BarDetailSheet: View {
         .animation(.easeOut(duration: 0.2), value: showRemoveAlert)
         .onAppear { noteDraft = visit?.note ?? "" }
         .onChange(of: visit?.id) { _, _ in noteDraft = visit?.note ?? "" }
+        // Own a toast layer while visible so the root toast defers to this one.
+        .onAppear { badges.pushToastModal() }
+        .onDisappear { badges.popToastModal() }
     }
 
     private var grabber: some View {

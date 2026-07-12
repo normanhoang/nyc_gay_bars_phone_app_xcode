@@ -68,6 +68,10 @@ struct ExploreView: View {
         .dismissKeyboardOnBackgroundTap()
         .onAppear { location.start(); tabSwipe.enabled = (mode == 1) }
         .onChange(of: mode) { _, m in tabSwipe.enabled = (m == 1) }
+        // Tapping the Explore tab resets the neighborhood filter to All.
+        .onChange(of: tabSwipe.exploreResetTick) { _, _ in
+            if neighborhood != "All" { selectNeighborhood("All") }
+        }
         .sheet(item: $selectedBar) { bar in
             BarDetailSheet(bar: bar, day: nil)
                 .environmentObject(visits)

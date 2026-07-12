@@ -20,6 +20,14 @@ enum Social {
     /// only after that test passes.
     static let verifyRecordCreator = true
 
+    /// Push a notification to friends when you check in. OFF by design: check-in
+    /// pushes were judged too noisy — friends see check-ins in the Tonight feed
+    /// instead. Flipping to `true` re-creates the per-friend check-in
+    /// subscriptions on next refresh (see `SocialStore.syncSubscriptionsIfNeeded`
+    /// and the CLAUDE.md social-layer note). The bell (get) toggle is inert while
+    /// this is off. Does NOT affect friend-request pushes or the Tonight feed.
+    static let checkInPushEnabled = false
+
     static func generateFriendCode() -> String {
         String((0..<codeLength).map { _ in codeAlphabet.randomElement()! })
     }
@@ -87,6 +95,14 @@ enum Social {
     }
 }
 
+/// A device-local, named set of friends for bulk send/get toggling. Not synced
+/// and never leaves the device.
+struct FriendGroup: Identifiable, Equatable, Codable {
+    var id: String = UUID().uuidString
+    var name: String
+    var members: Set<String> = []
+}
+
 /// Per-friend notification preferences, device-local. Sparse "off" sets keyed
 /// by friend ID so new friends default to both toggles on.
 struct SocialPrefs: Codable, Equatable {
@@ -97,6 +113,8 @@ struct SocialPrefs: Codable, Equatable {
     /// Ignored friend-request record names. The sender owns the record, so it
     /// can't be deleted — hide it until it disappears from the server.
     var ignored: Set<String> = []
+    /// Named friend groups for bulk toggling. Device-local.
+    var groups: [FriendGroup] = []
 
     func sendsTo(_ id: String) -> Bool { !sendOff.contains(id) }
     func getsFrom(_ id: String) -> Bool { !getOff.contains(id) }
@@ -109,15 +127,33 @@ struct SocialPrefs: Codable, Equatable {
     mutating func toggleSend(_ id: String) { sendOff.formSymmetricDifference([id]) }
     mutating func toggleGet(_ id: String) { getOff.formSymmetricDifference([id]) }
 
+    /// A group sends iff every member sends; same for get. Empty group → off.
+    func groupSends(_ group: FriendGroup) -> Bool {
+        !group.members.isEmpty && group.members.allSatisfy(sendsTo)
+    }
+    func groupGets(_ group: FriendGroup) -> Bool {
+        !group.members.isEmpty && group.members.allSatisfy(getsFrom)
+    }
+
+    /// Set every member's send/get to `on` uniformly (bulk group toggle).
+    mutating func setSend(_ ids: Set<String>, on: Bool) {
+        if on { sendOff.subtract(ids) } else { sendOff.formUnion(ids) }
+    }
+    mutating func setGet(_ ids: Set<String>, on: Bool) {
+        if on { getOff.subtract(ids) } else { getOff.formUnion(ids) }
+    }
+
     /// Drop entries for IDs no longer in the friends list.
     mutating func prune(keeping ids: [String]) {
-        sendOff.formIntersection(ids)
-        getOff.formIntersection(ids)
+        let keep = Set(ids)
+        sendOff.formIntersection(keep)
+        getOff.formIntersection(keep)
+        for i in groups.indices { groups[i].members.formIntersection(keep) }
     }
 }
 
 extension SocialPrefs {
-    private enum CodingKeys: String, CodingKey { case sendOff, getOff, ignored }
+    private enum CodingKeys: String, CodingKey { case sendOff, getOff, ignored, groups }
 
     /// decodeIfPresent throughout so prefs persisted before a key existed
     /// still decode instead of resetting to defaults.
@@ -126,5 +162,6 @@ extension SocialPrefs {
         sendOff = try c.decodeIfPresent(Set<String>.self, forKey: .sendOff) ?? []
         getOff = try c.decodeIfPresent(Set<String>.self, forKey: .getOff) ?? []
         ignored = try c.decodeIfPresent(Set<String>.self, forKey: .ignored) ?? []
+        groups = try c.decodeIfPresent([FriendGroup].self, forKey: .groups) ?? []
     }
 }

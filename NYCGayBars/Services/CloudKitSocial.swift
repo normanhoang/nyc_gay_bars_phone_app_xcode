@@ -73,6 +73,32 @@ struct CloudKitSocial {
         return Self.profile(from: try await db.save(rec))!
     }
 
+    /// Rename own profile in place, preserving the friend `code`. Fetch-then-save
+    /// so the existing record (and its code) is kept — not a fresh createProfile.
+    func updateProfileName(userID: String, displayName: String) async throws -> FriendProfile {
+        let rec = try await db.record(for: profileRecordID(userID))
+        rec["displayName"] = displayName
+        return Self.profile(from: try await db.save(rec))!
+    }
+
+    /// Rewrite the denormalized author/sender name copies I own after a rename,
+    /// so friends stop seeing my old name. Best-effort; records are creator-owned.
+    func renameOutgoingRequests(fromID: String, newName: String) async throws {
+        let q = CKQuery(recordType: RT.request, predicate: NSPredicate(format: "fromID == %@", fromID))
+        let recs = try await records(q)
+        guard !recs.isEmpty else { return }
+        for rec in recs { rec["fromName"] = newName }
+        _ = try await db.modifyRecords(saving: recs, deleting: [])
+    }
+
+    func renameCheckIns(authorID: String, newName: String) async throws {
+        let q = CKQuery(recordType: RT.checkIn, predicate: NSPredicate(format: "authorID == %@", authorID))
+        let recs = try await records(q)
+        guard !recs.isEmpty else { return }
+        for rec in recs { rec["authorName"] = newName }
+        _ = try await db.modifyRecords(saving: recs, deleting: [])
+    }
+
     func lookupProfile(code: String) async throws -> FriendProfile? {
         let q = CKQuery(recordType: RT.profile, predicate: NSPredicate(format: "code == %@", code))
         return try await records(q, limit: 1).compactMap(Self.profile(from:)).first

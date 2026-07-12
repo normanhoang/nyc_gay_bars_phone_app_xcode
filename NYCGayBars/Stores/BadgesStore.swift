@@ -13,6 +13,9 @@ final class BadgesStore: ObservableObject {
     @Published private(set) var unlocked: [Badge] = [] {
         didSet { armToastTimer() }
     }
+    /// Number of presented sheets that mount their own BadgeToast. While > 0 the
+    /// root-level toast hides so an unlock shows once (in the sheet), not twice.
+    @Published private(set) var toastModalDepth = 0
 
     private var earnedAt: [String: String] = [:]
     private var firstReconcile = true
@@ -79,6 +82,11 @@ final class BadgesStore: ObservableObject {
     func dismissUnlocked() {
         if !unlocked.isEmpty { unlocked.removeFirst() }
     }
+
+    /// A sheet that renders its own BadgeToast has appeared/disappeared. Balanced
+    /// calls keep the root toast from duplicating over the sheet.
+    func pushToastModal() { toastModalDepth += 1 }
+    func popToastModal() { toastModalDepth = max(0, toastModalDepth - 1) }
 
     private func armToastTimer() {
         toastTimer?.invalidate()
