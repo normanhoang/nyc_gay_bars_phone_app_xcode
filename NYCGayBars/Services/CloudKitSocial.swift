@@ -32,7 +32,11 @@ struct CloudKitSocial {
     }
 
     // Deterministic IDs make subscription + friendship setup idempotent.
-    static let requestSubID = "sub-friendrequest-incoming"
+    // -v2 carries desiredKeys (fromID/fromName/toID) so a tapped request push
+    // can show the Accept row from the payload; the un-versioned legacy sub is
+    // deleted on next sync.
+    static let requestSubID = "sub-friendrequest-incoming-v2"
+    static let legacyRequestSubID = "sub-friendrequest-incoming"
     static let friendshipSubID = "sub-friendship-incoming"
     private static let checkInSubPrefix = "sub-checkin-"
     static func checkInSubID(friendID: String) -> String { checkInSubPrefix + friendID }
@@ -243,9 +247,11 @@ struct CloudKitSocial {
         let existing = try await db.allSubscriptions()
         let existingIDs = Set(existing.map(\.subscriptionID))
         let toSave = wanted.filter { !existingIDs.contains($0.key) }.map(\.value)
-        let toDelete = existing.map(\.subscriptionID).filter {
+        var toDelete = existing.map(\.subscriptionID).filter {
             $0.hasPrefix(Self.checkInSubPrefix) && wanted[$0] == nil
         }
+        // One-time migration: drop the pre-desiredKeys request sub.
+        if existingIDs.contains(Self.legacyRequestSubID) { toDelete.append(Self.legacyRequestSubID) }
         guard !toSave.isEmpty || !toDelete.isEmpty else { return }
         _ = try await db.modifySubscriptions(saving: toSave, deleting: toDelete)
     }
@@ -279,6 +285,9 @@ struct CloudKitSocial {
         info.alertLocalizationKey = "FRIEND_REQUEST_ALERT"
         info.alertLocalizationArgs = ["fromName"]
         info.soundName = "default"
+        // Carry the sender fields so a tapped request shows the Accept row
+        // straight from the payload, before the record is queryable.
+        info.desiredKeys = ["fromID", "fromName", "toID"]
         info.category = Self.requestCategory
         sub.notificationInfo = info
         return sub

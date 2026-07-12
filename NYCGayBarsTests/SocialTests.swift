@@ -87,6 +87,36 @@ final class SocialTests: XCTestCase {
                                               pendingIn: [], pendingOut: []).isEmpty)
     }
 
+    // MARK: Optimistic incoming-request merge
+
+    private func req(_ id: String, from: String) -> FriendRequestItem {
+        FriendRequestItem(id: id, fromID: from, fromName: from, toID: "me")
+    }
+
+    func testMergedIncomingKeepsOptimisticUntilFetched() {
+        let now = Date()
+        let opt = [(item: req("r1", from: "a"), at: now)]
+        let (merged, keep) = Social.mergedIncoming(fetched: [], optimistic: opt, now: now, grace: 60)
+        XCTAssertEqual(merged.map(\.id), ["r1"])
+        XCTAssertEqual(keep, ["r1"])
+    }
+
+    func testMergedIncomingDropsOptimisticOnceFetchedHasIt() {
+        let now = Date()
+        let opt = [(item: req("r1", from: "a"), at: now)]
+        let (merged, keep) = Social.mergedIncoming(fetched: [req("r1", from: "a")], optimistic: opt, now: now, grace: 60)
+        XCTAssertEqual(merged.map(\.id), ["r1"])   // no duplicate
+        XCTAssertTrue(keep.isEmpty)                // canonical took over
+    }
+
+    func testMergedIncomingDropsStaleOptimistic() {
+        let now = Date()
+        let opt = [(item: req("r1", from: "a"), at: now.addingTimeInterval(-61))]
+        let (merged, keep) = Social.mergedIncoming(fetched: [], optimistic: opt, now: now, grace: 60)
+        XCTAssertTrue(merged.isEmpty)
+        XCTAssertTrue(keep.isEmpty)
+    }
+
     // MARK: Removal debounce (consistency-window guard)
 
     func testConfirmedRemovalsNotOnFirstSighting() {

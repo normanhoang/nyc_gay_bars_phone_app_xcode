@@ -49,6 +49,12 @@ final class SocialStore: ObservableObject {
     /// When each friend first looked like a removal candidate — debounces the
     /// mirror-removal so a fresh acceptance's consistency blip isn't acted on.
     private var removalCandidateSince: [String: Date] = [:]
+    /// Incoming requests shown from a tapped push payload before the record is
+    /// queryable; merged through refresh() until CloudKit catches up.
+    private var optimisticIncoming: [(item: FriendRequestItem, at: Date)] = []
+    /// Set when a friend-request notification is tapped, so RootTabView switches
+    /// to the Friends tab. Reset by RootTabView after navigating.
+    @Published var focusFriendsTab = false
 
     init() {
         if let data = defaults.data(forKey: Self.profileKey),
@@ -174,7 +180,13 @@ final class SocialStore: ObservableObject {
             // sender deletes their record only when their device next syncs.
             let friendIDSet = Set(ids)
             incoming.removeAll { friendIDSet.contains($0.fromID) }
-            incomingRequests = incoming
+            // Keep any push-payload request the server hasn't made queryable yet
+            // so this refresh doesn't drop the Accept row it just showed.
+            optimisticIncoming.removeAll { friendIDSet.contains($0.item.fromID) || prefs.ignored.contains($0.item.id) }
+            let (mergedIncoming, keepIDs) = Social.mergedIncoming(
+                fetched: incoming, optimistic: optimisticIncoming, now: Date())
+            optimisticIncoming.removeAll { !keepIDs.contains($0.item.id) }
+            incomingRequests = mergedIncoming
             outgoingRequests = outgoing
 
             async let profilesFetch = ck.profiles(userIDs: ids)
@@ -341,6 +353,7 @@ final class SocialStore: ObservableObject {
         // record and missing the just-written friendship — which is what makes
         // the row flicker out and back. Reconcile the real profile narrowly.
         incomingRequests.removeAll { $0.id == request.id }
+        optimisticIncoming.removeAll { $0.item.id == request.id }
         prefs.ignored.remove(request.id)
         if !friends.contains(where: { $0.id == request.fromID }) {
             friends.append(FriendProfile(id: request.fromID, displayName: request.fromName, code: ""))
@@ -368,6 +381,7 @@ final class SocialStore: ObservableObject {
     /// ID is persisted and filtered out of every refresh until it's gone).
     func ignore(_ request: FriendRequestItem) {
         incomingRequests.removeAll { $0.id == request.id }
+        optimisticIncoming.removeAll { $0.item.id == request.id }
         prefs.ignored.insert(request.id)
         persistPrefs()
     }
@@ -462,11 +476,47 @@ final class SocialStore: ObservableObject {
             // friend lands even if the push beat the record becoming queryable.
             await reconcilePendingAcceptances()
         case CloudKitSocial.requestSubID:
-            await start()
+            // Show the Accept row instantly from the push payload, then retry a
+            // few refreshes so the canonical record lands (the payload's fields
+            // ride via the subscription's desiredKeys).
+            if let q = note as? CKQueryNotification { insertRequestFromPayload(q) }
+            await reconcileIncomingRequests()
         case .some(let id) where id.hasPrefix("sub-checkin-"):
             await refreshTonight()
         default:
             break
+        }
+    }
+
+    /// Insert an incoming request straight from a tapped push's payload so the
+    /// Accept row is there before the record is queryable. Deduped and gated the
+    /// same way refresh() gates incoming requests.
+    private func insertRequestFromPayload(_ q: CKQueryNotification) {
+        guard let fields = q.recordFields,
+              let fromID = fields["fromID"] as? String,
+              let fromName = fields["fromName"] as? String,
+              let toID = fields["toID"] as? String,
+              toID == userID,
+              !friends.contains(where: { $0.id == fromID }) else { return }
+        let id = q.recordID?.recordName ?? "request-\(fromID)-\(toID)"
+        guard !prefs.ignored.contains(id),
+              !incomingRequests.contains(where: { $0.id == id }) else { return }
+        let item = FriendRequestItem(id: id, fromID: fromID, fromName: fromName, toID: toID)
+        optimisticIncoming.removeAll { $0.item.id == id }
+        optimisticIncoming.append((item, Date()))
+        incomingRequests.append(item)
+    }
+
+    /// Retry backstop for a request push: refresh a few times over ~4s so the
+    /// canonical record lands promptly. refresh() merges the optimistic row, so
+    /// it isn't dropped while CloudKit catches up.
+    private func reconcileIncomingRequests() async {
+        if userID == nil { await start(); return }
+        guard onboarded else { return }
+        for attempt in 0..<4 {
+            await refresh()
+            if optimisticIncoming.isEmpty { return }   // canonical caught up
+            if attempt < 3 { try? await Task.sleep(nanoseconds: 1_500_000_000) }
         }
     }
 

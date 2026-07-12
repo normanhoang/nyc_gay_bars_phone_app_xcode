@@ -97,6 +97,16 @@ struct RootTabView: View {
             withAnimation(.snappy(duration: 0.18)) { pillPage = 3 }
             page = 3
         }
+        // Tapping a friend-request notification lands on the Friends tab, where
+        // the Accept row is shown from the push payload.
+        .onChange(of: social.focusFriendsTab) { _, focus in
+            guard focus else { return }
+            if pillPage != 3 {
+                withAnimation(.snappy(duration: 0.18)) { pillPage = 3 }
+                page = 3
+            }
+            social.focusFriendsTab = false
+        }
         .sheet(item: $deepLinkBar) { bar in
             BarDetailSheet(bar: bar, day: nil)
         }

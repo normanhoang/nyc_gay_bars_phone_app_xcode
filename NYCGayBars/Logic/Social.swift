@@ -88,6 +88,27 @@ enum Social {
         return confirmed
     }
 
+    /// Merge optimistically-inserted incoming requests (added from a push
+    /// payload before the record is queryable) into the freshly-fetched set, so
+    /// a `refresh()` that runs before CloudKit is consistent doesn't drop the
+    /// Accept row. Keeps an optimistic entry only while it's absent from
+    /// `fetched` and younger than `grace`; once `fetched` has it, the canonical
+    /// copy wins (no duplicates). Returns (merged list, ids to keep optimistic).
+    static func mergedIncoming(fetched: [FriendRequestItem],
+                               optimistic: [(item: FriendRequestItem, at: Date)],
+                               now: Date, grace: TimeInterval = 60)
+        -> (merged: [FriendRequestItem], keepIDs: Set<String>) {
+        let fetchedIDs = Set(fetched.map(\.id))
+        var merged = fetched
+        var keep = Set<String>()
+        for entry in optimistic where !fetchedIDs.contains(entry.item.id) {
+            guard now.timeIntervalSince(entry.at) < grace else { continue }
+            merged.append(entry.item)
+            keep.insert(entry.item.id)
+        }
+        return (merged, keep)
+    }
+
     static func isExpired(_ date: Date, now: Date) -> Bool {
         now.timeIntervalSince(date) > checkInTTL
     }
