@@ -91,7 +91,7 @@ struct FriendsView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("See when your friends are out")
                         .font(.scaled(18, weight: .bold)).foregroundStyle(.white)
-                    Text("Add friends with a private code — no accounts, no directory. When you tap “Share with friends” at a bar, they get a ping like “Sam is at The Eagle”. Nothing is shared unless you tap it, and check-ins disappear after a few hours.")
+                    Text("Add friends with a private code — no accounts, no directory. When you tap “Share with friends” at a bar, it shows up in their Tonight feed — no notifications. Nothing is shared unless you tap it, and check-ins disappear after a few hours.")
                         .font(.scaled(14)).foregroundStyle(Palette.gray300)
 
                     Text("PICK A DISPLAY NAME").font(.scaled(12)).tracking(0.5)
@@ -294,11 +294,13 @@ struct FriendsView: View {
                 social.setGroupSend(group, on: !sends)
             }
             .disabled(group.members.isEmpty)
-            prefToggle(on: gets, onIcon: "bell.fill", offIcon: "bell.slash",
-                       label: "Get notified about everyone in \(group.name): \(gets ? "on" : "off")") {
-                Task { await social.setGroupGet(group, on: !gets) }
+            if Social.checkInPushEnabled {
+                prefToggle(on: gets, onIcon: "bell.fill", offIcon: "bell.slash",
+                           label: "Get notified about everyone in \(group.name): \(gets ? "on" : "off")") {
+                    Task { await social.setGroupGet(group, on: !gets) }
+                }
+                .disabled(group.members.isEmpty)
             }
-            .disabled(group.members.isEmpty)
             Menu {
                 Button { groupNameDraft = group.name; renameGroupTarget = group } label: { Label("Rename", systemImage: "pencil") }
                 Button(role: .destructive) { deleteGroupTarget = group } label: { Label("Delete", systemImage: "trash") }
@@ -649,7 +651,9 @@ struct FriendsView: View {
             } else {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(social.friends) { friendRow($0) }
-                    Text("Paper plane: they get your check-ins. Bell: their check-ins notify you.")
+                    Text(Social.checkInPushEnabled
+                         ? "Paper plane: they get your check-ins. Bell: their check-ins notify you."
+                         : "Paper plane: they see your check-ins in their Tonight feed.")
                         .font(.scaled(12)).foregroundStyle(Palette.gray500)
                         .padding(.top, 4)
                 }
@@ -683,10 +687,14 @@ struct FriendsView: View {
                        label: "Send your check-ins to \(friend.displayName): \(social.prefs.sendsTo(friend.id) ? "on" : "off")") {
                 social.toggleSend(friend)
             }
-            prefToggle(on: social.prefs.getsFrom(friend.id),
-                       onIcon: "bell.fill", offIcon: "bell.slash",
-                       label: "Get notified about \(friend.displayName): \(social.prefs.getsFrom(friend.id) ? "on" : "off")") {
-                Task { await social.toggleGet(friend) }
+            // Bell controls check-in push subscriptions — hidden while check-in
+            // pushes are disabled (Social.checkInPushEnabled) since it's inert.
+            if Social.checkInPushEnabled {
+                prefToggle(on: social.prefs.getsFrom(friend.id),
+                           onIcon: "bell.fill", offIcon: "bell.slash",
+                           label: "Get notified about \(friend.displayName): \(social.prefs.getsFrom(friend.id) ? "on" : "off")") {
+                    Task { await social.toggleGet(friend) }
+                }
             }
             Button {
                 removeTarget = friend
