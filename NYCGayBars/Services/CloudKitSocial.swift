@@ -139,6 +139,12 @@ struct CloudKitSocial {
         } catch let e as CKError where e.code == .unknownItem {}
     }
 
+    /// Delete my own request record to a user (deterministic name); no-op if
+    /// gone. Used to clear a lingering request on unfriend so re-adding is clean.
+    func deleteRequest(from: String, to: String) async throws {
+        try await deleteRequest(recordName: "request-\(from)-\(to)")
+    }
+
     // MARK: - Friendships (one record per direction)
 
     private func friendshipRecordID(ownerID: String, friendID: String) -> CKRecord.ID {

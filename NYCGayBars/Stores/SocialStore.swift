@@ -46,6 +46,9 @@ final class SocialStore: ObservableObject {
     private let ck = CloudKitSocial()
     private let defaults = UserDefaults.standard
     private var userID: String?
+    /// When each friend first looked like a removal candidate — debounces the
+    /// mirror-removal so a fresh acceptance's consistency blip isn't acted on.
+    private var removalCandidateSince: [String: Date] = [:]
 
     init() {
         if let data = defaults.data(forKey: Self.profileKey),
@@ -149,9 +152,14 @@ final class SocialStore: ObservableObject {
             // Mirror removals: a friend whose own Friendship{them→me} record is
             // gone has unfriended me — delete my record too so removal takes
             // effect on both sides, and retract my check-ins addressed to them.
-            let removedBy = Social.removedFriendIDs(friends: ids, friendedBy: friendedBy,
-                                                    pendingIn: Set(incoming.map(\.fromID)),
-                                                    pendingOut: Set(outgoing.map(\.toID)))
+            // Debounced: a just-accepted friendship can momentarily look
+            // one-sided during CloudKit's consistency window, so only act on a
+            // candidate that has persisted past Social.removalGrace.
+            let candidates = Social.removedFriendIDs(friends: ids, friendedBy: friendedBy,
+                                                     pendingIn: Set(incoming.map(\.fromID)),
+                                                     pendingOut: Set(outgoing.map(\.toID)))
+            let removedBy = Social.confirmedRemovals(candidates: candidates,
+                                                     since: &removalCandidateSince, now: Date())
             for id in removedBy {
                 try await ck.removeFriendship(ownerID: me, friendID: id)
                 try? await ck.deleteCheckIns(authorID: me, recipientID: id)
@@ -371,6 +379,11 @@ final class SocialStore: ObservableObject {
             // Best effort: retract already-sent check-ins so nothing lingers
             // in their feed. Leftovers expire at the 24h TTL anyway.
             try? await ck.deleteCheckIns(authorID: me, recipientID: friend.id)
+            // Clear any lingering request between us (e.g. removed mid-handshake)
+            // so re-adding later starts clean: drop my outgoing to them, and
+            // hide their incoming to me until it disappears server-side.
+            try? await ck.deleteRequest(from: me, to: friend.id)
+            prefs.ignored.insert("request-\(friend.id)-\(me)")
             friends.removeAll { $0.id == friend.id }
             persistFriends()
             prefs.prune(keeping: friends.map(\.id))

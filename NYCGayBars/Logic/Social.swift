@@ -62,6 +62,32 @@ enum Social {
         })
     }
 
+    /// Grace before a removal candidate is acted on. Right after an acceptance,
+    /// CloudKit is eventually consistent: the requester's mirror create and the
+    /// request delete propagate independently, so a freshly-mutual friendship
+    /// can momentarily look one-sided (`removedFriendIDs` flags it). Debouncing
+    /// past this window keeps a real unfriend removable while ignoring the blip.
+    static let removalGrace: TimeInterval = 60
+
+    /// Debounce `removedFriendIDs`: confirm only candidates that have stayed
+    /// candidates for at least `grace`. `since` (persisted across refreshes)
+    /// tracks when each id first became a candidate; entries for ids no longer
+    /// candidates are dropped. A transient one-sided state clears its own timer
+    /// before `grace` and is never confirmed.
+    static func confirmedRemovals(candidates: Set<String>, since: inout [String: Date],
+                                  now: Date, grace: TimeInterval = removalGrace) -> Set<String> {
+        since = since.filter { candidates.contains($0.key) }
+        var confirmed = Set<String>()
+        for id in candidates {
+            if let first = since[id] {
+                if now.timeIntervalSince(first) >= grace { confirmed.insert(id) }
+            } else {
+                since[id] = now
+            }
+        }
+        return confirmed
+    }
+
     static func isExpired(_ date: Date, now: Date) -> Bool {
         now.timeIntervalSince(date) > checkInTTL
     }

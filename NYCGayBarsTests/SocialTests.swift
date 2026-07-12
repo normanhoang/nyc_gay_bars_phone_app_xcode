@@ -87,6 +87,37 @@ final class SocialTests: XCTestCase {
                                               pendingIn: [], pendingOut: []).isEmpty)
     }
 
+    // MARK: Removal debounce (consistency-window guard)
+
+    func testConfirmedRemovalsNotOnFirstSighting() {
+        // A candidate seen for the first time starts a timer, isn't confirmed.
+        var since: [String: Date] = [:]
+        let now = Date()
+        let confirmed = Social.confirmedRemovals(candidates: ["a"], since: &since, now: now, grace: 60)
+        XCTAssertTrue(confirmed.isEmpty)
+        XCTAssertNotNil(since["a"])
+    }
+
+    func testConfirmedRemovalsAfterGrace() {
+        // Still a candidate after the grace elapses → confirmed.
+        let start = Date()
+        var since: [String: Date] = ["a": start]
+        let confirmed = Social.confirmedRemovals(candidates: ["a"], since: &since,
+                                                 now: start.addingTimeInterval(61), grace: 60)
+        XCTAssertEqual(confirmed, ["a"])
+    }
+
+    func testConfirmedRemovalsClearsWhenNoLongerCandidate() {
+        // A transient blip (reverse reappears) clears the timer, never confirms.
+        let start = Date()
+        var since: [String: Date] = ["a": start]
+        // 'a' is no longer a candidate this pass (mirror became visible).
+        let confirmed = Social.confirmedRemovals(candidates: [], since: &since,
+                                                 now: start.addingTimeInterval(61), grace: 60)
+        XCTAssertTrue(confirmed.isEmpty)
+        XCTAssertNil(since["a"])   // timer dropped, so a later sighting restarts grace
+    }
+
     func testRemovedFriendIDsSkipsHandshakeWindow() {
         // I just accepted a's request (their request record still exists) —
         // a's mirror is missing but this is not a removal.

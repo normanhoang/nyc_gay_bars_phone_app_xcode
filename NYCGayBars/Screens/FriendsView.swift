@@ -44,6 +44,17 @@ struct FriendsView: View {
             BarDetailSheet(bar: bar, day: nil)
         }
         .task { await social.start() }
+        // Poll while the Friends tab is open so accepted/removed friendships
+        // become mutual within seconds even if the CloudKit silent push was
+        // dropped. Auto-cancels when the active page changes.
+        .task(id: tabSwipe.page) {
+            guard tabSwipe.page == 3, social.onboarded else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 12_000_000_000)
+                if Task.isCancelled { break }
+                await social.refresh()
+            }
+        }
         .onChange(of: tabSwipe.page) { _, p in
             // Reset scroll once this page goes offscreen so the next visit
             // always starts at the top; refresh when swiped back in.
