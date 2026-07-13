@@ -70,10 +70,18 @@ struct CloudKitSocial {
     }
 
     func createProfile(userID: String, displayName: String) async throws -> FriendProfile {
+        // Regenerate on the (astronomically rare) code collision so two users
+        // never share an invite code — lookupProfile takes the first match.
+        var code = Social.generateFriendCode()
+        var retries = 0
+        while retries < 3, try await lookupProfile(code: code) != nil {
+            code = Social.generateFriendCode()
+            retries += 1
+        }
         let rec = CKRecord(recordType: RT.profile, recordID: profileRecordID(userID))
         rec["userID"] = userID
         rec["displayName"] = displayName
-        rec["code"] = Social.generateFriendCode()
+        rec["code"] = code
         return Self.profile(from: try await db.save(rec))!
     }
 
@@ -196,7 +204,11 @@ struct CloudKitSocial {
             rec["ts"] = now
             return rec
         }
-        _ = try await db.modifyRecords(saving: records, deleting: [])
+        // The public DB saves batches non-atomically and reports per-record
+        // failures in the results, not as a thrown error — surface them so a
+        // partial fan-out doesn't read as success.
+        let (saveResults, _) = try await db.modifyRecords(saving: records, deleting: [])
+        for case .failure(let error) in saveResults.values { throw error }
     }
 
     /// Check-ins addressed to me inside the Tonight window, newest first.
@@ -309,8 +321,20 @@ struct CloudKitSocial {
     // MARK: - Helpers
 
     private func records(_ query: CKQuery, limit: Int = CKQueryOperation.maximumResults) async throws -> [CKRecord] {
-        let (results, _) = try await db.records(matching: query, resultsLimit: limit)
-        return results.compactMap { try? $0.1.get() }
+        // Follow the continuation cursor: one call returns a single server page
+        // (~a few hundred records), and silently truncating e.g. friendedByIDs
+        // would make real friends look like removals.
+        let unbounded = limit == CKQueryOperation.maximumResults
+        let (firstPage, firstCursor) = try await db.records(matching: query, resultsLimit: limit)
+        var all = firstPage.compactMap { try? $0.1.get() }
+        var cursor = firstCursor
+        while let c = cursor, unbounded || all.count < limit {
+            let remaining = unbounded ? CKQueryOperation.maximumResults : limit - all.count
+            let (page, next) = try await db.records(continuingMatchFrom: c, resultsLimit: remaining)
+            all += page.compactMap { try? $0.1.get() }
+            cursor = next
+        }
+        return all
     }
 
     /// Save that treats "already exists" as success (deterministic record IDs).

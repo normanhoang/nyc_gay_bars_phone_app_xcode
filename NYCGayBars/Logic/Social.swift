@@ -14,10 +14,10 @@ enum Social {
     static let maxDisplayNameLength = 40
 
     /// Gate for the CloudKit creator-authenticity check (audit finding #1).
-    /// OFF until verified against a second iCloud account — a wrong assumption
-    /// about `creatorUserRecordID` here would silently drop real check-ins /
-    /// requests. See FINDINGS.md "Finding #1 verification". Flip to `true`
-    /// only after that test passes.
+    /// Verified against a second iCloud account on 2026-07-11 and enabled —
+    /// see FINDINGS.md "Finding #1 verification". If check-ins/requests ever
+    /// silently stop appearing after a CloudKit/OS change, flip this off first
+    /// and compare `creatorUserRecordID` to the stored author/sender IDs.
     static let verifyRecordCreator = true
 
     /// Push a notification to friends when you check in. OFF by design: check-in
@@ -111,6 +111,22 @@ enum Social {
 
     static func isExpired(_ date: Date, now: Date) -> Bool {
         now.timeIntervalSince(date) > checkInTTL
+    }
+
+    /// Grace before a missing ignored-request entry may be pruned, covering the
+    /// window where the record exists but a fetch missed it (consistency blip).
+    static let ignoredPruneGrace: TimeInterval = 300
+
+    /// Prune ignored-request record names against a fresh fetch, but keep any
+    /// entry ignored within `grace` even if the fetch missed it — pruning a
+    /// just-ignored entry lets the hidden request reappear on the next refresh.
+    static func prunedIgnored(_ ignored: Set<String>, fetchedIDs: Set<String>,
+                              recentlyIgnored: [String: Date], now: Date,
+                              grace: TimeInterval = ignoredPruneGrace) -> Set<String> {
+        ignored.filter { id in
+            fetchedIDs.contains(id)
+                || recentlyIgnored[id].map { now.timeIntervalSince($0) < grace } == true
+        }
     }
 
     // MARK: Add-friend links

@@ -52,6 +52,9 @@ final class SocialStore: ObservableObject {
     /// Incoming requests shown from a tapped push payload before the record is
     /// queryable; merged through refresh() until CloudKit catches up.
     private var optimisticIncoming: [(item: FriendRequestItem, at: Date)] = []
+    /// When each ignored-request entry was added, so a fetch that misses the
+    /// record (consistency blip) doesn't prune a just-ignored entry.
+    private var recentlyIgnoredAt: [String: Date] = [:]
     /// Set when a friend-request notification is tapped, so RootTabView switches
     /// to the Friends tab. Reset by RootTabView after navigating.
     @Published var focusFriendsTab = false
@@ -93,6 +96,12 @@ final class SocialStore: ObservableObject {
             }
             accountState = .ready
             userID = try await ck.myUserID()
+            // A different iCloud account signed in since the caches were
+            // written: acting as the old identity would send requests the
+            // recipients' creator check rejects. Drop everything cached.
+            if let cached = profile, cached.id != userID {
+                resetForAccountChange()
+            }
             if profile == nil {
                 profile = try await ck.fetchProfile(userID: userID!)
                 persistProfile()
@@ -174,7 +183,10 @@ final class SocialStore: ObservableObject {
 
             // Ignored requests stay hidden (only the sender can delete the
             // record); prune once the record is gone so the set can't grow.
-            prefs.ignored.formIntersection(incoming.map(\.id))
+            // Entries ignored moments ago survive a fetch that missed them.
+            prefs.ignored = Social.prunedIgnored(prefs.ignored, fetchedIDs: Set(incoming.map(\.id)),
+                                                 recentlyIgnored: recentlyIgnoredAt, now: Date())
+            recentlyIgnoredAt = recentlyIgnoredAt.filter { prefs.ignored.contains($0.key) }
             incoming.removeAll { prefs.ignored.contains($0.id) }
             // A request from someone who's already a friend is stale — the
             // sender deletes their record only when their device next syncs.
@@ -383,6 +395,7 @@ final class SocialStore: ObservableObject {
         incomingRequests.removeAll { $0.id == request.id }
         optimisticIncoming.removeAll { $0.item.id == request.id }
         prefs.ignored.insert(request.id)
+        recentlyIgnoredAt[request.id] = Date()
         persistPrefs()
     }
 
@@ -398,6 +411,7 @@ final class SocialStore: ObservableObject {
             // hide their incoming to me until it disappears server-side.
             try? await ck.deleteRequest(from: me, to: friend.id)
             prefs.ignored.insert("request-\(friend.id)-\(me)")
+            recentlyIgnoredAt["request-\(friend.id)-\(me)"] = Date()
             friends.removeAll { $0.id == friend.id }
             persistFriends()
             prefs.prune(keeping: friends.map(\.id))
@@ -541,6 +555,23 @@ final class SocialStore: ObservableObject {
     }
 
     // MARK: - Helpers
+
+    /// Wipe the previous account's cached identity and per-friend state.
+    private func resetForAccountChange() {
+        profile = nil
+        friends = []
+        incomingRequests = []
+        outgoingRequests = []
+        tonight = []
+        prefs = SocialPrefs()
+        optimisticIncoming = []
+        removalCandidateSince = [:]
+        recentlyIgnoredAt = [:]
+        syncedSubIDs = nil
+        defaults.removeObject(forKey: Self.profileKey)
+        defaults.removeObject(forKey: Self.friendsKey)
+        defaults.removeObject(forKey: Self.prefsKey)
+    }
 
     private func persistProfile() {
         if let profile, let data = try? JSONEncoder().encode(profile) {

@@ -17,16 +17,26 @@ final class VisitsStore: ObservableObject {
     /// Cached; refreshed whenever visits/visitedBars membership changes.
     @Published private(set) var visitedIds: Set<String> = []
 
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
 
-    init() {
-        visits = decode([Visit].self, Self.visitsKey) ?? []
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        // Element-wise so one corrupt visit (bad date) is dropped, not the
+        // whole history.
+        visits = (decode([Lossy<Visit>].self, Self.visitsKey) ?? []).compactMap(\.value)
         visitedBars = decode([String].self, Self.visitedKey) ?? []
         refreshVisitedIds()
         hydrated = true
     }
 
     // MARK: - Persistence
+
+    /// Wraps an element so a failed decode yields nil instead of failing the
+    /// containing array.
+    private struct Lossy<T: Decodable>: Decodable {
+        let value: T?
+        init(from decoder: Decoder) { value = try? T(from: decoder) }
+    }
 
     private func decode<T: Decodable>(_ type: T.Type, _ key: String) -> T? {
         guard let data = defaults.data(forKey: key) else { return nil }
@@ -152,15 +162,18 @@ final class VisitsStore: ObservableObject {
     }
 
     /// Toggle the visited flag. Setting true records a zero-drink check-in for
-    /// `day` (default today). Setting false clears the bar's drink-days.
+    /// `day` (default today); a future day is refused outright, so the flag
+    /// and its check-in never disagree. Setting false clears the bar's
+    /// drink-days.
     func setVisited(_ barId: String, _ visited: Bool, day: String? = nil) {
         if visited {
+            let targetDay = day ?? DayKey.key()
+            guard !DayKey.isFuture(targetDay) else { return }
             if !visitedBars.contains(barId) { visitedBars.append(barId) }
             saveVisited()
 
-            let targetDay = day ?? DayKey.key()
             let existing = visits.contains { $0.barId == barId && $0.dayKey == targetDay }
-            if !existing && !DayKey.isFuture(targetDay) {
+            if !existing {
                 let checkIn = Visit(id: DayKey.makeId(), barId: barId,
                                     date: stampDate(for: targetDay), drinks: [], note: nil)
                 visits.insert(checkIn, at: 0)

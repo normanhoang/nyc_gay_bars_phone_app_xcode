@@ -18,9 +18,14 @@ enum DayKey {
         return f
     }()
 
-    /// Parse a stored ISO date-time into an instant.
+    /// Parse a stored ISO date-time into an instant, or nil if malformed.
+    static func parseISOStrict(_ iso: String) -> Date? {
+        isoFormatter.date(from: iso) ?? isoFormatterNoFraction.date(from: iso)
+    }
+
+    /// Parse a stored ISO date-time into an instant (falls back to now).
     static func parseISO(_ iso: String) -> Date {
-        isoFormatter.date(from: iso) ?? isoFormatterNoFraction.date(from: iso) ?? Date()
+        parseISOStrict(iso) ?? Date()
     }
 
     /// Produce an ISO date-time string (matches JS Date.toISOString format).

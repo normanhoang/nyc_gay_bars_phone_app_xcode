@@ -286,4 +286,26 @@ final class SocialTests: XCTestCase {
         XCTAssertTrue(Social.isExpired(now.addingTimeInterval(-25 * 3600), now: now))
         XCTAssertFalse(Social.isExpired(now.addingTimeInterval(-23 * 3600), now: now))
     }
+
+    // MARK: Ignored-request pruning
+
+    func testPrunedIgnoredKeepsFetchedAndRecentEntries() {
+        let now = Date()
+        let ignored: Set<String> = ["on-server", "just-ignored", "long-gone"]
+        let pruned = Social.prunedIgnored(
+            ignored,
+            fetchedIDs: ["on-server"],
+            recentlyIgnored: ["just-ignored": now.addingTimeInterval(-5),
+                              "long-gone": now.addingTimeInterval(-3600)],
+            now: now)
+        // Present on server → kept; ignored seconds ago but missing from a
+        // possibly-stale fetch → kept; absent and past grace → dropped.
+        XCTAssertEqual(pruned, ["on-server", "just-ignored"])
+    }
+
+    func testPrunedIgnoredDropsUnknownStaleEntries() {
+        let pruned = Social.prunedIgnored(["a", "b"], fetchedIDs: [],
+                                          recentlyIgnored: [:], now: Date())
+        XCTAssertTrue(pruned.isEmpty)
+    }
 }

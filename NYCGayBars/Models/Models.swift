@@ -59,6 +59,12 @@ struct Visit: Codable, Identifiable, Hashable {
         id = try c.decode(String.self, forKey: .id)
         barId = try c.decode(String.self, forKey: .barId)
         date = try c.decode(String.self, forKey: .date)
+        // Reject a corrupt date instead of silently re-dating the visit to
+        // "now" (which would shift streaks and calendar history).
+        guard DayKey.parseISOStrict(date) != nil else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .date, in: c, debugDescription: "unparseable visit date")
+        }
         drinks = try c.decode([DrinkEntry].self, forKey: .drinks)
         note = try c.decodeIfPresent(String.self, forKey: .note)
         (dayKey, hour, weekdayJS) = Visit.derive(date)

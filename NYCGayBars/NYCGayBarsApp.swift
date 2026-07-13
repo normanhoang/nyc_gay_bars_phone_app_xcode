@@ -23,10 +23,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
 
     /// Show friend pushes as banners while the app is foregrounded — and
     /// refresh state so an incoming request's Accept button appears instantly,
-    /// not on the next manual refresh.
+    /// not on the next manual refresh. The refresh is detached: its retry loop
+    /// can run for seconds and must not delay the banner.
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
-        await SocialStore.shared.handleRemoteNotification(notification.request.content.userInfo)
+        let userInfo = notification.request.content.userInfo
+        Task { await SocialStore.shared.handleRemoteNotification(userInfo) }
         return [.banner, .sound]
     }
 
@@ -39,12 +41,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         if note?.subscriptionID == CloudKitSocial.requestSubID {
             SocialStore.shared.focusFriendsTab = true
         }
-        await SocialStore.shared.handleRemoteNotification(userInfo)
+        // Navigate from the payload immediately; the refresh below can spend
+        // seconds retrying against CloudKit consistency.
         if let q = note as? CKQueryNotification,
            let barId = q.recordFields?["barId"] as? String,
            AppData.barsById[barId] != nil {
             SocialStore.shared.deepLinkBarId = barId
         }
+        await SocialStore.shared.handleRemoteNotification(userInfo)
     }
 }
 
