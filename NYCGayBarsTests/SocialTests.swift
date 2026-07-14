@@ -292,7 +292,7 @@ final class SocialTests: XCTestCase {
         var p = SocialPrefs()
         p.toggleSend("a")
         p.toggleGet("b")
-        p.ignored.insert("request-x-y")
+        p.ignored["request-x-y"] = Date(timeIntervalSinceReferenceDate: 800_000_000)
         let back = try JSONDecoder().decode(SocialPrefs.self, from: JSONEncoder().encode(p))
         XCTAssertEqual(back, p)
     }
@@ -304,6 +304,19 @@ final class SocialTests: XCTestCase {
         XCTAssertEqual(p.sendOff, ["a"])
         XCTAssertTrue(p.ignored.isEmpty)
         XCTAssertTrue(p.groups.isEmpty)
+    }
+
+    func testPrefsDecodeLegacyIgnoredArray() throws {
+        // Pre-timestamp prefs stored ignored as a bare array of record names;
+        // they must decode and keep hiding the requests they hid before
+        // (stamped "now", so only records created later surface).
+        let legacy = #"{"sendOff":[],"getOff":[],"ignored":["request-a-me"]}"#.data(using: .utf8)!
+        let p = try JSONDecoder().decode(SocialPrefs.self, from: legacy)
+        let at = try XCTUnwrap(p.ignored["request-a-me"])
+        XCTAssertLessThan(abs(at.timeIntervalSinceNow), 5)
+        XCTAssertTrue(Social.isHidden(req("request-a-me", from: "a",
+                                          created: at.addingTimeInterval(-3600)),
+                                      ignored: p.ignored))
     }
 
     // MARK: Friend groups
@@ -357,25 +370,50 @@ final class SocialTests: XCTestCase {
         XCTAssertFalse(Social.isExpired(now.addingTimeInterval(-23 * 3600), now: now))
     }
 
-    // MARK: Ignored-request pruning
+    // MARK: Ignored-request hiding + pruning
+
+    func testIsHiddenOnlyForRequestsPredatingIgnore() {
+        let at = Date()
+        let ignored = ["r1": at]
+        // The record that was ignored (created before the ignore) stays hidden.
+        XCTAssertTrue(Social.isHidden(req("r1", from: "a", created: at.addingTimeInterval(-60)),
+                                      ignored: ignored))
+        // Same deterministic record name but created after the ignore: a fresh
+        // re-request — must surface.
+        XCTAssertFalse(Social.isHidden(req("r1", from: "a", created: at.addingTimeInterval(60)),
+                                       ignored: ignored))
+        // No entry at all → visible.
+        XCTAssertFalse(Social.isHidden(req("r2", from: "b", created: at), ignored: ignored))
+    }
 
     func testPrunedIgnoredKeepsFetchedAndRecentEntries() {
         let now = Date()
-        let ignored: Set<String> = ["on-server", "just-ignored", "long-gone"]
+        let ignored = ["on-server": now.addingTimeInterval(-3600),
+                       "just-ignored": now.addingTimeInterval(-5),
+                       "long-gone": now.addingTimeInterval(-3600)]
         let pruned = Social.prunedIgnored(
             ignored,
-            fetchedIDs: ["on-server"],
-            recentlyIgnored: ["just-ignored": now.addingTimeInterval(-5),
-                              "long-gone": now.addingTimeInterval(-3600)],
+            fetched: [req("on-server", from: "a", created: now.addingTimeInterval(-7200))],
             now: now)
-        // Present on server → kept; ignored seconds ago but missing from a
-        // possibly-stale fetch → kept; absent and past grace → dropped.
-        XCTAssertEqual(pruned, ["on-server", "just-ignored"])
+        // Old record still on server → kept; ignored seconds ago but missing
+        // from a possibly-stale fetch → kept; absent and past grace → dropped.
+        XCTAssertEqual(Set(pruned.keys), ["on-server", "just-ignored"])
     }
 
     func testPrunedIgnoredDropsUnknownStaleEntries() {
-        let pruned = Social.prunedIgnored(["a", "b"], fetchedIDs: [],
-                                          recentlyIgnored: [:], now: Date())
+        let pruned = Social.prunedIgnored(["a": Date.distantPast, "b": Date.distantPast],
+                                          fetched: [], now: Date())
+        XCTAssertTrue(pruned.isEmpty)
+    }
+
+    func testPrunedIgnoredDropsEntryWhenFetchedRequestIsNewer() {
+        // The fetched record postdates the ignore: it's a re-request the entry
+        // no longer applies to — drop immediately, even inside the grace.
+        let now = Date()
+        let pruned = Social.prunedIgnored(
+            ["r1": now.addingTimeInterval(-5)],
+            fetched: [req("r1", from: "a", created: now)],
+            now: now)
         XCTAssertTrue(pruned.isEmpty)
     }
 }

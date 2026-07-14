@@ -148,15 +148,29 @@ enum Social {
     /// window where the record exists but a fetch missed it (consistency blip).
     static let ignoredPruneGrace: TimeInterval = 300
 
-    /// Prune ignored-request record names against a fresh fetch, but keep any
-    /// entry ignored within `grace` even if the fetch missed it — pruning a
-    /// just-ignored entry lets the hidden request reappear on the next refresh.
-    static func prunedIgnored(_ ignored: Set<String>, fetchedIDs: Set<String>,
-                              recentlyIgnored: [String: Date], now: Date,
-                              grace: TimeInterval = ignoredPruneGrace) -> Set<String> {
-        ignored.filter { id in
-            fetchedIDs.contains(id)
-                || recentlyIgnored[id].map { now.timeIntervalSince($0) < grace } == true
+    /// True if an ignore entry hides this request: the entry exists and the
+    /// request predates it. Record names are deterministic
+    /// (`request-<from>-<to>`), so a later re-request reuses the ignored name —
+    /// only records created up to the ignore stay hidden; anything newer is a
+    /// fresh request and must surface. (`created` is a server stamp, the ignore
+    /// time is device-clock — close enough for a minutes-scale comparison.)
+    static func isHidden(_ request: FriendRequestItem, ignored: [String: Date]) -> Bool {
+        guard let at = ignored[request.id] else { return false }
+        return request.created <= at
+    }
+
+    /// Prune ignored-request entries against a fresh fetch. Keep an entry while
+    /// the record it hid is still on the server (fetched and predating the
+    /// ignore), or while it's within `grace` of being added — pruning a
+    /// just-ignored entry on a stale fetch lets the request reappear. A fetched
+    /// record *newer* than the entry is a re-request the entry never applied
+    /// to: drop it immediately so nothing hides the fresh request.
+    static func prunedIgnored(_ ignored: [String: Date], fetched: [FriendRequestItem],
+                              now: Date, grace: TimeInterval = ignoredPruneGrace) -> [String: Date] {
+        let byID = Dictionary(fetched.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        return ignored.filter { id, _ in
+            if let request = byID[id] { return isHidden(request, ignored: ignored) }
+            return now.timeIntervalSince(ignored[id]!) < grace
         }
     }
 
@@ -204,9 +218,12 @@ struct SocialPrefs: Codable, Equatable {
     var sendOff: Set<String> = []
     /// Friends whose check-ins should NOT ping me (no subscription; Tonight feed unaffected).
     var getOff: Set<String> = []
-    /// Ignored friend-request record names. The sender owns the record, so it
-    /// can't be deleted — hide it until it disappears from the server.
-    var ignored: Set<String> = []
+    /// Ignored friend-request record names → when ignored. The sender owns the
+    /// record, so it can't be deleted — hide it until it disappears from the
+    /// server. The timestamp lets a *newer* request reusing the same
+    /// deterministic record name surface (re-request after ignore/unfriend);
+    /// see `Social.isHidden`.
+    var ignored: [String: Date] = [:]
     /// Named friend groups for bulk toggling. Device-local.
     var groups: [FriendGroup] = []
 
@@ -255,7 +272,16 @@ extension SocialPrefs {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         sendOff = try c.decodeIfPresent(Set<String>.self, forKey: .sendOff) ?? []
         getOff = try c.decodeIfPresent(Set<String>.self, forKey: .getOff) ?? []
-        ignored = try c.decodeIfPresent(Set<String>.self, forKey: .ignored) ?? []
+        if let dated = (try? c.decodeIfPresent([String: Date].self, forKey: .ignored)) ?? nil {
+            ignored = dated
+        } else if let legacy = (try? c.decodeIfPresent(Set<String>.self, forKey: .ignored)) ?? nil {
+            // Pre-timestamp prefs stored a bare set of record names. Stamp them
+            // "now": everything they hid stays hidden, and only requests
+            // created after the upgrade surface.
+            ignored = Dictionary(uniqueKeysWithValues: legacy.map { ($0, Date()) })
+        } else {
+            ignored = [:]
+        }
         groups = try c.decodeIfPresent([FriendGroup].self, forKey: .groups) ?? []
     }
 }

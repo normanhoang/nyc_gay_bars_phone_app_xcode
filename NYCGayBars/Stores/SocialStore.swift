@@ -52,9 +52,6 @@ final class SocialStore: ObservableObject {
     /// Incoming requests shown from a tapped push payload before the record is
     /// queryable; merged through refresh() until CloudKit catches up.
     private var optimisticIncoming: [(item: FriendRequestItem, at: Date)] = []
-    /// When each ignored-request entry was added, so a fetch that misses the
-    /// record (consistency blip) doesn't prune a just-ignored entry.
-    private var recentlyIgnoredAt: [String: Date] = [:]
     /// Set when a friend-request notification is tapped, so RootTabView switches
     /// to the Friends tab. Reset by RootTabView after navigating.
     @Published var focusFriendsTab = false
@@ -198,19 +195,18 @@ final class SocialStore: ObservableObject {
             ids.removeAll(where: removedBy.contains)
 
             // Ignored requests stay hidden (only the sender can delete the
-            // record); prune once the record is gone so the set can't grow.
+            // record); prune once the record is gone — or replaced by a newer
+            // re-request — so the map can't grow or hide fresh requests.
             // Entries ignored moments ago survive a fetch that missed them.
-            prefs.ignored = Social.prunedIgnored(prefs.ignored, fetchedIDs: Set(incoming.map(\.id)),
-                                                 recentlyIgnored: recentlyIgnoredAt, now: Date())
-            recentlyIgnoredAt = recentlyIgnoredAt.filter { prefs.ignored.contains($0.key) }
-            incoming.removeAll { prefs.ignored.contains($0.id) }
+            prefs.ignored = Social.prunedIgnored(prefs.ignored, fetched: incoming, now: Date())
+            incoming.removeAll { Social.isHidden($0, ignored: prefs.ignored) }
             // A request from someone who's already a friend is stale — the
             // sender deletes their record only when their device next syncs.
             let friendIDSet = Set(ids)
             incoming.removeAll { friendIDSet.contains($0.fromID) }
             // Keep any push-payload request the server hasn't made queryable yet
             // so this refresh doesn't drop the Accept row it just showed.
-            optimisticIncoming.removeAll { friendIDSet.contains($0.item.fromID) || prefs.ignored.contains($0.item.id) }
+            optimisticIncoming.removeAll { friendIDSet.contains($0.item.fromID) || Social.isHidden($0.item, ignored: prefs.ignored) }
             let (mergedIncoming, keepIDs) = Social.mergedIncoming(
                 fetched: incoming, optimistic: optimisticIncoming, now: Date())
             optimisticIncoming.removeAll { !keepIDs.contains($0.item.id) }
@@ -382,7 +378,7 @@ final class SocialStore: ObservableObject {
         // the row flicker out and back. Reconcile the real profile narrowly.
         incomingRequests.removeAll { $0.id == request.id }
         optimisticIncoming.removeAll { $0.item.id == request.id }
-        prefs.ignored.remove(request.id)
+        prefs.ignored.removeValue(forKey: request.id)
         if !friends.contains(where: { $0.id == request.fromID }) {
             friends.append(FriendProfile(id: request.fromID, displayName: request.fromName, code: ""))
             friends.sort { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
@@ -410,8 +406,7 @@ final class SocialStore: ObservableObject {
     func ignore(_ request: FriendRequestItem) {
         incomingRequests.removeAll { $0.id == request.id }
         optimisticIncoming.removeAll { $0.item.id == request.id }
-        prefs.ignored.insert(request.id)
-        recentlyIgnoredAt[request.id] = Date()
+        prefs.ignored[request.id] = Date()
         persistPrefs()
     }
 
@@ -426,8 +421,7 @@ final class SocialStore: ObservableObject {
             // so re-adding later starts clean: drop my outgoing to them, and
             // hide their incoming to me until it disappears server-side.
             try? await ck.deleteRequest(from: me, to: friend.id)
-            prefs.ignored.insert("request-\(friend.id)-\(me)")
-            recentlyIgnoredAt["request-\(friend.id)-\(me)"] = Date()
+            prefs.ignored["request-\(friend.id)-\(me)"] = Date()
             friends.removeAll { $0.id == friend.id }
             persistFriends()
             prefs.prune(keeping: friends.map(\.id))
@@ -529,12 +523,14 @@ final class SocialStore: ObservableObject {
               toID == userID,
               !friends.contains(where: { $0.id == fromID }) else { return }
         let id = q.recordID?.recordName ?? "request-\(fromID)-\(toID)"
-        guard !prefs.ignored.contains(id),
-              !incomingRequests.contains(where: { $0.id == id }) else { return }
+        guard !incomingRequests.contains(where: { $0.id == id }) else { return }
         // The push payload carries no server creation stamp; the record was
         // just created, so "now" is within seconds of the real one. Only the
-        // outgoing side's dates feed the handshake gate anyway.
+        // outgoing side's dates feed the handshake gate anyway. Being new, the
+        // row also clears any old ignore entry under the same deterministic
+        // record name (a push means a fresh request exists).
         let item = FriendRequestItem(id: id, fromID: fromID, fromName: fromName, toID: toID, created: Date())
+        guard !Social.isHidden(item, ignored: prefs.ignored) else { return }
         optimisticIncoming.removeAll { $0.item.id == id }
         optimisticIncoming.append((item, Date()))
         incomingRequests.append(item)
@@ -585,7 +581,6 @@ final class SocialStore: ObservableObject {
         prefs = SocialPrefs()
         optimisticIncoming = []
         removalCandidateSince = [:]
-        recentlyIgnoredAt = [:]
         syncedSubIDs = nil
         defaults.removeObject(forKey: Self.profileKey)
         defaults.removeObject(forKey: Self.friendsKey)
