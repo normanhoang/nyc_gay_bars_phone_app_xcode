@@ -150,14 +150,30 @@ final class SocialStore: ObservableObject {
             async let friendedByFetch = ck.friendedByIDs(userID: me)
             var incoming = try await incomingFetch
             var outgoing = try await outgoingFetch
-            var ids = try await idsFetch
-            let friendedBy = Set(try await friendedByFetch)
+            let ownDates = try await idsFetch
+            let friendedByDates = try await friendedByFetch
+            var ids = Array(ownDates.keys)
+            let friendedBy = Set(friendedByDates.keys)
 
-            // Someone I sent a request to created their Friendship{them→me}:
-            // finish the handshake by creating the mirror and dropping the
-            // request. Only mirrors users I actually requested — a stranger
-            // creating a Friendship pointing at me is ignored.
-            for request in outgoing where friendedBy.contains(request.toID) {
+            // Stale relics of a dead friendship: my own Friendship{me→X}
+            // predates a fresh request from X and X doesn't friend me back
+            // (unfriending only deletes one's own direction). Left alone the
+            // relic hides X's Accept row (X reads as "already a friend") and
+            // the pending request shields it from mirror-removal — delete it
+            // so the request can surface.
+            for id in Social.staleOwnFriendships(incoming: incoming, ownFriendDates: ownDates,
+                                                 friendedBy: friendedBy) {
+                try await ck.removeFriendship(ownerID: me, friendID: id)
+                ids.removeAll { $0 == id }
+            }
+
+            // Someone I sent a request to created their Friendship{them→me}
+            // *after* the request (server timestamps — a pre-existing record is
+            // a relic, not consent): finish the handshake by creating the
+            // mirror and dropping the request. Only mirrors users I actually
+            // requested — a stranger creating a Friendship pointing at me is
+            // ignored.
+            for request in Social.acceptedOutgoing(outgoing, friendedByDates: friendedByDates) {
                 try await ck.createFriendship(ownerID: me, friendID: request.toID)
                 try await ck.deleteRequest(recordName: request.id)
                 if !ids.contains(request.toID) { ids.append(request.toID) }
@@ -515,7 +531,10 @@ final class SocialStore: ObservableObject {
         let id = q.recordID?.recordName ?? "request-\(fromID)-\(toID)"
         guard !prefs.ignored.contains(id),
               !incomingRequests.contains(where: { $0.id == id }) else { return }
-        let item = FriendRequestItem(id: id, fromID: fromID, fromName: fromName, toID: toID)
+        // The push payload carries no server creation stamp; the record was
+        // just created, so "now" is within seconds of the real one. Only the
+        // outgoing side's dates feed the handshake gate anyway.
+        let item = FriendRequestItem(id: id, fromID: fromID, fromName: fromName, toID: toID, created: Date())
         optimisticIncoming.removeAll { $0.item.id == id }
         optimisticIncoming.append((item, Date()))
         incomingRequests.append(item)

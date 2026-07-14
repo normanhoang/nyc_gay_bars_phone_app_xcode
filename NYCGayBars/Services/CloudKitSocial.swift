@@ -164,6 +164,11 @@ struct CloudKitSocial {
     }
 
     func createFriendship(ownerID: String, friendID: String) async throws {
+        // Delete any pre-existing record first so the save stamps a fresh
+        // creationDate: the other side's handshake gate (acceptedOutgoing) only
+        // trusts records newer than its request, and keeping a stale record's
+        // date would leave the handshake permanently incompletable.
+        try await removeFriendship(ownerID: ownerID, friendID: friendID)
         let rec = CKRecord(recordType: RT.friendship,
                            recordID: friendshipRecordID(ownerID: ownerID, friendID: friendID))
         rec["ownerID"] = ownerID
@@ -177,16 +182,26 @@ struct CloudKitSocial {
         } catch let e as CKError where e.code == .unknownItem {}
     }
 
-    /// IDs of users I've added (my own Friendship records).
-    func friendIDs(ownerID: String) async throws -> [String] {
+    /// Users I've added (my own Friendship records), with each record's
+    /// server-stamped creationDate. A missing stamp maps to .distantPast so an
+    /// undatable record can only ever read as stale, never as an acceptance.
+    func friendIDs(ownerID: String) async throws -> [String: Date] {
         let q = CKQuery(recordType: RT.friendship, predicate: NSPredicate(format: "ownerID == %@", ownerID))
-        return try await records(q).compactMap { $0["friendID"] as? String }
+        return Self.datedIDs(try await records(q), key: "friendID")
     }
 
-    /// IDs of users who have added me (their Friendship records pointing at me).
-    func friendedByIDs(userID: String) async throws -> [String] {
+    /// Users who have added me (their Friendship records pointing at me),
+    /// with creation dates — the handshake gate compares these against the
+    /// outgoing request's date to tell an acceptance from a stale relic.
+    func friendedByIDs(userID: String) async throws -> [String: Date] {
         let q = CKQuery(recordType: RT.friendship, predicate: NSPredicate(format: "friendID == %@", userID))
-        return try await records(q).compactMap { $0["ownerID"] as? String }
+        return Self.datedIDs(try await records(q), key: "ownerID")
+    }
+
+    private static func datedIDs(_ recs: [CKRecord], key: String) -> [String: Date] {
+        Dictionary(recs.compactMap { rec in
+            (rec[key] as? String).map { ($0, rec.creationDate ?? .distantPast) }
+        }, uniquingKeysWith: max)
     }
 
     // MARK: - Check-ins
@@ -356,7 +371,10 @@ struct CloudKitSocial {
               let fromName = rec["fromName"] as? String,
               let toID = rec["toID"] as? String,
               creatorMatches(rec, claimedID: fromID) else { return nil }
-        return FriendRequestItem(id: rec.recordID.recordName, fromID: fromID, fromName: fromName, toID: toID)
+        // Missing creation stamp → .distantFuture: nothing can postdate it, so
+        // the request can never be auto-completed by a stale friendship record.
+        return FriendRequestItem(id: rec.recordID.recordName, fromID: fromID, fromName: fromName,
+                                 toID: toID, created: rec.creationDate ?? .distantFuture)
     }
 
     private static func checkIn(from rec: CKRecord) -> FriendCheckIn? {

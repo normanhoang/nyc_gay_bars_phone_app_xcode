@@ -88,6 +88,37 @@ enum Social {
         return confirmed
     }
 
+    /// Outgoing requests genuinely accepted: the counterpart's
+    /// Friendship{them→me} record exists AND was created *after* the request.
+    /// Both dates are CloudKit server stamps, so no device clock skew. Unfriend
+    /// only deletes your own direction, so a record predating the request is a
+    /// relic of a dead friendship — completing the handshake on it would
+    /// auto-accept the request without the other side ever tapping Accept.
+    static func acceptedOutgoing(_ outgoing: [FriendRequestItem],
+                                 friendedByDates: [String: Date]) -> [FriendRequestItem] {
+        outgoing.filter { request in
+            guard let friendshipCreated = friendedByDates[request.toID] else { return false }
+            return friendshipCreated > request.created
+        }
+    }
+
+    /// My own Friendship{me→X} records that predate a fresh incoming request
+    /// from X while X doesn't friend me back: relics of a dead friendship.
+    /// Left alone they hide X's Accept row (X reads as "already a friend") and
+    /// the pending request shields them from mirror-removal — delete them so
+    /// the request can surface. A record *newer* than the request is a normal
+    /// accept-in-flight (mirror not landed yet) and is kept.
+    static func staleOwnFriendships(incoming: [FriendRequestItem],
+                                    ownFriendDates: [String: Date],
+                                    friendedBy: Set<String>) -> Set<String> {
+        Set(incoming.compactMap { request in
+            guard let ownCreated = ownFriendDates[request.fromID],
+                  !friendedBy.contains(request.fromID),
+                  ownCreated < request.created else { return nil }
+            return request.fromID
+        })
+    }
+
     /// Merge optimistically-inserted incoming requests (added from a push
     /// payload before the record is queryable) into the freshly-fetched set, so
     /// a `refresh()` that runs before CloudKit is consistent doesn't drop the

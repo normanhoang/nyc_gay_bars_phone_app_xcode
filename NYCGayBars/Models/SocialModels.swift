@@ -17,6 +17,9 @@ struct FriendRequestItem: Identifiable, Equatable {
     let fromID: String
     let fromName: String
     let toID: String
+    /// Server-stamped creation date; a Friendship record only counts as this
+    /// request's acceptance if it was created after this.
+    let created: Date
 }
 
 /// A friend's shared check-in, decoded from a CloudKit `CheckIn` record.

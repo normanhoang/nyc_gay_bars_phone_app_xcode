@@ -89,8 +89,8 @@ final class SocialTests: XCTestCase {
 
     // MARK: Optimistic incoming-request merge
 
-    private func req(_ id: String, from: String) -> FriendRequestItem {
-        FriendRequestItem(id: id, fromID: from, fromName: from, toID: "me")
+    private func req(_ id: String, from: String, created: Date = Date()) -> FriendRequestItem {
+        FriendRequestItem(id: id, fromID: from, fromName: from, toID: "me", created: created)
     }
 
     func testMergedIncomingKeepsOptimisticUntilFetched() {
@@ -156,6 +156,76 @@ final class SocialTests: XCTestCase {
         // Same for an outgoing request that hasn't fully settled.
         XCTAssertTrue(Social.removedFriendIDs(friends: ["a"], friendedBy: [],
                                               pendingIn: [], pendingOut: ["a"]).isEmpty)
+    }
+
+    // MARK: Handshake acceptance gate (stale Friendship records)
+
+    private func outReq(_ id: String, to: String, created: Date) -> FriendRequestItem {
+        FriendRequestItem(id: id, fromID: "me", fromName: "me", toID: to, created: created)
+    }
+
+    func testAcceptedOutgoingAcceptsFriendshipNewerThanRequest() {
+        let sent = Date()
+        let requests = [outReq("r1", to: "a", created: sent)]
+        let accepted = Social.acceptedOutgoing(requests,
+                                               friendedByDates: ["a": sent.addingTimeInterval(5)])
+        XCTAssertEqual(accepted.map(\.id), ["r1"])
+    }
+
+    func testAcceptedOutgoingIgnoresStaleFriendship() {
+        // Their Friendship{them→me} predates my request: a relic of a dead
+        // friendship, not an acceptance — completing it auto-accepts.
+        let sent = Date()
+        let requests = [outReq("r1", to: "a", created: sent)]
+        let accepted = Social.acceptedOutgoing(requests,
+                                               friendedByDates: ["a": sent.addingTimeInterval(-3600)])
+        XCTAssertTrue(accepted.isEmpty)
+    }
+
+    func testAcceptedOutgoingIgnoresMissingFriendship() {
+        let accepted = Social.acceptedOutgoing([outReq("r1", to: "a", created: Date())],
+                                               friendedByDates: [:])
+        XCTAssertTrue(accepted.isEmpty)
+    }
+
+    func testStaleOwnFriendshipsDetectsRelic() {
+        // My Friendship{me→a} predates a's fresh request and a doesn't friend
+        // me back: delete it so the Accept row can surface.
+        let now = Date()
+        let stale = Social.staleOwnFriendships(
+            incoming: [req("r1", from: "a", created: now)],
+            ownFriendDates: ["a": now.addingTimeInterval(-3600)],
+            friendedBy: [])
+        XCTAssertEqual(stale, ["a"])
+    }
+
+    func testStaleOwnFriendshipsKeepsMutualFriend() {
+        // a friends me back → the incoming request is the stale thing, not my record.
+        let now = Date()
+        let stale = Social.staleOwnFriendships(
+            incoming: [req("r1", from: "a", created: now)],
+            ownFriendDates: ["a": now.addingTimeInterval(-3600)],
+            friendedBy: ["a"])
+        XCTAssertTrue(stale.isEmpty)
+    }
+
+    func testStaleOwnFriendshipsKeepsAcceptInFlight() {
+        // I just accepted a's request (my record is newer than it); the mirror
+        // hasn't landed yet — normal handshake window, not a relic.
+        let now = Date()
+        let stale = Social.staleOwnFriendships(
+            incoming: [req("r1", from: "a", created: now.addingTimeInterval(-10))],
+            ownFriendDates: ["a": now],
+            friendedBy: [])
+        XCTAssertTrue(stale.isEmpty)
+    }
+
+    func testStaleOwnFriendshipsIgnoresNonFriendRequesters() {
+        let stale = Social.staleOwnFriendships(
+            incoming: [req("r1", from: "stranger", created: Date())],
+            ownFriendDates: [:],
+            friendedBy: [])
+        XCTAssertTrue(stale.isEmpty)
     }
 
     // MARK: Add-friend links
