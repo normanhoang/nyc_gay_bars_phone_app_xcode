@@ -158,6 +158,51 @@ final class SocialTests: XCTestCase {
                                               pendingIn: [], pendingOut: ["a"]).isEmpty)
     }
 
+    // MARK: Optimistic accepted-friends overlay
+
+    private func profile(_ id: String) -> FriendProfile {
+        FriendProfile(id: id, displayName: id, code: "")
+    }
+
+    func testMergedFriendsKeepsOptimisticUntilFetched() {
+        let now = Date()
+        let (profiles, keep) = Social.mergedFriends(
+            fetched: [profile("old")],
+            optimistic: [(profile("new"), now.addingTimeInterval(-5))],
+            fetchedIDs: ["old"], now: now, grace: 60)
+        XCTAssertEqual(Set(profiles.map(\.id)), ["old", "new"])
+        XCTAssertEqual(keep, ["new"])
+    }
+
+    func testMergedFriendsCanonicalTakesOverWithoutDuplicate() {
+        let now = Date()
+        let canonical = FriendProfile(id: "new", displayName: "Real Name", code: "ABC234")
+        let (profiles, keep) = Social.mergedFriends(
+            fetched: [canonical],
+            optimistic: [(profile("new"), now.addingTimeInterval(-5))],
+            fetchedIDs: ["new"], now: now, grace: 60)
+        XCTAssertEqual(profiles, [canonical])   // one copy, the canonical one
+        XCTAssertTrue(keep.isEmpty)
+    }
+
+    func testMergedFriendsDropsExpiredOptimistic() {
+        let now = Date()
+        let (profiles, keep) = Social.mergedFriends(
+            fetched: [],
+            optimistic: [(profile("new"), now.addingTimeInterval(-61))],
+            fetchedIDs: [], now: now, grace: 60)
+        XCTAssertTrue(profiles.isEmpty)
+        XCTAssertTrue(keep.isEmpty)
+    }
+
+    func testMergedFriendsPassthroughWithoutOptimistic() {
+        let (profiles, keep) = Social.mergedFriends(
+            fetched: [profile("a"), profile("b")],
+            optimistic: [], fetchedIDs: ["a", "b"], now: Date(), grace: 60)
+        XCTAssertEqual(profiles.map(\.id), ["a", "b"])
+        XCTAssertTrue(keep.isEmpty)
+    }
+
     // MARK: Handshake acceptance gate (stale Friendship records)
 
     private func outReq(_ id: String, to: String, created: Date) -> FriendRequestItem {

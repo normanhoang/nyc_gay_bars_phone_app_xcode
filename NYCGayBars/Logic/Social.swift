@@ -140,6 +140,29 @@ enum Social {
         return (merged, keep)
     }
 
+    /// Merge just-accepted friends into a freshly-fetched profile list, so a
+    /// refresh() that beats CloudKit's query index doesn't drop them (the
+    /// just-written Friendship record isn't queryable for a few seconds, and a
+    /// refresh in that window would make the accepted friend vanish and the
+    /// Accept row reappear). Symmetric to `mergedIncoming`. Keeps an optimistic
+    /// entry only while its id is absent from `fetchedIDs` and younger than
+    /// `grace`; once fetched, the canonical profile wins (no duplicates).
+    /// Returns (merged profiles, ids to keep optimistic).
+    static func mergedFriends(fetched: [FriendProfile],
+                              optimistic: [(profile: FriendProfile, at: Date)],
+                              fetchedIDs: Set<String>, now: Date, grace: TimeInterval = 60)
+        -> (profiles: [FriendProfile], keepIDs: Set<String>) {
+        var merged = fetched
+        var keep = Set<String>()
+        for entry in optimistic where !fetchedIDs.contains(entry.profile.id) {
+            guard now.timeIntervalSince(entry.at) < grace,
+                  !merged.contains(where: { $0.id == entry.profile.id }) else { continue }
+            merged.append(entry.profile)
+            keep.insert(entry.profile.id)
+        }
+        return (merged, keep)
+    }
+
     static func isExpired(_ date: Date, now: Date) -> Bool {
         now.timeIntervalSince(date) > checkInTTL
     }

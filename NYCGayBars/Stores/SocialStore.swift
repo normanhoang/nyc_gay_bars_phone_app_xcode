@@ -52,6 +52,10 @@ final class SocialStore: ObservableObject {
     /// Incoming requests shown from a tapped push payload before the record is
     /// queryable; merged through refresh() until CloudKit catches up.
     private var optimisticIncoming: [(item: FriendRequestItem, at: Date)] = []
+    /// Friends accepted moments ago, kept in the list until the Friendship
+    /// write becomes queryable — a refresh inside CloudKit's index lag would
+    /// otherwise drop the friend and resurrect the Accept row.
+    private var optimisticFriends: [(profile: FriendProfile, at: Date)] = []
     /// Set when a friend-request notification is tapped, so RootTabView switches
     /// to the Friends tab. Reset by RootTabView after navigating.
     @Published var focusFriendsTab = false
@@ -202,7 +206,9 @@ final class SocialStore: ObservableObject {
             incoming.removeAll { Social.isHidden($0, ignored: prefs.ignored) }
             // A request from someone who's already a friend is stale — the
             // sender deletes their record only when their device next syncs.
-            let friendIDSet = Set(ids)
+            // Just-accepted friends count too (their Friendship write may not
+            // be queryable yet) so the accepted request can't resurface.
+            let friendIDSet = Set(ids).union(optimisticFriends.map(\.profile.id))
             incoming.removeAll { friendIDSet.contains($0.fromID) }
             // Keep any push-payload request the server hasn't made queryable yet
             // so this refresh doesn't drop the Accept row it just showed.
@@ -215,11 +221,19 @@ final class SocialStore: ObservableObject {
 
             async let profilesFetch = ck.profiles(userIDs: ids)
             async let tonightFetch = ck.tonightCheckIns(userID: me)
-            friends = try await profilesFetch.sorted {
+            let fetchedProfiles = try await profilesFetch
+            // Overlay just-accepted friends, reading optimisticFriends *after*
+            // every await: an accept() that lands while this refresh's queries
+            // were in flight still survives the rebuild (main-actor ordering).
+            let (mergedFriends, keepFriendIDs) = Social.mergedFriends(
+                fetched: fetchedProfiles, optimistic: optimisticFriends,
+                fetchedIDs: Set(ids), now: Date())
+            optimisticFriends.removeAll { !keepFriendIDs.contains($0.profile.id) }
+            friends = mergedFriends.sorted {
                 $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
             }
             persistFriends()
-            prefs.prune(keeping: ids)
+            prefs.prune(keeping: mergedFriends.map(\.id))
             persistPrefs()
             // Drop check-ins from anyone no longer a friend (their unexpired
             // records can outlive the friendship by up to the Tonight window).
@@ -379,25 +393,40 @@ final class SocialStore: ObservableObject {
         incomingRequests.removeAll { $0.id == request.id }
         optimisticIncoming.removeAll { $0.item.id == request.id }
         prefs.ignored.removeValue(forKey: request.id)
+        let placeholder = FriendProfile(id: request.fromID, displayName: request.fromName, code: "")
         if !friends.contains(where: { $0.id == request.fromID }) {
-            friends.append(FriendProfile(id: request.fromID, displayName: request.fromName, code: ""))
+            friends.append(placeholder)
             friends.sort { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
             persistFriends()
         }
+        // Overlay entry keeps the friend through refreshes until the Friendship
+        // write becomes queryable (CloudKit index lag).
+        optimisticFriends.removeAll { $0.profile.id == request.fromID }
+        optimisticFriends.append((placeholder, Date()))
         do {
             try await ck.createFriendship(ownerID: me, friendID: request.fromID)
-            try await syncSubscriptionsIfNeeded(me: me, friendIDs: friends.map(\.id))
-            // Fill in the real profile (proper code, canonical name) without a
-            // broad refresh that could clobber the optimistic row.
-            if let real = try? await ck.profiles(userIDs: [request.fromID]).first,
-               let idx = friends.firstIndex(where: { $0.id == real.id }) {
+        } catch {
+            // Roll back only when the friendship write itself failed.
+            errorMessage = friendlyError(error)
+            friends.removeAll { $0.id == request.fromID }
+            optimisticFriends.removeAll { $0.profile.id == request.fromID }
+            persistFriends()
+            return
+        }
+        // Best-effort from here: subscriptions re-reconcile at the end of every
+        // refresh(), and the canonical profile lands via the overlay's
+        // takeover — neither failure may un-friend the accepted row.
+        try? await syncSubscriptionsIfNeeded(me: me, friendIDs: friends.map(\.id))
+        // Fill in the real profile (proper code, canonical name) without a
+        // broad refresh that could clobber the optimistic row.
+        if let real = try? await ck.profiles(userIDs: [request.fromID]).first {
+            if let idx = friends.firstIndex(where: { $0.id == real.id }) {
                 friends[idx] = real
                 persistFriends()
             }
-        } catch {
-            errorMessage = friendlyError(error)
-            friends.removeAll { $0.id == request.fromID }
-            persistFriends()
+            if let oidx = optimisticFriends.firstIndex(where: { $0.profile.id == real.id }) {
+                optimisticFriends[oidx].profile = real
+            }
         }
     }
 
@@ -423,6 +452,9 @@ final class SocialStore: ObservableObject {
             try? await ck.deleteRequest(from: me, to: friend.id)
             prefs.ignored["request-\(friend.id)-\(me)"] = Date()
             friends.removeAll { $0.id == friend.id }
+            // Also drop any overlay entry, or it would resurrect the removed
+            // friend on the next refresh for up to the overlay grace.
+            optimisticFriends.removeAll { $0.profile.id == friend.id }
             persistFriends()
             prefs.prune(keeping: friends.map(\.id))
             persistPrefs()
@@ -580,6 +612,7 @@ final class SocialStore: ObservableObject {
         tonight = []
         prefs = SocialPrefs()
         optimisticIncoming = []
+        optimisticFriends = []
         removalCandidateSince = [:]
         syncedSubIDs = nil
         defaults.removeObject(forKey: Self.profileKey)
