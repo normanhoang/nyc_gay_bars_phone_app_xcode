@@ -195,7 +195,7 @@ enum Stats {
         }
 
         let maxShotsInOneVisit = visits.map { v in
-            v.drinks.first { $0.type == "Shot" }?.count ?? 0
+            v.drinks.first { $0.type.lowercased() == "shot" }?.count ?? 0
         }.max() ?? 0
         let maxTypesInOneVisit = visits.map { $0.drinks.count }.max() ?? 0
         let boroughsVisited = Set(
@@ -267,7 +267,7 @@ enum Stats {
         }
 
         let maxShotsInOneVisit = visits.map { v in
-            v.drinks.first { $0.type == "Shot" }?.count ?? 0
+            v.drinks.first { $0.type.lowercased() == "shot" }?.count ?? 0
         }.max() ?? 0
         let maxTypesInOneVisit = visits.map { $0.drinks.count }.max() ?? 0
 

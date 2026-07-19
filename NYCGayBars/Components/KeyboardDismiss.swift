@@ -1,6 +1,12 @@
 import SwiftUI
 import UIKit
 
+/// Resign the first responder (hide the keyboard) from anywhere.
+func dismissKeyboard() {
+    UIApplication.shared.sendAction(
+        #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+}
+
 extension View {
     /// Resign the first responder (hide the keyboard) when an empty area of the
     /// view — anything that isn't an interactive control — is tapped. Place a
@@ -10,10 +16,7 @@ extension View {
         background(
             Color.clear
                 .contentShape(Rectangle())
-                .onTapGesture {
-                    UIApplication.shared.sendAction(
-                        #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }
+                .onTapGesture { dismissKeyboard() }
         )
     }
 }

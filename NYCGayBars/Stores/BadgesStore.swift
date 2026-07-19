@@ -5,7 +5,7 @@ import Combine
 /// and drives the unlock toast queue. Port of RN lib/BadgesContext.tsx.
 final class BadgesStore: ObservableObject {
     private static let badgeDatesKey = "@gaybars/badgeDates"
-    private static let toastSeconds: TimeInterval = 3.5
+    private let toastSeconds: TimeInterval
 
     /// All badges in definition order, with earn dates where earned.
     @Published private(set) var badges: [Badge] = []
@@ -13,13 +13,20 @@ final class BadgesStore: ObservableObject {
     @Published private(set) var unlocked: [Badge] = [] {
         didSet { armToastTimer() }
     }
+    /// Number of presented sheets that mount their own BadgeToast. While > 0 the
+    /// root-level toast hides so an unlock shows once (in the sheet), not twice.
+    @Published private(set) var toastModalDepth = 0
 
     private var earnedAt: [String: String] = [:]
     private var firstReconcile = true
     private var toastTimer: Timer?
-    private let defaults = UserDefaults.standard
+    /// Badge currently being timed, so queue appends don't restart its timer.
+    private var timingToastID: String?
+    private let defaults: UserDefaults
 
-    init() {
+    init(defaults: UserDefaults = .standard, toastSeconds: TimeInterval = 3.5) {
+        self.defaults = defaults
+        self.toastSeconds = toastSeconds
         if let data = defaults.data(forKey: Self.badgeDatesKey),
            let stored = try? JSONDecoder().decode([String: String].self, from: data) {
             earnedAt = stored
@@ -80,10 +87,24 @@ final class BadgesStore: ObservableObject {
         if !unlocked.isEmpty { unlocked.removeFirst() }
     }
 
+    /// A sheet that renders its own BadgeToast has appeared/disappeared. Balanced
+    /// calls keep the root toast from duplicating over the sheet.
+    func pushToastModal() { toastModalDepth += 1 }
+    func popToastModal() { toastModalDepth = max(0, toastModalDepth - 1) }
+
     private func armToastTimer() {
+        guard let head = unlocked.first else {
+            toastTimer?.invalidate()
+            toastTimer = nil
+            timingToastID = nil
+            return
+        }
+        // Re-arm only when the toast being shown changed; appending to the
+        // queue mid-toast must not extend the current toast's stay.
+        guard head.id != timingToastID else { return }
+        timingToastID = head.id
         toastTimer?.invalidate()
-        guard !unlocked.isEmpty else { return }
-        toastTimer = Timer.scheduledTimer(withTimeInterval: Self.toastSeconds, repeats: false) { [weak self] _ in
+        toastTimer = Timer.scheduledTimer(withTimeInterval: toastSeconds, repeats: false) { [weak self] _ in
             guard let self else { return }
             if !self.unlocked.isEmpty { self.unlocked.removeFirst() }
         }

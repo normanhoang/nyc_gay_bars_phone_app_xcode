@@ -16,22 +16,21 @@ struct AppBackground: View {
                     startPoint: UnitPoint(x: 0.1, y: 0),
                     endPoint: UnitPoint(x: 0.9, y: 1))
 
-                // Magenta glow, top-right.
-                LinearGradient(
+                // Magenta glow, top-right. Radial so it fades smoothly to
+                // transparent in every direction — no clipped frame edge.
+                RadialGradient(
                     colors: [Palette.primary.opacity(0.18), Palette.primary.opacity(0)],
-                    startPoint: UnitPoint(x: 1, y: 0),
-                    endPoint: UnitPoint(x: 0.2, y: 0.6))
-                    .frame(height: geo.size.height * 0.6)
-                    .frame(maxHeight: .infinity, alignment: .top)
+                    center: UnitPoint(x: 1, y: 0),
+                    startRadius: 0,
+                    endRadius: geo.size.height * 0.6)
                     .allowsHitTesting(false)
 
                 // Violet rise, bottom.
-                LinearGradient(
-                    colors: [Palette.violetGlow.opacity(0), Palette.violetGlow.opacity(0.14)],
-                    startPoint: UnitPoint(x: 0.3, y: 0),
-                    endPoint: UnitPoint(x: 0.7, y: 1))
-                    .frame(height: geo.size.height * 0.45)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
+                RadialGradient(
+                    colors: [Palette.violetGlow.opacity(0.14), Palette.violetGlow.opacity(0)],
+                    center: UnitPoint(x: 0.5, y: 1),
+                    startRadius: 0,
+                    endRadius: geo.size.height * 0.5)
                     .allowsHitTesting(false)
             }
         }

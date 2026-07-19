@@ -57,6 +57,8 @@ struct BarMapView: View {
             }
         }
         .onAppear { frame(animated: false) }
+        // Stop a mid-flight zoom animation from firing against a departed view.
+        .onDisappear { animTimer?.invalidate() }
         .onChange(of: showOutlines) { _, _ in frame(animated: true) }
         .onChange(of: bars.map(\.id)) { _, _ in frame(animated: true) }
         .onChange(of: frameNonce) { _, _ in frame(animated: true) }
