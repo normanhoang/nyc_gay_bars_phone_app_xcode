@@ -55,13 +55,30 @@
     <div class="row"><div class="k">Primary Language</div><div class="v">English (U.S.)</div></div>
   </div>
 
-  <h2>Version — 1.0</h2>
+  <h2>Version — 1.1.0</h2>
   <div class="card">
-    <div class="row"><div class="k">Version String</div><div class="v"><code>1.0.0</code> &nbsp; Build <code>1</code></div></div>
+    <div class="row"><div class="k">Version String</div><div class="v"><code>1.1.0</code> &nbsp; Build <code>12</code></div></div>
     <div class="row"><div class="k">Copyright</div><div class="v copy" data-copy>2026 Norman Hoang</div></div>
     <div class="row"><div class="k">Promotional Text <span class="count">170 max</span></div>
       <div class="v copy" data-copy>Your pocket map to every gay bar in NYC. Check in, log the night, earn badges, and watch your nightlife stats come alive — 100% private, all on your device. <span class="count">152</span></div></div>
   </div>
+
+  <h2>What's New in This Version <span class="count" style="float:none">4000 max</span></h2>
+  <div class="card copy" data-copy>
+<pre>Introducing Friends — the night is better together.
+
+• Add friends with a QR code, invite code, or share link — no accounts, no directory, no phone numbers
+• Share a check-in with exactly the friends you choose; it appears in their Tonight feed
+• Tonight: see which bars your friends are at right now
+• Per-friend controls — pick who gets your check-ins, friend by friend or in groups
+• Get a notification when someone sends you a friend request; nothing is shared until you approve
+• Private by design: runs on your iCloud, invite codes instead of a directory, and shared check-ins auto-delete within 24 hours
+
+Friends is completely optional — everything else stays 100% on your device.
+
+Also in this update: smoother friend requests and accepts, plus polish and performance fixes throughout.</pre>
+  </div>
+  <p class="hint">Click the box to copy the release notes.</p>
 
   <h2>Description <span class="count" style="float:none">4000 max</span></h2>
   <div class="card copy" data-copy>
@@ -79,7 +96,7 @@ FEATURES
 • Personal stats: favorite bar, top drink, biggest night, longest streak
 • Neighborhood progress bars — how much of the city have you hit?
 • 30 unlockable badges to chase
-• Optional Friends: share a check-in and ping exactly the friends you choose — with per-friend controls for who gets your check-ins and who can notify you
+• Optional Friends: share a check-in with exactly the friends you choose — they see it in their Tonight feed, with per-friend controls over who gets yours
 • Beautiful, fast, native design
 
 PRIVATE BY DESIGN
@@ -97,9 +114,9 @@ Whether you're a local completist or visiting for Pride, NYC Gay Bars makes expl
   <h2>URLs</h2>
   <div class="card">
     <div class="row"><div class="k">Privacy Policy URL <span class="badge warn">required</span></div>
-      <div class="v">You have <code>docs/privacy.html</code> — host it and paste the public URL.<div class="hint">e.g. GitHub Pages: https://normanhoang.github.io/&lt;repo&gt;/privacy.html</div></div></div>
+      <div class="v copy" data-copy>https://normanhoang.github.io/nyc_gay_bars_phone_app_xcode/privacy.html</div></div>
     <div class="row"><div class="k">Support URL <span class="badge warn">required</span></div>
-      <div class="v">A page or email people can reach you at. A simple GitHub repo README or a mailto page works.</div></div>
+      <div class="v copy" data-copy>https://normanhoang.github.io/nyc_gay_bars_phone_app_xcode/support.html</div></div>
     <div class="row"><div class="k">Marketing URL</div><div class="v">Optional — skip for v1.</div></div>
   </div>
 
@@ -142,6 +159,27 @@ Whether you're a local completist or visiting for Pride, NYC Gay Bars makes expl
     </ul>
     <p class="hint">This matches the shipped <code>PrivacyInfo.xcprivacy</code> (UserDefaults reason CA92.1; Name / User ID / Other User Content collected, linked, no tracking).</p>
   </div>
+
+  <h2>App Review Information</h2>
+  <div class="card">
+    <div class="row"><div class="k">Sign-in Information</div>
+      <div class="v"><b>Not required</b> — leave "Sign-in required" unchecked. No app account or login exists; the optional Friends feature uses the reviewer's own iCloud (CloudKit), and everything else works signed out.</div></div>
+  </div>
+  <h3>Notes for App Review</h3>
+  <div class="card copy" data-copy>
+<pre>No sign-in or account: all core features (bar map/list, check-ins, drink log, history, stats, badges) run entirely on-device with no login.
+
+The optional Friends tab uses the device's own iCloud account via CloudKit — no separate credentials exist. Without iCloud it simply shows a "sign in to iCloud" prompt; the rest of the app is unaffected.
+
+Friends is invite-code based and peer-to-peer: to fully exercise it you need a second device/iCloud account (send a friend request by code or QR, the other person approves). Solo, you can still complete onboarding (pick a display name) and view your own invite code and QR.
+
+Location permission is optional and used only on-device to sort bars by distance — nothing is transmitted. Denying it just hides distances.
+
+Notifications are optional and only used for friend requests (delivered by CloudKit).
+
+Alcohol content: the app is a bar directory and personal drink journal. It does not sell or promote alcohol delivery.</pre>
+  </div>
+  <p class="hint">Click the box to copy the review notes.</p>
 
   <h2>Export Compliance <span class="badge ok">handled</span></h2>
   <div class="card">
