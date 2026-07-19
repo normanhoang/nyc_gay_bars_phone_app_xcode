@@ -22,10 +22,18 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.normanhoang.nycgaybars
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1"
+      configs:
+        # aps-environment is resolved at codesign time from this setting:
+        # Debug device runs keep development APNs routing; Release archives
+        # get production (required for TestFlight/App Store). See FINDINGS.md #4.
+        Debug:
+          APS_ENVIRONMENT: development
+        Release:
+          APS_ENVIRONMENT: production
     entitlements:
       path: NYCGayBars/NYCGayBars.entitlements
       properties:
-        aps-environment: development
+        aps-environment: $(APS_ENVIRONMENT)
         com.apple.developer.icloud-services:
           - CloudKit
         com.apple.developer.icloud-container-identifiers:

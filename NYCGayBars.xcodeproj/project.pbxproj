@@ -523,6 +523,7 @@
 		92700C47AB5110A7F5A0EE39 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APS_ENVIRONMENT = production;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = NYCGayBars/NYCGayBars.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -540,6 +541,7 @@
 		9353DF27DF852F477B52D08E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APS_ENVIRONMENT = development;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = NYCGayBars/NYCGayBars.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
