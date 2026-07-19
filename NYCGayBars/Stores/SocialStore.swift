@@ -49,6 +49,11 @@ final class SocialStore: ObservableObject {
     /// When each friend first looked like a removal candidate — debounces the
     /// mirror-removal so a fresh acceptance's consistency blip isn't acted on.
     private var removalCandidateSince: [String: Date] = [:]
+    /// When each cached friend first went missing from the own-Friendship
+    /// query — retains them through non-monotonic replica blips (a stale read
+    /// dropping a friend is what made accepted friends toggle back to an
+    /// Accept row). See `Social.retainedFriendIDs`.
+    private var friendMissingSince: [String: Date] = [:]
     /// Incoming requests shown from a tapped push payload before the record is
     /// queryable; merged through refresh() until CloudKit catches up.
     private var optimisticIncoming: [(item: FriendRequestItem, at: Date)] = []
@@ -139,9 +144,29 @@ final class SocialStore: ObservableObject {
             : "Friend request sent — they'll need to accept."
     }
 
+    /// In-flight refresh, joined by concurrent callers. refresh() is called
+    /// from overlapping sources (12s poll, push reconcile retries, scenePhase,
+    /// pull-to-refresh); unserialized, an older run holding stale fetch
+    /// results could assign published state *after* a newer one, flapping the
+    /// UI — and two runs could double-write the handshake mirror, re-stamping
+    /// the Friendship creationDate that the acceptance gates compare against.
+    private var activeRefresh: Task<Void, Never>?
+
     /// Re-fetch requests, friendships (completing any accepted handshakes),
-    /// subscriptions, and the Tonight feed.
+    /// subscriptions, and the Tonight feed. Single-flight: a call made while
+    /// a refresh is running joins it instead of starting another (callers are
+    /// all retry structures, so a marginally-stale join self-corrects on
+    /// their next tick). The unstructured Task keeps a cancelled caller
+    /// (e.g. pull-to-refresh) from aborting a refresh mid-server-write.
     func refresh() async {
+        if let running = activeRefresh { await running.value; return }
+        let task = Task { await performRefresh() }
+        activeRefresh = task
+        await task.value
+        activeRefresh = nil
+    }
+
+    private func performRefresh() async {
         guard let me = userID, onboarded else { return }
         do {
             // The four base queries are independent — fetch concurrently.
@@ -162,10 +187,14 @@ final class SocialStore: ObservableObject {
             // relic hides X's Accept row (X reads as "already a friend") and
             // the pending request shields it from mirror-removal — delete it
             // so the request can surface.
+            // Ids this refresh deletes on purpose — they must not be retained
+            // through the missing-friend grace below.
+            var deliberateRemovals = Set<String>()
             for id in Social.staleOwnFriendships(incoming: incoming, ownFriendDates: ownDates,
                                                  friendedBy: friendedBy) {
                 try await ck.removeFriendship(ownerID: me, friendID: id)
                 ids.removeAll { $0 == id }
+                deliberateRemovals.insert(id)
             }
 
             // Someone I sent a request to created their Friendship{them→me}
@@ -197,6 +226,17 @@ final class SocialStore: ObservableObject {
                 try? await ck.deleteCheckIns(authorID: me, recipientID: id)
             }
             ids.removeAll(where: removedBy.contains)
+            deliberateRemovals.formUnion(removedBy)
+
+            // Own Friendship records are only ever deleted by this device, so
+            // a cached friend missing from the (eventually-consistent,
+            // non-monotonic) query is a replica blip unless deleted above —
+            // retain them through the grace so a stale read can't drop the
+            // friend row and resurface their accepted request.
+            ids.append(contentsOf: Social.retainedFriendIDs(
+                fetched: Set(ids), cached: friends.map(\.id),
+                excluded: deliberateRemovals,
+                missingSince: &friendMissingSince, now: Date()))
 
             // Ignored requests stay hidden (only the sender can delete the
             // record); prune once the record is gone — or replaced by a newer
@@ -392,7 +432,6 @@ final class SocialStore: ObservableObject {
         // the row flicker out and back. Reconcile the real profile narrowly.
         incomingRequests.removeAll { $0.id == request.id }
         optimisticIncoming.removeAll { $0.item.id == request.id }
-        prefs.ignored.removeValue(forKey: request.id)
         let placeholder = FriendProfile(id: request.fromID, displayName: request.fromName, code: "")
         if !friends.contains(where: { $0.id == request.fromID }) {
             friends.append(placeholder)
@@ -413,6 +452,15 @@ final class SocialStore: ObservableObject {
             persistFriends()
             return
         }
+        // Persistently hide the accepted request: the sender's record stays on
+        // the server until their device completes the handshake (hours if
+        // they're offline), and a stale replica read in that window would
+        // resurface the Accept row. Stamped only after the friendship write
+        // succeeds so a failed accept can still be retried. `acceptStamp`
+        // outruns the request's server creationDate (device clock may trail);
+        // a genuine later re-request gets a newer date and surfaces normally.
+        prefs.ignored[request.id] = Social.acceptStamp(for: request, now: Date())
+        persistPrefs()
         // Best-effort from here: subscriptions re-reconcile at the end of every
         // refresh(), and the canonical profile lands via the overlay's
         // takeover — neither failure may un-friend the accepted row.
@@ -614,6 +662,7 @@ final class SocialStore: ObservableObject {
         optimisticIncoming = []
         optimisticFriends = []
         removalCandidateSince = [:]
+        friendMissingSince = [:]
         syncedSubIDs = nil
         defaults.removeObject(forKey: Self.profileKey)
         defaults.removeObject(forKey: Self.friendsKey)

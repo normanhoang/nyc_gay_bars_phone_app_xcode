@@ -163,6 +163,49 @@ enum Social {
         return (merged, keep)
     }
 
+    /// Ignore-stamp for a request being accepted: at least the request's own
+    /// (server-clock) creation date, so `isHidden` holds even when the device
+    /// clock trails the server — crossing accepts happen seconds after the
+    /// record is created. The stamp keeps the accepted request hidden until
+    /// the sender's device deletes it, however long that takes; a genuine
+    /// re-request later gets a newer creationDate and surfaces normally.
+    static func acceptStamp(for request: FriendRequestItem, now: Date) -> Date {
+        max(now, request.created)
+    }
+
+    /// Grace before a cached friend missing from the own-Friendship query is
+    /// dropped. Own Friendship{me→X} records are only ever deleted by this
+    /// device, so absence from the (eventually-consistent, non-monotonic)
+    /// query is a replica blip unless we deleted it ourselves this refresh.
+    /// Matches `ignoredPruneGrace`: the accepted request stays hidden through
+    /// a 300s-grace mechanism, so the friend row must survive the same window
+    /// or a blip shows neither row. Genuine cross-device removal of an own
+    /// record (same iCloud account on two devices) reflects within this grace.
+    static let friendRetentionGrace: TimeInterval = 300
+
+    /// Cached friends missing from the fetched own-Friendship ids, retained
+    /// until they've been missing continuously for `grace` (inverse of
+    /// `confirmedRemovals`). `missingSince` (persisted across refreshes)
+    /// tracks the first miss per id; timers self-prune when the id reappears
+    /// in `fetched`, leaves `cached`, or is `excluded`. `excluded` ids were
+    /// deliberately removed this refresh and must never be retained.
+    static func retainedFriendIDs(fetched: Set<String>, cached: [String],
+                                  excluded: Set<String>,
+                                  missingSince: inout [String: Date],
+                                  now: Date, grace: TimeInterval = friendRetentionGrace) -> [String] {
+        let cachedSet = Set(cached)
+        missingSince = missingSince.filter {
+            cachedSet.contains($0.key) && !fetched.contains($0.key) && !excluded.contains($0.key)
+        }
+        var retained: [String] = []
+        for id in cached where !fetched.contains(id) && !excluded.contains(id) {
+            let first = missingSince[id] ?? now
+            missingSince[id] = first
+            if now.timeIntervalSince(first) < grace { retained.append(id) }
+        }
+        return retained
+    }
+
     static func isExpired(_ date: Date, now: Date) -> Bool {
         now.timeIntervalSince(date) > checkInTTL
     }

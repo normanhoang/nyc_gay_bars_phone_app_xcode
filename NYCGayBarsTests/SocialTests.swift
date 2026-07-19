@@ -461,4 +461,104 @@ final class SocialTests: XCTestCase {
             now: now)
         XCTAssertTrue(pruned.isEmpty)
     }
+
+    // MARK: Accepted-request stamp + friend retention (toggle bug)
+
+    func testAcceptStampHidesRequestDespiteClockSkew() {
+        // Crossing accept with the device clock trailing the server: the
+        // request's server creationDate is "ahead" of now. The stamp must
+        // still hide it, and the entry must survive pruning while the record
+        // stays on the server.
+        let now = Date()
+        let request = req("r1", from: "a", created: now.addingTimeInterval(30))
+        let stamp = Social.acceptStamp(for: request, now: now)
+        let ignored = ["r1": stamp]
+        XCTAssertTrue(Social.isHidden(request, ignored: ignored))
+        XCTAssertEqual(Set(Social.prunedIgnored(ignored, fetched: [request], now: now).keys), ["r1"])
+    }
+
+    func testRetainedFriendIDsRetainsMissingWithinGrace() {
+        var since: [String: Date] = [:]
+        let retained = Social.retainedFriendIDs(fetched: ["b"], cached: ["a", "b"],
+                                                excluded: [], missingSince: &since,
+                                                now: Date(), grace: 300)
+        XCTAssertEqual(retained, ["a"])
+        XCTAssertNotNil(since["a"])   // timer started on first miss
+    }
+
+    func testRetainedFriendIDsDropsAfterGrace() {
+        // Missing continuously past the grace → genuinely gone, stop retaining.
+        let start = Date()
+        var since = ["a": start]
+        let retained = Social.retainedFriendIDs(fetched: [], cached: ["a"],
+                                                excluded: [], missingSince: &since,
+                                                now: start.addingTimeInterval(301), grace: 300)
+        XCTAssertTrue(retained.isEmpty)
+    }
+
+    func testRetainedFriendIDsClearsTimerWhenFetched() {
+        // The id came back in a fetch: the blip is over, so a later miss
+        // restarts the grace from scratch.
+        var since = ["a": Date.distantPast]
+        let retained = Social.retainedFriendIDs(fetched: ["a"], cached: ["a"],
+                                                excluded: [], missingSince: &since,
+                                                now: Date(), grace: 300)
+        XCTAssertTrue(retained.isEmpty)   // fetched ids need no retaining
+        XCTAssertNil(since["a"])
+    }
+
+    func testRetainedFriendIDsExcludesDeliberateRemovals() {
+        // An id removed on purpose this refresh must not be retained or timed.
+        var since: [String: Date] = [:]
+        let retained = Social.retainedFriendIDs(fetched: [], cached: ["a"],
+                                                excluded: ["a"], missingSince: &since,
+                                                now: Date(), grace: 300)
+        XCTAssertTrue(retained.isEmpty)
+        XCTAssertNil(since["a"])
+    }
+
+    func testRetainedFriendIDsPrunesNonCachedTimers() {
+        // A timer for someone no longer in the friends list is dead weight.
+        var since = ["gone": Date.distantPast]
+        _ = Social.retainedFriendIDs(fetched: [], cached: [],
+                                     excluded: [], missingSince: &since,
+                                     now: Date(), grace: 300)
+        XCTAssertTrue(since.isEmpty)
+    }
+
+    func testAcceptedRequestToggleScenario() {
+        // Field sequence behind the toggle bug: B accepts A's request; A's
+        // device hasn't completed the handshake, so request-A-B stays on the
+        // server; a later refresh hits a stale replica that omits B's own
+        // Friendship{B→A}. At every step A must read as a friend and the
+        // request must stay hidden — never the Accept row.
+        let t0 = Date()
+        let request = req("request-a-me", from: "a", created: t0.addingTimeInterval(-10))
+        var ignored = ["request-a-me": Social.acceptStamp(for: request, now: t0)]
+        var since: [String: Date] = [:]
+
+        // t0+5s: consistent fetch — own friendship visible, record still there.
+        var t = t0.addingTimeInterval(5)
+        var ids: Set<String> = ["a"]
+        ignored = Social.prunedIgnored(ignored, fetched: [request], now: t)
+        XCTAssertTrue(Social.isHidden(request, ignored: ignored))
+        XCTAssertTrue(Social.retainedFriendIDs(fetched: ids, cached: ["a"], excluded: [],
+                                               missingSince: &since, now: t).isEmpty)
+
+        // t0+90s: stale replica omits the friendship (old overlay long dead),
+        // request-A-B still fetched.
+        t = t0.addingTimeInterval(90)
+        ids = []
+        ignored = Social.prunedIgnored(ignored, fetched: [request], now: t)
+        XCTAssertTrue(Social.isHidden(request, ignored: ignored))   // no Accept row
+        XCTAssertEqual(Social.retainedFriendIDs(fetched: ids, cached: ["a"], excluded: [],
+                                                missingSince: &since, now: t), ["a"])   // still a friend
+
+        // t0+120s: fresh replica again — timer clears, nothing to retain.
+        t = t0.addingTimeInterval(120)
+        ids = ["a"]
+        XCTAssertTrue(Social.retainedFriendIDs(fetched: ids, cached: ["a"], excluded: [],
+                                               missingSince: &since, now: t).isEmpty)
+        XCTAssertTrue(since.isEmpty)
+    }
 }
