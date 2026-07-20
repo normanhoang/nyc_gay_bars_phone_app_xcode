@@ -97,7 +97,7 @@ struct HistoryView: View {
                 // Reset scroll once this page goes offscreen so the next visit
                 // always starts at the top.
                 .onChange(of: tabSwipe.page) { _, p in
-                    if p != 2 { scrollPos.scrollTo(edge: .top) }
+                    if p != .history { scrollPos.scrollTo(edge: .top) }
                 }
                 .transition(.opacity)
             }

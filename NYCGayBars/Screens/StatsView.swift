@@ -77,14 +77,14 @@ struct StatsView: View {
         .sheet(isPresented: $showAllBadges) { allBadgesSheet }
         .onAppear { snap = makeSnapshot() }
         .onChange(of: SnapshotKey(visits: visits.visits, visitedIds: visits.visitedIds)) { _, _ in
-            if tabSwipe.page == 1 {
+            if tabSwipe.page == .stats {
                 snap = makeSnapshot()
             } else {
                 snapStale = true
             }
         }
         .onChange(of: tabSwipe.page) { _, p in
-            if p == 1 && snapStale {
+            if p == .stats && snapStale {
                 snap = makeSnapshot()
                 snapStale = false
             }
@@ -164,7 +164,7 @@ struct StatsView: View {
         // Reset scroll once this page goes offscreen so the next visit always
         // starts at the top.
         .onChange(of: tabSwipe.page) { _, p in
-            if p != 1 { scrollPos.scrollTo(edge: .top) }
+            if p != .stats { scrollPos.scrollTo(edge: .top) }
         }
     }
 

@@ -212,7 +212,7 @@ struct ExploreView: View {
                 // Reset scroll once this page goes offscreen so the next visit
                 // always starts at the top.
                 .onChange(of: tabSwipe.page) { _, p in
-                    if p != 0 { scrollPos.scrollTo(edge: .top) }
+                    if p != .explore { scrollPos.scrollTo(edge: .top) }
                 }
             }
         } else {

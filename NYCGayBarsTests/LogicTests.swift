@@ -365,3 +365,17 @@ final class StatsTests: XCTestCase {
         XCTAssertFalse(badges.first { $0.id == "conqueror" }!.earned)
     }
 }
+
+final class PageTests: XCTestCase {
+    /// Tab order is a product decision; pinning it here makes a reorder a
+    /// deliberate two-file edit instead of a silent one.
+    func testTabOrder() {
+        XCTAssertEqual(Page.allCases, [.explore, .friends, .stats, .history])
+        XCTAssertEqual(Page.allCases.map(\.rawValue), [0, 1, 2, 3])
+    }
+
+    func testLabelsAndIconsAreDistinct() {
+        XCTAssertEqual(Set(Page.allCases.map(\.label)).count, Page.allCases.count)
+        XCTAssertEqual(Set(Page.allCases.map(\.icon)).count, Page.allCases.count)
+    }
+}
