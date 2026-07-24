@@ -83,6 +83,26 @@ enum Stats {
         return best
     }
 
+    /// The user's most-logged drink types, most-used first, padded with
+    /// presets to `limit` (quick log's featured rows).
+    static func topDrinkTypes(_ visits: [Visit], limit: Int = 3) -> [String] {
+        var counts: [String: Int] = [:]
+        var order: [String] = []
+        for v in visits {
+            for d in v.drinks {
+                if counts[d.type] == nil { order.append(d.type) }
+                counts[d.type, default: 0] += d.count
+            }
+        }
+        var top = order.sorted { counts[$0]! > counts[$1]! }
+        for preset in PRESET_DRINKS where top.count < limit {
+            if !top.contains(where: { $0.lowercased() == preset.lowercased() }) {
+                top.append(preset)
+            }
+        }
+        return Array(top.prefix(limit))
+    }
+
     /// The single day with the highest drink total.
     static func biggestNight(_ visits: [Visit]) -> (day: String, total: Int)? {
         var byDay: [String: Int] = [:]
@@ -172,6 +192,53 @@ enum Stats {
         return best
     }
 
+    // MARK: - Year recap (redesign 2a)
+
+    /// The year a recap should cover: last year during January, else this year
+    /// to date.
+    static func recapYear(for date: Date = Date()) -> Int {
+        let c = Calendar.current.dateComponents([.year, .month], from: date)
+        return c.month == 1 ? c.year! - 1 : c.year!
+    }
+
+    /// Visits whose local day falls in calendar year `year`.
+    static func visitsIn(year: Int, _ visits: [Visit]) -> [Visit] {
+        visits.filter { $0.dayKey.hasPrefix("\(year)-") }
+    }
+
+    /// Month (0-indexed, mirroring dayKey) with the most drink-days.
+    static func busiestMonth(_ visits: [Visit]) -> (month: Int, nights: Int)? {
+        var daysByMonth: [Int: Set<String>] = [:]
+        for v in visits {
+            let parts = v.dayKey.split(separator: "-")
+            guard parts.count == 3, let m = Int(parts[1]) else { continue }
+            daysByMonth[m, default: []].insert(v.dayKey)
+        }
+        return daysByMonth.map { (month: $0.key, nights: $0.value.count) }
+            .max { a, b in a.nights != b.nights ? a.nights < b.nights : a.month > b.month }
+    }
+
+    /// Neighborhood with the most drink-days.
+    static func homeTurf(_ visits: [Visit]) -> (neighborhood: String, nights: Int)? {
+        var daysByHood: [String: Set<String>] = [:]
+        for v in visits {
+            guard let hood = AppData.barsById[v.barId]?.neighborhood else { continue }
+            daysByHood[hood, default: []].insert(v.dayKey)
+        }
+        return daysByHood.map { (neighborhood: $0.key, nights: $0.value.count) }
+            .max { a, b in a.nights != b.nights ? a.nights < b.nights : a.neighborhood > b.neighborhood }
+    }
+
+    /// Days spent at one bar (drink-days, not drinks).
+    static func nightsAt(_ barId: String, _ visits: [Visit]) -> Int {
+        Set(visits.filter { $0.barId == barId }.map(\.dayKey)).count
+    }
+
+    /// Distinct boroughs among the bars in `visits`.
+    static func boroughCount(_ visits: [Visit]) -> Int {
+        Set(visits.compactMap { AppData.barsById[$0.barId]?.neighborhood }.map(borough)).count
+    }
+
     // MARK: - Badges
 
     /// Progress toward countable badges, keyed by badge id. Only badges with a
@@ -242,6 +309,31 @@ enum Stats {
             "grand-tour": (neighborhoodsVisited, AppData.neighborhoods.count),
             "neighborhood-hero": (bestHood.visited, bestHood.total),
         ]
+    }
+
+    /// Progress caption for a countable badge, e.g. "3 more drinks to go".
+    static func progressCaption(_ id: String, current: Int, target: Int) -> String {
+        let n = max(target - current, 0)
+        let unit = badgeUnit(id)
+        return "\(n) more \(n == 1 ? unit : unit + "s") to go"
+    }
+
+    /// Singular noun for a countable badge's progress unit.
+    static func badgeUnit(_ id: String) -> String {
+        switch id {
+        case "sampler", "grand-tour": return "neighborhood"
+        case "crawler", "marathon", "bar-star", "explorer",
+             "half-the-city", "conqueror", "neighborhood-hero": return "bar"
+        case "regular", "old-faithful", "on-a-roll", "full-week": return "day"
+        case "mixologist", "variety-pack": return "drink type"
+        case "shots-shots-shots": return "shot"
+        case "nifty-fifty", "century-club", "double-digits": return "drink"
+        case "borough-hopper": return "borough"
+        case "hophead": return "beer"
+        case "wine-not": return "wine"
+        case "shaken-stirred": return "cocktail"
+        default: return "step"
+        }
     }
 
     static func badges(_ visits: [Visit], _ visitedIds: Set<String>) -> [Badge] {

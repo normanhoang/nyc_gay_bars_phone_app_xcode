@@ -355,6 +355,59 @@ final class StatsTests: XCTestCase {
         XCTAssertEqual(Stats.badgeProgress(vs, ["eagle-nyc"])["shots-shots-shots"]?.current, 3)
     }
 
+    func testProgressCaptionUnitsAndPluralization() {
+        XCTAssertEqual(Stats.progressCaption("bar-star", current: 9, target: 10), "1 more bar to go")
+        XCTAssertEqual(Stats.progressCaption("nifty-fifty", current: 47, target: 50), "3 more drinks to go")
+        XCTAssertEqual(Stats.progressCaption("mixologist", current: 3, target: 5), "2 more drink types to go")
+        // Every countable badge id has a real unit (no "step" fallback).
+        for id in Stats.badgeProgress([], []).keys {
+            XCTAssertNotEqual(Stats.badgeUnit(id), "step", "missing unit for \(id)")
+        }
+        // Overshoot clamps to zero rather than going negative.
+        XCTAssertEqual(Stats.progressCaption("on-a-roll", current: 5, target: 3), "0 more days to go")
+    }
+
+    func testTopDrinkTypesMostUsedFirstThenPresetFill() {
+        let vs = [
+            visit("eagle-nyc", "2026-5-10", [("Wine", 5), ("Shot", 2)]),
+            visit("boxers-nyc", "2026-5-11", [("Shot", 4)]),
+        ]
+        // Shot (6) then Wine (5), padded with the first unused preset (Beer).
+        XCTAssertEqual(Stats.topDrinkTypes(vs), ["Shot", "Wine", "Beer"])
+        // No history → the first three presets.
+        XCTAssertEqual(Stats.topDrinkTypes([]), ["Beer", "Cocktail", "Wine"])
+    }
+
+    func testRecapYearScopingAndAggregates() {
+        let vs = [
+            visit("eagle-nyc", "2026-5-10", [("Beer", 2)]),          // June 2026
+            visit("eagle-nyc", "2026-5-11", [("Beer", 1)]),
+            visit("the-stonewall-inn", "2026-6-04", [("Wine", 1)]),  // July 2026
+            visit("albatross-bar", "2025-11-31", [("Shot", 1)]),     // Dec 2025
+        ]
+        let y2026 = Stats.visitsIn(year: 2026, vs)
+        XCTAssertEqual(y2026.count, 3)
+        XCTAssertEqual(Stats.visitsIn(year: 2025, vs).count, 1)
+        // June 2026 (month index 5) has two drink-days.
+        let busiest = Stats.busiestMonth(y2026)
+        XCTAssertEqual(busiest?.month, 5)
+        XCTAssertEqual(busiest?.nights, 2)
+        // Eagle NYC (Chelsea) hosts 2 of 3 nights.
+        XCTAssertEqual(Stats.homeTurf(y2026)?.neighborhood, "Chelsea")
+        XCTAssertEqual(Stats.nightsAt("eagle-nyc", y2026), 2)
+        // Chelsea + West Village = Manhattan; Astoria bar excluded by year.
+        XCTAssertEqual(Stats.boroughCount(y2026), 1)
+        XCTAssertEqual(Stats.boroughCount(vs), 2)
+    }
+
+    func testRecapYearJanuaryLooksBack() {
+        let cal = Calendar.current
+        let jan = cal.date(from: DateComponents(year: 2027, month: 1, day: 5))!
+        let jul = cal.date(from: DateComponents(year: 2026, month: 7, day: 24))!
+        XCTAssertEqual(Stats.recapYear(for: jan), 2026)
+        XCTAssertEqual(Stats.recapYear(for: jul), 2026)
+    }
+
     func testBadgesFirstDrinkAndStonewall() {
         let vs = [visit("the-stonewall-inn", "2026-5-10", [("Beer", 1)])]
         let ids = Set(["the-stonewall-inn"])
@@ -363,5 +416,19 @@ final class StatsTests: XCTestCase {
         XCTAssertTrue(badges.first { $0.id == "first-drink" }!.earned)
         XCTAssertTrue(badges.first { $0.id == "stonewall" }!.earned)
         XCTAssertFalse(badges.first { $0.id == "conqueror" }!.earned)
+    }
+}
+
+final class PageTests: XCTestCase {
+    /// Tab order is a product decision; pinning it here makes a reorder a
+    /// deliberate two-file edit instead of a silent one.
+    func testTabOrder() {
+        XCTAssertEqual(Page.allCases, [.explore, .friends, .stats, .history])
+        XCTAssertEqual(Page.allCases.map(\.rawValue), [0, 1, 2, 3])
+    }
+
+    func testLabelsAndIconsAreDistinct() {
+        XCTAssertEqual(Set(Page.allCases.map(\.label)).count, Page.allCases.count)
+        XCTAssertEqual(Set(Page.allCases.map(\.icon)).count, Page.allCases.count)
     }
 }

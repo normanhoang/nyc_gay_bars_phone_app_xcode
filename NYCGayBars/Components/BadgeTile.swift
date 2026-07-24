@@ -6,6 +6,7 @@ import SwiftUI
 struct BadgeTile: View {
     let badge: Badge
     var showDate: Bool = false
+    var showDescription: Bool = true
     /// Running count toward an unearned badge, e.g. (3, 5) → "3 / 5".
     var progress: (current: Int, target: Int)? = nil
 
@@ -28,11 +29,13 @@ struct BadgeTile: View {
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                     .padding(.top, 12)
-                Text(badge.description)
-                    .font(.scaled(12))
-                    .foregroundStyle(Palette.gray400)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 4)
+                if showDescription {
+                    Text(badge.description)
+                        .font(.scaled(12))
+                        .foregroundStyle(Palette.gray400)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 4)
+                }
                 if let date = earnedDateText {
                     Text(date)
                         .font(.scaled(10, weight: .semibold))

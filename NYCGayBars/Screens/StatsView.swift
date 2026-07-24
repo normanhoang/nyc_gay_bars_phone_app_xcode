@@ -7,7 +7,8 @@ struct StatsView: View {
     @EnvironmentObject private var badges: BadgesStore
     @EnvironmentObject private var tabSwipe: TabSwipe
     @State private var showAllBadges = false
-    @State private var expandedBoroughs: Set<String> = []
+    @State private var showRecap = false
+    @State private var badgeFilter: BadgeFilter = .all
     @State private var scrollPos = ScrollPosition()
     // Cached so mutations made on other pages don't recompute the full stats
     // aggregation while this page is offscreen; refreshed on becoming active.
@@ -47,7 +48,24 @@ struct StatsView: View {
             .sorted { ($0.earnedAt ?? "") > ($1.earnedAt ?? "") }
     }
     private var unearnedBadges: [Badge] { badges.badges.filter { !$0.earned } }
-    private var recentBadges: [Badge] { Array(earnedBadges.prefix(4)) }
+
+    /// The two unearned countable badges closest to completion (redesign 1b).
+    private func upNext() -> [(badge: Badge, current: Int, target: Int)] {
+        let progress = Stats.badgeProgress(visits.visits, visits.visitedIds)
+        let rows: [(badge: Badge, current: Int, target: Int)] = unearnedBadges.compactMap { b in
+            guard let p = progress[b.id] else { return nil }
+            return (badge: b, current: p.current, target: p.target)
+        }
+        return rows
+            .sorted {
+                let fa = Double($0.current) / Double($0.target)
+                let fb = Double($1.current) / Double($1.target)
+                if fa != fb { return fa > fb }
+                return ($0.target - $0.current) < ($1.target - $1.current)
+            }
+            .prefix(2)
+            .map { $0 }
+    }
 
     private func milestonesLast(_ list: [Badge]) -> [Badge] {
         list.filter { !Stats.milestoneBadgeIds.contains($0.id) }
@@ -75,16 +93,19 @@ struct StatsView: View {
             }
         }
         .sheet(isPresented: $showAllBadges) { allBadgesSheet }
+        .fullScreenCover(isPresented: $showRecap) {
+            RecapView(year: Stats.recapYear(), onClose: { showRecap = false })
+        }
         .onAppear { snap = makeSnapshot() }
         .onChange(of: SnapshotKey(visits: visits.visits, visitedIds: visits.visitedIds)) { _, _ in
-            if tabSwipe.page == 1 {
+            if tabSwipe.page == .stats {
                 snap = makeSnapshot()
             } else {
                 snapStale = true
             }
         }
         .onChange(of: tabSwipe.page) { _, p in
-            if p == 1 && snapStale {
+            if p == .stats && snapStale {
                 snap = makeSnapshot()
                 snapStale = false
             }
@@ -100,11 +121,9 @@ struct StatsView: View {
     private func content(_ snap: Snapshot) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Stats").font(.scaled(30, weight: .heavy)).foregroundStyle(.white)
+                Text("Stats").font(.scaled(22, weight: .heavy)).foregroundStyle(.white)
                     .padding(.bottom, 16)
 
-                Text("TOTALS").font(.scaled(12, weight: .regular)).tracking(0.5)
-                    .foregroundStyle(Palette.gray300).padding(.bottom, 8)
                 HStack(spacing: 12) {
                     totalCell(snap.totalDrinks, "drinks")
                     totalCell(snap.totalDrinkDays, "drink-days")
@@ -112,49 +131,61 @@ struct StatsView: View {
                 }
                 .padding(.bottom, 12)
 
-                if let fav = snap.favoriteBar {
-                    statCard("FAVORITE BAR", fav.name, fav.neighborhood)
+                LazyVGrid(columns: columns, spacing: 12) {
+                    if let fav = snap.favoriteBar {
+                        statCard("FAVORITE BAR", fav.name, fav.neighborhood)
+                    }
+                    if let top = snap.topDrinkType {
+                        statCard("TOP DRINK", "\(drinkEmoji(top.type)) \(top.type)", "\(top.count) all-time")
+                    }
+                    if let big = snap.biggestNight {
+                        statCard("BIGGEST NIGHT", "\(big.total) \(big.total == 1 ? "drink" : "drinks")", DayKey.format(big.day))
+                    }
+                    if snap.streak > 0 {
+                        statCard("LONGEST STREAK", "\(snap.streak) \(snap.streak == 1 ? "day" : "days")", "In a row with drinks")
+                    }
                 }
-                if let top = snap.topDrinkType {
-                    statCard("TOP DRINK", "\(drinkEmoji(top.type)) \(top.type)", "\(top.count) logged all-time")
+
+                let recapYear = Stats.recapYear()
+                if !Stats.visitsIn(year: recapYear, visits.visits).isEmpty {
+                    Button { showRecap = true } label: {
+                        HStack {
+                            Text("🪩")
+                            Text("Your \(String(recapYear)) Recap")
+                                .font(.scaled(15, weight: .bold)).foregroundStyle(.white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.scaled(12, weight: .semibold)).foregroundStyle(Palette.gray400)
+                        }
+                        .padding(16)
+                        .contentPanel(radius: 16)
+                    }
+                    .buttonStyle(PressableScale())
+                    .padding(.top, 12)
                 }
-                if let big = snap.biggestNight {
-                    statCard("BIGGEST NIGHT", "\(big.total) \(big.total == 1 ? "drink" : "drinks")", DayKey.format(big.day))
-                }
-                if snap.streak > 0 {
-                    statCard("LONGEST STREAK", "\(snap.streak) \(snap.streak == 1 ? "day" : "days")", "Most consecutive days with drinks logged")
+
+                let next = upNext()
+                if !next.isEmpty {
+                    HStack {
+                        Text("Up next").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
+                        Spacer()
+                        Button { showAllBadges = true } label: {
+                            HStack(spacing: 2) {
+                                Text("All badges · \(earnedBadges.count)/\(badges.badges.count)")
+                                    .font(.scaled(13, weight: .semibold))
+                                Image(systemName: "chevron.right").font(.scaled(11, weight: .semibold))
+                            }
+                            .foregroundStyle(Palette.gray400)
+                        }
+                        .buttonStyle(PressableScale())
+                    }
+                    .padding(.top, 20).padding(.bottom, 8)
+                    upNextPanel(next)
                 }
 
                 Text("Neighborhoods").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
-                    .padding(.top, 12).padding(.bottom, 8)
+                    .padding(.top, 20).padding(.bottom, 8)
                 neighborhoods(snap.boroughs)
-
-                HStack {
-                    Text("Recent badges").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
-                    Spacer()
-                    Button { showAllBadges = true } label: {
-                        HStack(spacing: 2) {
-                            Text("All badges (\(earnedBadges.count)/\(badges.badges.count))")
-                                .font(.scaled(14, weight: .semibold))
-                            Image(systemName: "chevron.right").font(.scaled(12, weight: .semibold))
-                        }
-                        .foregroundStyle(Palette.primary)
-                    }
-                    .buttonStyle(PressableScale())
-                }
-                .padding(.top, 20).padding(.bottom, 8)
-
-                if recentBadges.isEmpty {
-                    Text("No badges yet — log a drink to start earning.")
-                        .font(.scaled(14)).foregroundStyle(Palette.gray300)
-                        .frame(maxWidth: .infinity)
-                        .padding(16)
-                        .contentPanel()
-                } else {
-                    LazyVGrid(columns: columns, spacing: 12) {
-                        ForEach(recentBadges) { BadgeTile(badge: $0) }
-                    }
-                }
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
@@ -164,7 +195,7 @@ struct StatsView: View {
         // Reset scroll once this page goes offscreen so the next visit always
         // starts at the top.
         .onChange(of: tabSwipe.page) { _, p in
-            if p != 1 { scrollPos.scrollTo(edge: .top) }
+            if p != .stats { scrollPos.scrollTo(edge: .top) }
         }
     }
 
@@ -181,83 +212,75 @@ struct StatsView: View {
 
     private func statCard(_ label: String, _ value: String, _ detail: String?) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(label).font(.scaled(12)).tracking(0.5).foregroundStyle(Palette.gray300)
-            Text(value).font(.scaled(20, weight: .heavy)).foregroundStyle(.white).padding(.top, 4)
+            Text(label).font(.scaled(11)).tracking(0.5).foregroundStyle(Palette.gray400)
+            Text(value).font(.scaled(17, weight: .bold)).foregroundStyle(.white)
+                .lineLimit(1).minimumScaleFactor(0.8).padding(.top, 4)
             if let detail {
-                Text(detail).font(.scaled(12)).foregroundStyle(Palette.gray400).padding(.top, 2)
+                Text(detail).font(.scaled(11)).foregroundStyle(Palette.gray600)
+                    .lineLimit(1).padding(.top, 2)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .contentPanel()
-        .padding(.bottom, 12)
+        .padding(14)
+        .contentPanel(radius: 16)
     }
 
+    private func upNextPanel(_ next: [(badge: Badge, current: Int, target: Int)]) -> some View {
+        VStack(spacing: 0) {
+            ForEach(Array(next.enumerated()), id: \.element.badge.id) { i, item in
+                BadgeProgressRow(
+                    badge: item.badge, current: item.current, target: item.target,
+                    delay: Double(i) * 0.06,
+                    caption: Stats.progressCaption(item.badge.id, current: item.current, target: item.target))
+            }
+        }
+        .padding(.horizontal, 16).padding(.vertical, 6)
+        .contentPanel()
+    }
+
+    /// One line per borough: name · progress bar · count (redesign 1b).
     private func neighborhoods(_ boroughs: [BoroughProgress]) -> some View {
         VStack(spacing: 0) {
             ForEach(Array(boroughs.enumerated()), id: \.element.id) { i, b in
                 let complete = b.visited == b.total
-                let expanded = expandedBoroughs.contains(b.borough)
-                Button {
-                    withAnimation(Anim.chip) {
-                        if expanded { expandedBoroughs.remove(b.borough) }
-                        else { expandedBoroughs.insert(b.borough) }
-                    }
-                } label: {
-                    VStack(spacing: 6) {
-                        HStack {
-                            Text(b.borough + (complete ? " 👑" : ""))
-                                .font(.scaled(15, weight: .bold)).foregroundStyle(.white)
-                            Image(systemName: "chevron.down")
-                                .font(.scaled(11, weight: .semibold))
-                                .foregroundStyle(Palette.gray400)
-                                .rotationEffect(.degrees(expanded ? 0 : -90))
-                            Spacer()
-                            Text("\(b.visited) / \(b.total)")
-                                .font(.scaled(12, weight: complete ? .bold : .semibold))
-                                .foregroundStyle(complete ? Palette.primary : Palette.gray400)
-                        }
-                        ProgressBar(progress: Double(b.visited) / Double(b.total), delay: Double(i) * 0.06)
-                    }
-                    .padding(.vertical, 10)
-                    .contentShape(Rectangle())
+                HStack(spacing: 12) {
+                    Text(b.borough + (complete ? " 👑" : ""))
+                        .font(.scaled(14, weight: .semibold)).foregroundStyle(.white)
+                        .frame(width: 96, alignment: .leading)
+                    ProgressBar(progress: Double(b.visited) / Double(b.total),
+                                delay: Double(i) * 0.06, height: 6)
+                    Text("\(b.visited)/\(b.total)")
+                        .font(.scaled(12, weight: complete ? .bold : .semibold))
+                        .foregroundStyle(complete ? Palette.primary : Palette.gray400)
                 }
-                .buttonStyle(.plain)
-
-                if expanded {
-                    VStack(spacing: 0) {
-                        ForEach(b.neighborhoods) { p in
-                            let done = p.visited == p.total
-                            VStack(spacing: 6) {
-                                HStack {
-                                    Text(p.neighborhood + (done ? " 👑" : ""))
-                                        .font(.scaled(14)).foregroundStyle(.white)
-                                    Spacer()
-                                    Text("\(p.visited) / \(p.total)")
-                                        .font(.scaled(12, weight: done ? .bold : .semibold))
-                                        .foregroundStyle(done ? Palette.primary : Palette.gray400)
-                                }
-                                ProgressBar(progress: Double(p.visited) / Double(p.total))
-                            }
-                            .padding(.vertical, 8)
-                        }
-                    }
-                    .padding(.leading, 16)
-                    .transition(.opacity)
-                }
+                .padding(.vertical, 12)
             }
         }
         .padding(.horizontal, 16).padding(.vertical, 4)
         .contentPanel()
     }
 
+    private enum BadgeFilter: CaseIterable { case all, earned, inProgress }
+
     private var allBadgesSheet: some View {
-        ZStack {
+        let progressById = Stats.badgeProgress(visits.visits, visits.visitedIds)
+        // Unearned countable badges with any progress, closest to done first.
+        let inProgress: [(badge: Badge, current: Int, target: Int)] = unearnedBadges
+            .compactMap { b in
+                guard let p = progressById[b.id], p.current > 0 else { return nil }
+                return (badge: b, current: p.current, target: p.target)
+            }
+            .sorted { Double($0.current) / Double($0.target) > Double($1.current) / Double($1.target) }
+        let inProgressIds = Set(inProgress.map(\.badge.id))
+        let locked = unearnedBadges.filter { !inProgressIds.contains($0.id) }
+
+        return ZStack {
             AppBackground()
             VStack(spacing: 0) {
-                HStack {
-                    Text("Badges · \(earnedBadges.count)/\(badges.badges.count) earned")
-                        .font(.scaled(18, weight: .heavy)).foregroundStyle(.white)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text("Badges").font(.scaled(18, weight: .heavy)).foregroundStyle(.white)
+                    Text("\(earnedBadges.count) of \(badges.badges.count)")
+                        .font(.scaled(13)).foregroundStyle(Palette.gray400)
                     Spacer()
                     Button { showAllBadges = false } label: {
                         Image(systemName: "xmark").font(.scaled(20)).foregroundStyle(.white)
@@ -270,12 +293,48 @@ struct StatsView: View {
                 }
                 .padding(.horizontal, 16).padding(.top, 20).padding(.bottom, 12)
 
+                HStack(spacing: 8) {
+                    filterChip("All", .all)
+                    filterChip("Earned · \(earnedBadges.count)", .earned)
+                    filterChip("In progress · \(inProgress.count)", .inProgress)
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 16).padding(.bottom, 12)
+
                 ScrollView {
-                    let progressById = Stats.badgeProgress(visits.visits, visits.visitedIds)
-                    LazyVGrid(columns: columns, spacing: 12) {
-                        ForEach(milestonesLast(earnedBadges)) { BadgeTile(badge: $0, showDate: true) }
-                        ForEach(milestonesLast(unearnedBadges)) {
-                            BadgeTile(badge: $0, progress: progressById[$0.id])
+                    VStack(alignment: .leading, spacing: 0) {
+                        if badgeFilter != .earned && !inProgress.isEmpty {
+                            sectionLabel("ALMOST THERE")
+                            VStack(spacing: 0) {
+                                let rows = badgeFilter == .all ? Array(inProgress.prefix(5)) : inProgress
+                                ForEach(Array(rows.enumerated()), id: \.element.badge.id) { i, item in
+                                    BadgeProgressRow(
+                                        badge: item.badge, current: item.current,
+                                        target: item.target, delay: Double(i) * 0.06)
+                                }
+                            }
+                            .padding(.horizontal, 16).padding(.vertical, 6)
+                            .contentPanel()
+                            .padding(.bottom, 20)
+                        }
+
+                        if badgeFilter != .inProgress && !earnedBadges.isEmpty {
+                            sectionLabel("EARNED")
+                            LazyVGrid(columns: columns, spacing: 12) {
+                                ForEach(milestonesLast(earnedBadges)) {
+                                    BadgeTile(badge: $0, showDate: true, showDescription: false)
+                                }
+                            }
+                            .padding(.bottom, 20)
+                        }
+
+                        if badgeFilter == .all && !locked.isEmpty {
+                            sectionLabel("MORE BADGES")
+                            LazyVGrid(columns: columns, spacing: 12) {
+                                ForEach(milestonesLast(locked)) {
+                                    BadgeTile(badge: $0, progress: progressById[$0.id])
+                                }
+                            }
                         }
                     }
                     .padding(16)
@@ -283,5 +342,29 @@ struct StatsView: View {
                 }
             }
         }
+    }
+
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text).font(.scaled(12)).tracking(0.8)
+            .foregroundStyle(Palette.gray400)
+            .padding(.bottom, 8)
+    }
+
+    private func filterChip(_ label: String, _ value: BadgeFilter) -> some View {
+        let active = badgeFilter == value
+        return Button {
+            withAnimation(Anim.chip) { badgeFilter = value }
+            Haptics.selection()
+        } label: {
+            Text(label)
+                .font(.scaled(13, weight: .semibold))
+                .foregroundStyle(active ? .white : Palette.gray300)
+                .padding(.horizontal, 14).padding(.vertical, 7)
+                .background(Capsule().fill(active ? Palette.primary : Color.white.opacity(0.08)))
+                .overlay {
+                    if !active { Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 1) }
+                }
+        }
+        .buttonStyle(PressableScale())
     }
 }

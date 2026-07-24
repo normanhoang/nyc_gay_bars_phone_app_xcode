@@ -5,6 +5,7 @@ import SwiftUI
 struct ProgressBar: View {
     var progress: Double
     var delay: Double = 0
+    var height: CGFloat = 8
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var w: Double = 0
@@ -20,7 +21,7 @@ struct ProgressBar: View {
                     .frame(width: geo.size.width * max(0, min(1, w)))
             }
         }
-        .frame(height: 8)
+        .frame(height: height)
         .onAppear {
             if reduceMotion { w = progress; return }
             withAnimation(Anim.progress.delay(delay)) { w = progress }

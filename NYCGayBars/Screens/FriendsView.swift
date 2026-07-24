@@ -49,7 +49,7 @@ struct FriendsView: View {
         // dropped. Auto-cancels when the active page changes; keyed on
         // onboarded too so finishing onboarding on-tab starts the poll.
         .task(id: "\(tabSwipe.page)-\(social.onboarded)") {
-            guard tabSwipe.page == 3, social.onboarded else { return }
+            guard tabSwipe.page == .friends, social.onboarded else { return }
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 12_000_000_000)
                 if Task.isCancelled { break }
@@ -59,7 +59,7 @@ struct FriendsView: View {
         .onChange(of: tabSwipe.page) { _, p in
             // Reset scroll once this page goes offscreen so the next visit
             // always starts at the top; refresh when swiped back in.
-            if p != 3 {
+            if p != .friends {
                 scrollPos.scrollTo(edge: .top)
             } else if social.onboarded {
                 Task { await social.refresh() }
@@ -97,14 +97,19 @@ struct FriendsView: View {
     private var onboarding: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Friends").font(.scaled(30, weight: .heavy)).foregroundStyle(.white)
+                Text("Friends").font(.scaled(22, weight: .heavy)).foregroundStyle(.white)
                     .padding(.bottom, 16)
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("See when your friends are out")
                         .font(.scaled(18, weight: .bold)).foregroundStyle(.white)
-                    Text("Add friends with a private code — no accounts, no directory. When you tap “Share with friends” at a bar, it shows up in their Tonight feed — no notifications. Nothing is shared unless you tap it, and check-ins disappear after a few hours.")
-                        .font(.scaled(14)).foregroundStyle(Palette.gray300)
+
+                    valueProp("qrcode", "Private code, no accounts",
+                              "Add friends with a code or QR — there's no directory to be found in.")
+                    valueProp("wineglass", "Share only when you tap",
+                              "Logging drinks never notifies anyone — “Share with friends” is its own button.")
+                    valueProp("clock.arrow.circlepath", "Check-ins expire",
+                              "Friends see them for 6 hours; they're deleted after 24.")
 
                     Text("PICK A DISPLAY NAME").font(.scaled(12)).tracking(0.5)
                         .foregroundStyle(Palette.gray300).padding(.top, 8)
@@ -116,7 +121,8 @@ struct FriendsView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
                         .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.white.opacity(0.06)))
-                        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(focusedField == .name ? Palette.primary.opacity(0.6) : Color.white.opacity(0.10), lineWidth: 1))
 
                     Button {
                         let name = nameDraft
@@ -130,6 +136,7 @@ struct FriendsView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
                             .background(Capsule().fill(Palette.primary.opacity(startDisabled ? 0.4 : 1)))
+                            .shadow(color: startDisabled ? .clear : Palette.primary.opacity(0.45), radius: 10, y: 2)
                     }
                     .buttonStyle(.plain)
                     .disabled(startDisabled)
@@ -154,6 +161,25 @@ struct FriendsView: View {
         .onTapGesture { focusedField = nil }
     }
 
+    /// Icon-tile value-prop row for onboarding (redesign 6c).
+    private func valueProp(_ icon: String, _ title: String, _ body: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.scaled(16, weight: .semibold))
+                .foregroundStyle(Palette.primary)
+                .frame(width: 36, height: 36)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Palette.primary.opacity(0.15)))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(Palette.primary.opacity(0.3), lineWidth: 1))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.scaled(14, weight: .semibold)).foregroundStyle(.white)
+                Text(body).font(.scaled(13)).foregroundStyle(Palette.gray400)
+            }
+        }
+        .padding(.top, 4)
+    }
+
     private var startDisabled: Bool {
         social.busy || nameDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
@@ -164,7 +190,7 @@ struct FriendsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Text("Friends").font(.scaled(30, weight: .heavy)).foregroundStyle(.white)
+                    Text("Friends").font(.scaled(22, weight: .heavy)).foregroundStyle(.white)
                     Spacer()
                     Button {
                         Haptics.light()
@@ -173,9 +199,9 @@ struct FriendsView: View {
                         showAddSheet = true
                     } label: {
                         Image(systemName: "person.badge.plus")
-                            .font(.scaled(18, weight: .semibold)).foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
-                            .glassSurface(radius: 22)
+                            .font(.scaled(16, weight: .semibold)).foregroundStyle(.white)
+                            .frame(width: 36, height: 36)
+                            .glassSurface(radius: 12, bordered: true)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("My code and add a friend")
@@ -189,35 +215,40 @@ struct FriendsView: View {
                     infoBanner(info).padding(.bottom, 12)
                 }
 
-                sectionTitle("TONIGHT")
-                tonightSection.padding(.bottom, 20)
-
                 if !social.incomingRequests.isEmpty {
-                    sectionTitle("REQUESTS")
                     VStack(spacing: 8) {
-                        ForEach(social.incomingRequests) { requestRow($0) }
+                        ForEach(social.incomingRequests) { requestBanner($0) }
                     }
                     .padding(.bottom, 20)
                 }
 
-                if !social.friends.isEmpty {
-                    HStack {
-                        sectionTitle("GROUPS")
-                        Spacer()
-                        Button {
-                            groupNameDraft = ""
-                            showNewGroup = true
-                        } label: {
-                            Image(systemName: "plus")
-                                .font(.scaled(13, weight: .bold)).foregroundStyle(Palette.primary)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("New group")
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Tonight").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
+                    Spacer()
+                    if !social.tonight.isEmpty {
+                        let n = Set(social.tonight.map(\.authorID)).count
+                        Text("\(n) friend\(n == 1 ? "" : "s") out")
+                            .font(.scaled(12)).foregroundStyle(Palette.gray400)
                     }
+                }
+                .padding(.bottom, 8)
+                tonightSection.padding(.bottom, 20)
+
+                if !social.friends.isEmpty {
+                    Text("Groups").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
+                        .padding(.bottom, 8)
                     groupsSection.padding(.bottom, 20)
                 }
 
-                sectionTitle("YOUR FRIENDS")
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Your friends").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
+                    Spacer()
+                    if !social.friends.isEmpty {
+                        Text("\(social.friends.count)")
+                            .font(.scaled(12)).foregroundStyle(Palette.gray400)
+                    }
+                }
+                .padding(.bottom, 8)
                 friendsSection
 
                 Text("Check-ins share only your display name and the bar. Friends see them for 6 hours; they're deleted after 24.")
@@ -268,64 +299,72 @@ struct FriendsView: View {
 
     // MARK: Groups
 
+    /// Groups as chips: tap edits members, long-press menu for sharing toggle,
+    /// rename and delete (redesign 4a).
     private var groupsSection: some View {
-        Group {
-            if social.prefs.groups.isEmpty {
-                Text("Create a group to toggle several friends' check-ins at once.")
-                    .font(.scaled(14)).foregroundStyle(Palette.gray400)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .contentPanel()
-            } else {
-                VStack(spacing: 8) {
-                    ForEach(social.prefs.groups) { groupRow($0) }
+        FlowLayout(spacing: 8) {
+            ForEach(social.prefs.groups) { groupChip($0) }
+            Button {
+                groupNameDraft = ""
+                showNewGroup = true
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "plus").font(.scaled(12, weight: .semibold))
+                    Text("New").font(.scaled(13, weight: .semibold))
                 }
+                .foregroundStyle(Palette.primary)
+                .padding(.horizontal, 14).padding(.vertical, 8)
+                .overlay(Capsule().strokeBorder(Palette.primary.opacity(0.5),
+                                                style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
             }
+            .buttonStyle(PressableScale())
+            .accessibilityLabel("New group")
         }
     }
 
-    private func groupRow(_ group: FriendGroup) -> some View {
+    private func groupChip(_ group: FriendGroup) -> some View {
         let sends = social.prefs.groupSends(group)
         let gets = social.prefs.groupGets(group)
-        return HStack(spacing: 0) {
-            Button {
-                editMembersGroup = group
-            } label: {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(group.name).font(.scaled(15, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
-                    Text("\(group.members.count) friend\(group.members.count == 1 ? "" : "s")")
-                        .font(.scaled(12)).foregroundStyle(Palette.gray400)
-                }
-                .contentShape(Rectangle())
+        return Button {
+            editMembersGroup = group
+        } label: {
+            HStack(spacing: 6) {
+                Text(group.name).font(.scaled(13, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                Text("\(group.members.count)")
+                    .font(.scaled(11, weight: .semibold)).foregroundStyle(Palette.gray400)
+                    .frame(minWidth: 18, minHeight: 18)
+                    .background(Circle().fill(Color.white.opacity(0.10)))
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Edit members of \(group.name)")
-            Spacer(minLength: 8)
-            prefToggle(on: sends, onIcon: "paperplane.fill", offIcon: "paperplane",
-                       label: "Send your check-ins to everyone in \(group.name): \(sends ? "on" : "off")") {
+            .padding(.horizontal, 12).padding(.vertical, 7)
+            .background(Capsule().fill(Color.white.opacity(0.08)))
+            .overlay(Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
+        }
+        .buttonStyle(PressableScale())
+        .accessibilityLabel("Edit members of \(group.name)")
+        .contextMenu {
+            Button {
                 social.setGroupSend(group, on: !sends)
+            } label: {
+                Label(sends ? "Stop sharing check-ins" : "Share check-ins",
+                      systemImage: sends ? "paperplane" : "paperplane.fill")
             }
             .disabled(group.members.isEmpty)
             if Social.checkInPushEnabled {
-                prefToggle(on: gets, onIcon: "bell.fill", offIcon: "bell.slash",
-                           label: "Get notified about everyone in \(group.name): \(gets ? "on" : "off")") {
+                Button {
                     Task { await social.setGroupGet(group, on: !gets) }
+                } label: {
+                    Label(gets ? "Mute notifications" : "Notify me",
+                          systemImage: gets ? "bell.slash" : "bell.fill")
                 }
                 .disabled(group.members.isEmpty)
             }
-            Menu {
-                Button { groupNameDraft = group.name; renameGroupTarget = group } label: { Label("Rename", systemImage: "pencil") }
-                Button(role: .destructive) { deleteGroupTarget = group } label: { Label("Delete", systemImage: "trash") }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.scaled(14, weight: .semibold)).foregroundStyle(Palette.gray400)
-                    .frame(width: 36, height: 36).contentShape(Rectangle())
+            Button { groupNameDraft = group.name; renameGroupTarget = group } label: {
+                Label("Rename", systemImage: "pencil")
             }
-            .accessibilityLabel("\(group.name) options")
+            Button(role: .destructive) { deleteGroupTarget = group } label: {
+                Label("Delete", systemImage: "trash")
+            }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .contentPanel(radius: 16)
     }
 
     private func membersSheet(_ group: FriendGroup) -> some View {
@@ -440,40 +479,77 @@ struct FriendsView: View {
                     .padding(16)
                     .contentPanel()
             } else {
-                // Periodic timeline so "5 minutes ago" keeps ticking while
-                // the page is visible.
+                // Periodic timeline so ages and the "Now" dot keep ticking
+                // while the page is visible.
                 TimelineView(.periodic(from: .now, by: 60)) { context in
                     VStack(spacing: 8) {
-                        ForEach(social.tonight) { checkIn in
-                            Button {
-                                if let bar = AppData.barsById[checkIn.barId] { selectedBar = bar }
-                            } label: {
-                                HStack(spacing: 12) {
-                                    Text("🍸").font(.scaled(22))
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("\(checkIn.authorName) is at \(checkIn.barName)")
-                                            .font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
-                                            .multilineTextAlignment(.leading)
-                                        Text(Self.relativeTime.localizedString(for: checkIn.date, relativeTo: context.date))
-                                            .font(.scaled(12)).foregroundStyle(Palette.gray400)
-                                    }
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.scaled(12, weight: .semibold)).foregroundStyle(Palette.gray500)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
-                                .contentPanel(radius: 16)
-                            }
-                            .buttonStyle(PressableScale())
-                        }
+                        ForEach(social.tonight) { tonightCard($0, now: context.date) }
                     }
                 }
             }
         }
     }
 
-    private static let relativeTime = RelativeDateTimeFormatter()
+    /// Rich Tonight card: avatar, live dot, bar · neighborhood · age, Map chip
+    /// that frames the bar on the Explore map (redesign 4a).
+    private func tonightCard(_ checkIn: FriendCheckIn, now: Date) -> some View {
+        let minutes = max(0, Int(now.timeIntervalSince(checkIn.date) / 60))
+        let age = minutes < 60 ? "\(minutes) min" : "\(minutes / 60) h"
+        let neighborhood = AppData.barsById[checkIn.barId]?.neighborhood
+        return Button {
+            if let bar = AppData.barsById[checkIn.barId] { selectedBar = bar }
+        } label: {
+            HStack(spacing: 12) {
+                avatar(checkIn.authorName, size: 40)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 5) {
+                        Text(checkIn.authorName)
+                            .font(.scaled(15, weight: .bold)).foregroundStyle(.white)
+                            .lineLimit(1)
+                        if minutes < 15 {
+                            Circle().fill(Palette.green).frame(width: 6, height: 6)
+                            Text("Now").font(.scaled(11, weight: .semibold)).foregroundStyle(Palette.green)
+                        }
+                    }
+                    (Text(checkIn.barName).foregroundStyle(Palette.gray300)
+                        + Text(neighborhood.map { " · \($0)" } ?? "").foregroundStyle(Palette.primary)
+                        + Text(" · \(age)").foregroundStyle(Palette.gray400))
+                        .font(.scaled(13))
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 8)
+                Button {
+                    Haptics.light()
+                    tabSwipe.mapTarget = checkIn.barId
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "mappin.circle.fill").font(.scaled(12))
+                        Text("Map").font(.scaled(13, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12).padding(.vertical, 7)
+                    .background(Capsule().fill(Color.white.opacity(0.08)))
+                    .overlay(Capsule().strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
+                }
+                .buttonStyle(PressableScale())
+                .accessibilityLabel("Show \(checkIn.barName) on the map")
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .glassSurface(radius: 16, bordered: true)
+        }
+        .buttonStyle(PressableScale())
+    }
+
+    /// Gradient initial avatar (redesign 4a).
+    private func avatar(_ name: String, size: CGFloat) -> some View {
+        Text(String(name.prefix(1)).uppercased())
+            .font(.scaled(size * 0.4, weight: .bold)).foregroundStyle(.white)
+            .frame(width: size, height: size)
+            .background(Circle().fill(LinearGradient(
+                colors: [Palette.primary, Palette.violet],
+                startPoint: .topLeading, endPoint: .bottomTrailing)))
+    }
 
     // MARK: My code + add friend sheet
 
@@ -618,13 +694,14 @@ struct FriendsView: View {
 
     // MARK: Requests
 
-    private func requestRow(_ request: FriendRequestItem) -> some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(request.fromName).font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
-                Text("wants to be friends").font(.scaled(12)).foregroundStyle(Palette.gray400)
-            }
-            Spacer()
+    /// Primary-tinted request banner at the top of the screen (redesign 4a).
+    private func requestBanner(_ request: FriendRequestItem) -> some View {
+        HStack(spacing: 10) {
+            (Text(request.fromName).fontWeight(.bold)
+                + Text(" wants to be friends"))
+                .font(.scaled(14)).foregroundStyle(.white)
+                .lineLimit(2)
+            Spacer(minLength: 8)
             Button {
                 Haptics.success()
                 Task { await social.accept(request) }
@@ -633,21 +710,22 @@ struct FriendsView: View {
                     .padding(.horizontal, 16).padding(.vertical, 8)
                     .background(Capsule().fill(Palette.primary))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PressableScale())
             Button {
                 social.ignore(request)
             } label: {
                 Image(systemName: "xmark")
-                    .font(.scaled(14, weight: .semibold)).foregroundStyle(Palette.gray400)
-                    .frame(width: 36, height: 36)
-                    .background(Circle().fill(Color.white.opacity(0.08)))
+                    .font(.scaled(13, weight: .semibold)).foregroundStyle(Palette.gray300)
+                    .frame(width: 30, height: 30)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Ignore request from \(request.fromName)")
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .contentPanel(radius: 16)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Palette.primary.opacity(0.15)))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Palette.primary.opacity(0.3), lineWidth: 1))
     }
 
     // MARK: Friends list
@@ -664,8 +742,8 @@ struct FriendsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(social.friends) { friendRow($0) }
                     Text(Social.checkInPushEnabled
-                         ? "Paper plane: they get your check-ins. Bell: their check-ins notify you."
-                         : "Paper plane: they see your check-ins in their Tonight feed.")
+                         ? "Sharing: they get your check-ins. Bell: their check-ins notify you."
+                         : "Sharing: they see your check-ins in their Tonight feed.")
                         .font(.scaled(12)).foregroundStyle(Palette.gray500)
                         .padding(.top, 4)
                 }
@@ -675,30 +753,50 @@ struct FriendsView: View {
 
     private func friendRow(_ friend: FriendProfile) -> some View {
         let inGroups = social.prefs.groups.filter { $0.members.contains(friend.id) }
-        return HStack(spacing: 0) {
+        let sharing = social.prefs.sendsTo(friend.id)
+        return HStack(spacing: 10) {
             Button {
                 groupsForFriend = friend
             } label: {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(friend.displayName)
-                        .font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
-                        .lineLimit(1)
-                    if !inGroups.isEmpty {
-                        Text(inGroups.map(\.name).joined(separator: " · "))
-                            .font(.scaled(11)).foregroundStyle(Palette.gray400)
+                HStack(spacing: 10) {
+                    avatar(friend.displayName, size: 34)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(friend.displayName)
+                            .font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
                             .lineLimit(1)
+                        if !inGroups.isEmpty {
+                            Text(inGroups.map(\.name).joined(separator: " · "))
+                                .font(.scaled(11)).foregroundStyle(Palette.gray400)
+                                .lineLimit(1)
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("\(friend.displayName), show groups")
-            Spacer(minLength: 8)
-            prefToggle(on: social.prefs.sendsTo(friend.id),
-                       onIcon: "paperplane.fill", offIcon: "paperplane",
-                       label: "Send your check-ins to \(friend.displayName): \(social.prefs.sendsTo(friend.id) ? "on" : "off")") {
+
+            // Labeled sharing chip in place of the paperplane icon toggle.
+            Button {
+                Haptics.light()
                 social.toggleSend(friend)
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: sharing ? "paperplane.fill" : "paperplane")
+                        .font(.scaled(11, weight: .semibold))
+                    Text(sharing ? "Sharing" : "Not sharing")
+                        .font(.scaled(12, weight: .semibold))
+                }
+                .foregroundStyle(sharing ? Palette.primary : Palette.gray400)
+                .padding(.horizontal, 12).padding(.vertical, 6)
+                .background(Capsule().fill(sharing ? Palette.primary.opacity(0.15) : Color.white.opacity(0.06)))
+                .overlay(Capsule().strokeBorder(
+                    sharing ? Palette.primary.opacity(0.4) : Color.white.opacity(0.12), lineWidth: 1))
             }
+            .buttonStyle(PressableScale())
+            .accessibilityLabel("Send your check-ins to \(friend.displayName): \(sharing ? "on" : "off")")
+
             // Bell controls check-in push subscriptions — hidden while check-in
             // pushes are disabled (Social.checkInPushEnabled) since it's inert.
             if Social.checkInPushEnabled {
@@ -708,20 +806,24 @@ struct FriendsView: View {
                     Task { await social.toggleGet(friend) }
                 }
             }
-            Button {
-                removeTarget = friend
-                showRemoveConfirm = true
+
+            Menu {
+                Button(role: .destructive) {
+                    removeTarget = friend
+                    showRemoveConfirm = true
+                } label: {
+                    Label("Remove friend", systemImage: "person.fill.xmark")
+                }
             } label: {
-                Image(systemName: "person.fill.xmark")
-                    .font(.scaled(14)).foregroundStyle(Palette.gray500)
-                    .frame(width: 36, height: 36)
+                Image(systemName: "ellipsis")
+                    .font(.scaled(13, weight: .semibold)).foregroundStyle(Palette.gray400)
+                    .frame(width: 30, height: 30)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Remove \(friend.displayName)")
+            .accessibilityLabel("\(friend.displayName) options")
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .contentPanel(radius: 16)
     }
 

@@ -6,14 +6,18 @@ import SwiftUI
 /// page can reset its vertical scroll once it goes offscreen.
 final class TabSwipe: ObservableObject {
     @Published var enabled = true
-    @Published var page = 0
+    @Published var page: Page = .explore
     /// Bumped each time the Explore tab button is tapped (even when already on
     /// Explore) so ExploreView can reset its filter to "All".
     @Published var exploreResetTick = 0
+    /// Bar id to frame on the Explore map (Tonight "Map" chip). RootTabView
+    /// switches tabs on it; ExploreView consumes it and resets it to nil.
+    @Published var mapTarget: String?
 }
 
-/// Root shell: three swipeable pages with a floating glass pill tab bar, plus
-/// the global badge-unlock toast. Mirrors RN app/(tabs)/_layout.tsx.
+/// Root shell: four swipeable pages with a floating glass pill tab bar, plus
+/// the global badge-unlock toast. Order comes from `Page`. Mirrors RN
+/// app/(tabs)/_layout.tsx.
 struct RootTabView: View {
     @EnvironmentObject var visits: VisitsStore
     @EnvironmentObject var badges: BadgesStore
@@ -22,34 +26,27 @@ struct RootTabView: View {
     @StateObject private var tabSwipe = TabSwipe()
     @Namespace private var tabNS
 
-    @State private var page: Int? = 0
-    @State private var pillPage: Int = 0
+    @State private var page: Page? = .explore
+    @State private var pillPage: Page = .explore
     /// Bar opened from a tapped friend check-in notification.
     @State private var deepLinkBar: Bar?
-
-    private let tabs: [(icon: String, label: String)] = [
-        ("wineglass.fill", "Explore"),
-        ("chart.bar.fill", "Stats"),
-        ("calendar", "History"),
-        ("person.2.fill", "Friends"),
-    ]
 
     var body: some View {
         ZStack(alignment: .bottom) {
             ScrollView(.horizontal) {
                 HStack(spacing: 0) {
-                    ExploreView().containerRelativeFrame(.horizontal).id(0)
-                    StatsView().containerRelativeFrame(.horizontal).id(1)
-                    HistoryView().containerRelativeFrame(.horizontal).id(2)
-                    FriendsView().containerRelativeFrame(.horizontal).id(3)
+                    ExploreView().containerRelativeFrame(.horizontal).id(Page.explore)
+                    FriendsView().containerRelativeFrame(.horizontal).id(Page.friends)
+                    StatsView().containerRelativeFrame(.horizontal).id(Page.stats)
+                    HistoryView().containerRelativeFrame(.horizontal).id(Page.history)
                 }
                 .scrollTargetLayout()
             }
             .scrollTargetBehavior(.paging)
             .scrollPosition(id: $page)
-            // Only Explore (page 0) in map mode blocks the pager; Stats/History
-            // stay swipeable regardless.
-            .scrollDisabled(current == 0 && !tabSwipe.enabled)
+            // Only Explore in map mode blocks the pager; the other pages stay
+            // swipeable regardless.
+            .scrollDisabled(current == .explore && !tabSwipe.enabled)
             .scrollIndicators(.hidden)
             .ignoresSafeArea(.keyboard)
             .onChange(of: page) { _, newPage in
@@ -93,17 +90,24 @@ struct RootTabView: View {
         // Add-friend link/QR: land the user on the Friends tab so they see
         // the auto-sent request (or onboarding, if not set up yet).
         .onChange(of: social.pendingAddCode) { _, code in
-            guard code != nil, pillPage != 3 else { return }
-            withAnimation(.snappy(duration: 0.18)) { pillPage = 3 }
-            page = 3
+            guard code != nil, pillPage != .friends else { return }
+            withAnimation(.snappy(duration: 0.18)) { pillPage = .friends }
+            page = .friends
+        }
+        // Tonight "Map" chip: land on Explore (map mode), where ExploreView
+        // consumes the target and frames the bar.
+        .onChange(of: tabSwipe.mapTarget) { _, target in
+            guard target != nil, pillPage != .explore else { return }
+            withAnimation(.snappy(duration: 0.18)) { pillPage = .explore }
+            page = .explore
         }
         // Tapping a friend-request notification lands on the Friends tab, where
         // the Accept row is shown from the push payload.
         .onChange(of: social.focusFriendsTab) { _, focus in
             guard focus else { return }
-            if pillPage != 3 {
-                withAnimation(.snappy(duration: 0.18)) { pillPage = 3 }
-                page = 3
+            if pillPage != .friends {
+                withAnimation(.snappy(duration: 0.18)) { pillPage = .friends }
+                page = .friends
             }
             social.focusFriendsTab = false
         }
@@ -128,23 +132,23 @@ struct RootTabView: View {
         badges.reconcile(visits: visits.visits, visitedIds: visits.visitedIds)
     }
 
-    private var current: Int { page ?? 0 }
+    private var current: Page { page ?? .explore }
 
     // Full-width segmented bar. pillPage drives the active highlight independently
     // from page so tap is instant and swipe gets the bouncy spring (via onChange).
     private var tabBar: some View {
         HStack(spacing: 0) {
-            ForEach(Array(tabs.enumerated()), id: \.offset) { i, tab in
-                let active = pillPage == i
+            ForEach(Page.allCases, id: \.self) { tab in
+                let active = pillPage == tab
                 Button {
                     // Tapping Explore always resets its filter to All, even when
                     // already on Explore (page won't change, so signal via tick).
-                    if i == 0 { tabSwipe.exploreResetTick += 1 }
+                    if tab == .explore { tabSwipe.exploreResetTick += 1 }
                     // Snappy (not bouncy) so the move feels instant on tap yet
                     // still rides an animation transaction — without one the
                     // matched-geometry pill is removed+reinserted and flashes.
-                    withAnimation(.snappy(duration: 0.18)) { pillPage = i }
-                    page = i
+                    withAnimation(.snappy(duration: 0.18)) { pillPage = tab }
+                    page = tab
                 } label: {
                     VStack(spacing: 3) {
                         Image(systemName: tab.icon).font(.scaled(15, weight: .semibold))

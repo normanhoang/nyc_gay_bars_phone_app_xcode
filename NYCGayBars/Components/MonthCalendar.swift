@@ -1,11 +1,11 @@
 import SwiftUI
 
 /// Month grid for the History screen. Selected day is a primary circle, today
-/// gets a ring, days with visits get a dot, future days are dimmed. Port of RN
-/// components/MonthCalendar.tsx.
+/// gets a ring, days with visits get a dot scaled to the night's size, future
+/// days are dimmed. A bottom strip summarizes the shown month.
 struct MonthCalendar: View {
     @Binding var selected: String          // dayKey "y-m-d" (month 0-indexed)
-    let markedDays: Set<String>            // dayKeys with visits
+    let dayTotals: [String: Int]           // dayKey → drink total (0 = check-in only)
 
     @State private var month: Int = 0      // 0-indexed
     @State private var year: Int = 2026
@@ -73,10 +73,37 @@ struct MonthCalendar: View {
                     }
                 }
             }
+
+            monthSummary
         }
         .padding(16)
         .contentPanel()
         .onAppear(perform: syncToSelected)
+    }
+
+    /// Bottom strip: shown month's totals + dot-size legend (redesign 5a).
+    private var monthSummary: some View {
+        let monthKeys = dayTotals.keys.filter { $0.hasPrefix("\(year)-\(month)-") }
+        let days = monthKeys.count
+        let drinks = monthKeys.reduce(0) { $0 + (dayTotals[$1] ?? 0) }
+        let name = DateFormatter().monthSymbols[month]
+        return VStack(spacing: 10) {
+            Rectangle().fill(Color.white.opacity(0.08)).frame(height: 1)
+            HStack {
+                (Text("\(name): ").foregroundStyle(Palette.gray400)
+                    + Text("\(days) drink-\(days == 1 ? "day" : "days") · \(drinks) \(drinks == 1 ? "drink" : "drinks")")
+                        .fontWeight(.semibold).foregroundStyle(Palette.gray200))
+                    .font(.scaled(12))
+                Spacer()
+                HStack(spacing: 4) {
+                    Circle().fill(Palette.primary.opacity(0.5)).frame(width: 4, height: 4)
+                    Circle().fill(Palette.primary).frame(width: 7, height: 7)
+                    Text("bigger night").font(.scaled(11)).foregroundStyle(Palette.gray500)
+                        .padding(.leading, 2)
+                }
+            }
+        }
+        .padding(.top, 4)
     }
 
     @ViewBuilder
@@ -85,7 +112,7 @@ struct MonthCalendar: View {
         let isSelected = k == selected
         let isToday = k == DayKey.key()
         let isFuture = DayKey.isFuture(k)
-        let isMarked = markedDays.contains(k)
+        let total = dayTotals[k]
 
         ZStack {
             if isSelected {
@@ -96,8 +123,13 @@ struct MonthCalendar: View {
             Text("\(day)")
                 .font(.scaled(14))
                 .foregroundStyle(isSelected ? .white : (isFuture ? Palette.gray500 : Palette.gray200))
-            if isMarked && !isSelected {
-                Circle().fill(Palette.primary).frame(width: 4, height: 4)
+            if let total, !isSelected {
+                // Dot scales with the night's size: 1 drink small/faint,
+                // a few drinks medium, big nights full-size and solid.
+                let (size, opacity): (CGFloat, Double) =
+                    total >= 4 ? (7, 1) : total >= 2 ? (5, 0.75) : (4, 0.5)
+                Circle().fill(Palette.primary.opacity(opacity))
+                    .frame(width: size, height: size)
                     .offset(y: 14)
             }
         }

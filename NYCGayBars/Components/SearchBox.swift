@@ -1,13 +1,14 @@
 import SwiftUI
 
-/// Glass search field with leading icon and a clear button. Port of RN
-/// components/SearchBox.tsx. Text edits route through `onChangeText` so the
-/// caller can intercept ZIP codes.
-struct SearchBox: View {
+/// Glass search field with leading icon, a clear button, and an optional
+/// trailing accessory (Explore's sort chip). Port of RN components/SearchBox.tsx.
+/// Text edits route through `onChangeText` so the caller can intercept ZIP codes.
+struct SearchBox<Trailing: View>: View {
     let text: String
     var placeholder: String = "Search bars, neighborhoods, ZIP…"
     var onChangeText: (String) -> Void
     var onFocus: () -> Void = {}
+    @ViewBuilder var trailing: () -> Trailing
 
     @FocusState private var focused: Bool
 
@@ -33,9 +34,18 @@ struct SearchBox: View {
                 }
                 .buttonStyle(.plain)
             }
+            trailing()
         }
         .padding(.horizontal, 12)
         .glassSurface(radius: 16, bordered: true)
         .onChange(of: focused) { _, f in if f { onFocus() } }
+    }
+}
+
+extension SearchBox where Trailing == EmptyView {
+    init(text: String, placeholder: String = "Search bars, neighborhoods, ZIP…",
+         onChangeText: @escaping (String) -> Void, onFocus: @escaping () -> Void = {}) {
+        self.init(text: text, placeholder: placeholder, onChangeText: onChangeText,
+                  onFocus: onFocus, trailing: { EmptyView() })
     }
 }

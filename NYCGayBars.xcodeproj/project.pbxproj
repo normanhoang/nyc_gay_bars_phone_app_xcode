@@ -19,6 +19,7 @@
 		32BE164ADE21AC12627961BE /* FilterChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C9AEE9C76BF3770FA4BDE5 /* FilterChips.swift */; };
 		3592D1D69FB998F6485DF5C3 /* KeyboardDismiss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F28F373FFFBF7655744414 /* KeyboardDismiss.swift */; };
 		39142DEA98095B61B604EA41 /* BarMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2DE83E5D877E615C5E7642 /* BarMapView.swift */; };
+		3976F13C4F2E4AC33CD9E57F /* BadgeProgressRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 071553DC705E470FD992DA7C /* BadgeProgressRow.swift */; };
 		3C86C12FA6FF617B331D7947 /* BadgeTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30AFBE2E59FDFCFCD7E8EA0 /* BadgeTile.swift */; };
 		3E393A67CE2AE0F06764C1B8 /* bars.json in Resources */ = {isa = PBXBuildFile; fileRef = CB21A6E691857F61F5742553 /* bars.json */; };
 		4046CF348E1325E5E9535D8C /* zips.json in Resources */ = {isa = PBXBuildFile; fileRef = 3FE82916D6F73805684F020A /* zips.json */; };
@@ -27,6 +28,7 @@
 		51481E2157A3F92847FBF6C2 /* SocialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92E808DC2F7EB11A1A91FBB /* SocialStore.swift */; };
 		5400140BF56C00B36BFBC93B /* MonthCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D138CFDDDB1016084CC6BC15 /* MonthCalendar.swift */; };
 		556C958338DE2924A6C1FC48 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69CEA7D06EDF5BB4A5D4172A /* FlowLayout.swift */; };
+		5CAAEA733B2E563658468832 /* QuickLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E20B6297E369BD96BE900E /* QuickLogSheet.swift */; };
 		6BC28F013CCF73758193F3A0 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63694E3B3DBC8B8CBAB6CE76 /* RootTabView.swift */; };
 		6D1EE76A8997E43A0182E7EF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 43624EA68687F1389FB37E10 /* PrivacyInfo.xcprivacy */; };
 		73D3419917ADDDBED31BB38B /* NYCGayBarsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C83583F518BDE62626A5E2F /* NYCGayBarsApp.swift */; };
@@ -37,6 +39,7 @@
 		8C8C99CFC2C7710674384618 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6C2ABE78BDC4816F37638D /* Palette.swift */; };
 		8D95AAEE5189C1F435D061A0 /* SocialTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C72D63535F1B99DC29902AF9 /* SocialTests.swift */; };
 		903B7A216D5A40928F73A06C /* StoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C25BD0966FC5149EA79C52E /* StoreTests.swift */; };
+		91C8D7523C4E5D0A90E3CC3F /* RecapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1C3F8CA393F03717E2B3F0 /* RecapView.swift */; };
 		952894F791F016E77CD89B3E /* Stats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A78E2C8B08CC339744833B0 /* Stats.swift */; };
 		96B2E194BADCA1E188FE4A79 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F35115961E98F3D5E04EF664 /* Localizable.strings */; };
 		99ACBAD606F83DB5712EB30F /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A489A316640E12D8D230F6B /* ProgressBar.swift */; };
@@ -44,6 +47,7 @@
 		9D69762BF9C28185C0473324 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E32EF1AC4DB4BC48297EE6 /* LocationManager.swift */; };
 		A0BF6CAA8A1B4A3C1DDF557A /* CountUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213D7A49D3A0503231D58A3A /* CountUp.swift */; };
 		A2803B9F700D02937E08D806 /* LogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B87A3106606958B3B5F2601 /* LogicTests.swift */; };
+		ABCF258231350ED7AA010B29 /* Page.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39E9BF540387EF4D64E45C98 /* Page.swift */; };
 		ABF8831B85F6EAE68F8C1479 /* SocialModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E4741C6C86AF876C868315 /* SocialModels.swift */; };
 		ADB01E5585D4CE7DECF24D53 /* BarListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0E3C68064192C81E87A4B1 /* BarListItem.swift */; };
 		B0C499F91ADB94633FF9155C /* CloudKitSocial.swift in Sources */ = {isa = PBXBuildFile; fileRef = D53F8D9D3D5041C47C3608CC /* CloudKitSocial.swift */; };
@@ -79,6 +83,7 @@
 /* Begin PBXFileReference section */
 		01D55F9E01785AD115D5B129 /* VisitCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitCard.swift; sourceTree = "<group>"; };
 		02F28F373FFFBF7655744414 /* KeyboardDismiss.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardDismiss.swift; sourceTree = "<group>"; };
+		071553DC705E470FD992DA7C /* BadgeProgressRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeProgressRow.swift; sourceTree = "<group>"; };
 		0715C93C3976A142C4727245 /* DrinkLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkLogger.swift; sourceTree = "<group>"; };
 		0A78E2C8B08CC339744833B0 /* Stats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stats.swift; sourceTree = "<group>"; };
 		0D32F0B9D8891FFCD2251FCF /* BarDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarDetailSheet.swift; sourceTree = "<group>"; };
@@ -88,6 +93,7 @@
 		213D7A49D3A0503231D58A3A /* CountUp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountUp.swift; sourceTree = "<group>"; };
 		21E4741C6C86AF876C868315 /* SocialModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialModels.swift; sourceTree = "<group>"; };
 		2B87A3106606958B3B5F2601 /* LogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicTests.swift; sourceTree = "<group>"; };
+		39E9BF540387EF4D64E45C98 /* Page.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Page.swift; sourceTree = "<group>"; };
 		3A2DE83E5D877E615C5E7642 /* BarMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarMapView.swift; sourceTree = "<group>"; };
 		3A60362DDA4AE75915EA919D /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		3A9A7174D5CE19C0673CCAAF /* AppBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBackground.swift; sourceTree = "<group>"; };
@@ -98,6 +104,7 @@
 		4941C8CD27CD9439FEDAA200 /* NYCGayBars.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NYCGayBars.entitlements; sourceTree = "<group>"; };
 		4A489A316640E12D8D230F6B /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBar.swift; sourceTree = "<group>"; };
 		4A6C2ABE78BDC4816F37638D /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
+		4C1C3F8CA393F03717E2B3F0 /* RecapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecapView.swift; sourceTree = "<group>"; };
 		555933B060A09C51E958783F /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
 		62E5EE1326FD313C1BAF4F87 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		63694E3B3DBC8B8CBAB6CE76 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
@@ -131,6 +138,7 @@
 		D238B7F76F5A764AEDDAF032 /* ConfirmDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmDialog.swift; sourceTree = "<group>"; };
 		D4D914076E4525196618332F /* meta.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = meta.json; sourceTree = "<group>"; };
 		D53F8D9D3D5041C47C3608CC /* CloudKitSocial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSocial.swift; sourceTree = "<group>"; };
+		D5E20B6297E369BD96BE900E /* QuickLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLogSheet.swift; sourceTree = "<group>"; };
 		D69382DB16334001E4E16A08 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DCD591C8B681CE1D3C9D0D81 /* DayKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayKey.swift; sourceTree = "<group>"; };
 		E30AFBE2E59FDFCFCD7E8EA0 /* BadgeTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeTile.swift; sourceTree = "<group>"; };
@@ -191,6 +199,8 @@
 				745F2200D91FA91FED20C99C /* FriendsView.swift */,
 				D69382DB16334001E4E16A08 /* HistoryView.swift */,
 				9111D5F236C2420820A109B5 /* LogDayPicker.swift */,
+				D5E20B6297E369BD96BE900E /* QuickLogSheet.swift */,
+				4C1C3F8CA393F03717E2B3F0 /* RecapView.swift */,
 				63694E3B3DBC8B8CBAB6CE76 /* RootTabView.swift */,
 				62E5EE1326FD313C1BAF4F87 /* StatsView.swift */,
 			);
@@ -258,6 +268,7 @@
 		F212EC41F8D5CDD465044BDC /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				071553DC705E470FD992DA7C /* BadgeProgressRow.swift */,
 				E30AFBE2E59FDFCFCD7E8EA0 /* BadgeTile.swift */,
 				B5AB110A7AC0A69A887C6B98 /* BadgeToast.swift */,
 				7C0E3C68064192C81E87A4B1 /* BarListItem.swift */,
@@ -297,6 +308,7 @@
 				DCD591C8B681CE1D3C9D0D81 /* DayKey.swift */,
 				BF80EE4FDD07B59D62F75213 /* Drinks.swift */,
 				417A49560F9ECD23C5C0E133 /* Geo.swift */,
+				39E9BF540387EF4D64E45C98 /* Page.swift */,
 				F603597EF494CA7A027648CE /* Social.swift */,
 				0A78E2C8B08CC339744833B0 /* Stats.swift */,
 				A33F5686C61BE3EC9DA41BC0 /* ZipQuery.swift */,
@@ -416,6 +428,7 @@
 			files = (
 				D9A27629E5EA8050FFF79953 /* AppBackground.swift in Sources */,
 				D8E1A93AA5D46F0A7E71DAE2 /* AppData.swift in Sources */,
+				3976F13C4F2E4AC33CD9E57F /* BadgeProgressRow.swift in Sources */,
 				3C86C12FA6FF617B331D7947 /* BadgeTile.swift in Sources */,
 				8907AE4B0E8FA23D18F9E6C6 /* BadgeToast.swift in Sources */,
 				E6BD532D4EFD3956D33D886B /* BadgesStore.swift in Sources */,
@@ -444,9 +457,12 @@
 				5400140BF56C00B36BFBC93B /* MonthCalendar.swift in Sources */,
 				D883DE355DB05E691C89AC5D /* Motion.swift in Sources */,
 				73D3419917ADDDBED31BB38B /* NYCGayBarsApp.swift in Sources */,
+				ABCF258231350ED7AA010B29 /* Page.swift in Sources */,
 				8C8C99CFC2C7710674384618 /* Palette.swift in Sources */,
 				99ACBAD606F83DB5712EB30F /* ProgressBar.swift in Sources */,
 				FB93973E274954B19D3BD00D /* QRCode.swift in Sources */,
+				5CAAEA733B2E563658468832 /* QuickLogSheet.swift in Sources */,
+				91C8D7523C4E5D0A90E3CC3F /* RecapView.swift in Sources */,
 				6BC28F013CCF73758193F3A0 /* RootTabView.swift in Sources */,
 				D1198B08BF67143233BA5E3B /* SearchBox.swift in Sources */,
 				1851EEDD1913443CF27669F0 /* SegmentedToggle.swift in Sources */,
@@ -591,7 +607,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 14;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = DZRPJF9JB6;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -605,7 +621,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -651,7 +667,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 14;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = DZRPJF9JB6;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -671,7 +687,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
