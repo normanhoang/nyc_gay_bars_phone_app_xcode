@@ -380,6 +380,9 @@ private struct InstagramGlyph: View {
             outline(lineWidth: max(size * 0.04, 1.2), color: .white.opacity(0.35))
         }
         .frame(width: size, height: size)
+        // The base is Color.clear (non-hit-testable), so without this the
+        // enclosing button only registers taps on the thin outline strokes.
+        .contentShape(Rectangle())
     }
 
     private func outline(lineWidth: CGFloat, color: Color) -> some View {
