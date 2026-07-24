@@ -38,55 +38,33 @@ struct BarDetailSheet: View {
                         Text(bar.name)
                             .font(.scaled(24, weight: .heavy))
                             .foregroundStyle(.white)
-                        Text(bar.neighborhood)
-                            .font(.scaled(14, weight: .semibold))
-                            .foregroundStyle(Palette.primary)
-                            .padding(.top, 4)
-
-                        if let tags = bar.tags, !tags.isEmpty {
-                            FlowLayout(spacing: 8) {
-                                ForEach(tags, id: \.self) { tag in
-                                    Text(tag)
-                                        .font(.scaled(12, weight: .medium))
-                                        .foregroundStyle(Palette.gray300)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 4)
-                                        .background(Capsule().fill(Color.white.opacity(0.08)))
-                                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
-                                }
-                            }
-                            .padding(.top, 8)
-                        }
-
-                        Button { showDirections = true } label: {
-                            HStack(alignment: .top, spacing: 4) {
-                                Image(systemName: "location").font(.scaled(14))
-                                    .foregroundStyle(Palette.gray400)
-                                Text(bar.address).font(.scaled(14)).foregroundStyle(Palette.gray400)
-                                Spacer(minLength: 0)
-                            }
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.top, 8)
+                        metaLine.padding(.top, 4)
 
                         if let desc = bar.description, !desc.isEmpty {
                             Text(desc).font(.scaled(14)).foregroundStyle(Palette.gray300)
                                 .padding(.top, 12)
                         }
 
-                        visitedToggle.padding(.top, 20)
-                        // Presence broadcast is a deliberate, separate action —
-                        // logging drinks never notifies anyone. Hidden until at
-                        // least one friend is send-enabled (and hides again at 0).
-                        if social.canShareCheckIns && isTargetToday {
-                            shareWithFriends.padding(.top, 12)
+                        actionRow.padding(.top, 16)
+                        if let shareError {
+                            Text(shareError).font(.scaled(12)).foregroundStyle(Palette.gray400)
+                                .padding(.top, 6)
                         }
-                        drinkCountBox.padding(.vertical, 16)
 
-                        Text("Log a drink")
-                            .font(.scaled(16, weight: .bold))
-                            .foregroundStyle(.white)
-                            .padding(.bottom, 12)
+                        HStack(alignment: .firstTextBaseline) {
+                            Text("Log a drink")
+                                .font(.scaled(16, weight: .bold))
+                                .foregroundStyle(.white)
+                            Spacer()
+                            HStack(spacing: 4) {
+                                Text(isTargetToday ? "Tonight:" : "This day:")
+                                    .font(.scaled(13)).foregroundStyle(Palette.gray400)
+                                CountUp(value: total, font: .scaled(16, weight: .heavy), color: Palette.primary)
+                                Text("🍹").font(.scaled(13))
+                            }
+                        }
+                        .padding(.top, 20)
+                        .padding(.bottom, 12)
                         DrinkLogger(
                             visit: visit,
                             onLog: { visits.logDrink(bar.id, $0, day: targetDay) },
@@ -150,72 +128,74 @@ struct BarDetailSheet: View {
         }
     }
 
-    private var visitedToggle: some View {
-        Button(action: toggleVisited) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Visited").font(.scaled(16, weight: .semibold)).foregroundStyle(.white)
-                    Text(visited ? "You've been here" : "Tap if you've been here")
-                        .font(.scaled(12)).foregroundStyle(Palette.gray400)
-                }
-                Spacer()
-                Image(systemName: visited ? "checkmark.square.fill" : "square")
-                    .font(.scaled(28))
-                    .foregroundStyle(visited ? Palette.green : Palette.gray500)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .glassSurface(radius: 16, bordered: true)
-        }
-        .buttonStyle(.plain)
+    /// One-line header meta: neighborhood · street · tags (redesign 6a).
+    private var metaLine: some View {
+        let street = bar.address.components(separatedBy: ",").first ?? bar.address
+        let tags = (bar.tags ?? []).map { " · \($0)" }.joined()
+        return (Text(bar.neighborhood).fontWeight(.semibold).foregroundStyle(Palette.primary)
+            + Text(" · \(street)\(tags)").foregroundStyle(Palette.gray400))
+            .font(.scaled(13))
+            .lineLimit(2)
     }
 
-    private var shareWithFriends: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Button {
-                guard !sharedWithFriends else { return }
-                Haptics.light()
-                shareError = nil
-                Task {
-                    if await social.shareCheckIn(bar: bar) {
-                        Haptics.success()
-                        sharedWithFriends = true
-                    } else {
-                        shareError = social.errorMessage ?? "Couldn't share — try again."
+    /// Equal-width Directions / Share / Visited chips (redesign 6a).
+    private var actionRow: some View {
+        HStack(spacing: 8) {
+            Button { showDirections = true } label: {
+                chipLabel("location.fill", "Directions", tint: nil)
+            }
+            .buttonStyle(PressableScale())
+
+            // Presence broadcast is a deliberate, separate action — logging
+            // drinks never notifies anyone. Hidden until at least one friend
+            // is send-enabled (and hides again at 0).
+            if social.canShareCheckIns && isTargetToday {
+                Button {
+                    guard !sharedWithFriends else { return }
+                    Haptics.light()
+                    shareError = nil
+                    Task {
+                        if await social.shareCheckIn(bar: bar) {
+                            Haptics.success()
+                            sharedWithFriends = true
+                        } else {
+                            shareError = social.errorMessage ?? "Couldn't share — try again."
+                        }
                     }
+                } label: {
+                    chipLabel(sharedWithFriends ? "checkmark" : "person.2.fill",
+                              sharedWithFriends ? "Shared" : "Share",
+                              tint: sharedWithFriends ? Palette.green : nil)
                 }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: sharedWithFriends ? "checkmark" : "person.2.fill")
-                        .font(.scaled(15, weight: .semibold))
-                    Text(sharedWithFriends ? "Shared with friends" : "Share with friends")
-                        .font(.scaled(16, weight: .semibold))
-                }
-                .foregroundStyle(sharedWithFriends ? Palette.green : .white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .glassSurface(radius: 16, bordered: true)
+                .buttonStyle(PressableScale())
+                .disabled(sharedWithFriends)
             }
-            .buttonStyle(.plain)
-            .disabled(sharedWithFriends)
 
-            if let shareError {
-                Text(shareError).font(.scaled(12)).foregroundStyle(Palette.gray400)
+            Button(action: toggleVisited) {
+                chipLabel("checkmark", "Visited", tint: visited ? Palette.green : nil)
             }
+            .buttonStyle(PressableScale())
         }
     }
 
-    private var drinkCountBox: some View {
-        HStack {
-            Text(isTargetToday ? "Today's drinks" : "Drinks on \(DayKey.format(targetDay))")
-                .font(.scaled(14, weight: .medium)).foregroundStyle(.white)
-            Spacer()
-            CountUp(value: total, font: .scaled(24, weight: .heavy), color: Palette.primary)
+    /// Pill chip content: tinted fill/border when `tint` is set, glass otherwise.
+    @ViewBuilder
+    private func chipLabel(_ icon: String, _ label: String, tint: Color?) -> some View {
+        let content = HStack(spacing: 6) {
+            Image(systemName: icon).font(.scaled(13, weight: .semibold))
+            Text(label).font(.scaled(14, weight: .semibold))
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Palette.primary.opacity(0.15)))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Palette.primary.opacity(0.3), lineWidth: 1))
+        .foregroundStyle(tint ?? .white)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 9)
+
+        if let tint {
+            content
+                .background(Capsule().fill(tint.opacity(0.14)))
+                .overlay(Capsule().strokeBorder(tint.opacity(0.45), lineWidth: 1))
+        } else {
+            content.glassSurface(radius: 999, bordered: true)
+        }
     }
 
     private var notesSection: some View {
