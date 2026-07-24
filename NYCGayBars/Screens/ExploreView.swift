@@ -14,6 +14,7 @@ struct ExploreView: View {
     @State private var nearest = true    // sort: Nearest vs A–Z
     @State private var neighborhood = "All"
     @State private var selectedBar: Bar?
+    @State private var showQuickLog = false
     @State private var frameNonce = 0
     @State private var scrollPos = ScrollPosition()
 
@@ -51,6 +52,12 @@ struct ExploreView: View {
         neighborhood == "All" ? AppData.bars : (AppData.barsByNeighborhood[neighborhood] ?? [])
     }
 
+    /// Closest bar by live distance, nil without a location fix (redesign 1c).
+    private func nearestBar(_ d: [String: Double]?) -> Bar? {
+        guard let d else { return nil }
+        return AppData.bars.min { (d[$0.id] ?? .infinity) < (d[$1.id] ?? .infinity) }
+    }
+
     /// Friends' active check-ins as avatar pins, one per bar (redesign 3a).
     private var friendPins: [FriendPin] {
         Dictionary(grouping: social.tonight, by: \.barId).compactMap { barId, checkIns in
@@ -78,6 +85,28 @@ struct ExploreView: View {
                 .padding(.bottom, 4)
             statsRow()
             content(d, bars)
+        }
+        // Quick-log FAB (redesign 1c) — nudged up when the coverage callout
+        // occupies the bottom of the map.
+        .overlay(alignment: .bottomTrailing) {
+            Button {
+                Haptics.light()
+                showQuickLog = true
+            } label: {
+                Image(systemName: "plus")
+                    .font(.scaled(24, weight: .semibold)).foregroundStyle(.white)
+                    .frame(width: 58, height: 58)
+                    .background(Circle().fill(Palette.primary))
+                    .shadow(color: Palette.primary.opacity(0.45), radius: 10, y: 2)
+            }
+            .buttonStyle(PressableScale())
+            .accessibilityLabel("Quick log")
+            .padding(.trailing, 16)
+            .padding(.bottom, mode == 0 && neighborhood != "All" ? 176 : 92)
+        }
+        .sheet(isPresented: $showQuickLog) {
+            QuickLogSheet(initialBar: nearestBar(d), distances: d)
+                .environmentObject(visits)
         }
         .dismissKeyboardOnBackgroundTap()
         .onAppear { location.start(); tabSwipe.enabled = (mode == 1) }

@@ -83,6 +83,26 @@ enum Stats {
         return best
     }
 
+    /// The user's most-logged drink types, most-used first, padded with
+    /// presets to `limit` (quick log's featured rows).
+    static func topDrinkTypes(_ visits: [Visit], limit: Int = 3) -> [String] {
+        var counts: [String: Int] = [:]
+        var order: [String] = []
+        for v in visits {
+            for d in v.drinks {
+                if counts[d.type] == nil { order.append(d.type) }
+                counts[d.type, default: 0] += d.count
+            }
+        }
+        var top = order.sorted { counts[$0]! > counts[$1]! }
+        for preset in PRESET_DRINKS where top.count < limit {
+            if !top.contains(where: { $0.lowercased() == preset.lowercased() }) {
+                top.append(preset)
+            }
+        }
+        return Array(top.prefix(limit))
+    }
+
     /// The single day with the highest drink total.
     static func biggestNight(_ visits: [Visit]) -> (day: String, total: Int)? {
         var byDay: [String: Int] = [:]

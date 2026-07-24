@@ -5,6 +5,11 @@ import SwiftUI
 /// — any row with a count stays visible (redesign 6a).
 struct DrinkLogger: View {
     let visit: Visit?
+    /// Types to feature above the fold instead of the first three presets
+    /// (quick log passes the user's most-used drinks).
+    var featured: [String]? = nil
+    /// Label of the expand toggle ("More drinks" / quick log's "All drinks").
+    var expandLabel: String = "More drinks"
     var onLog: (String) -> Void
     var onRemove: (String) -> Void
 
@@ -22,8 +27,8 @@ struct DrinkLogger: View {
     }
 
     var body: some View {
-        let top = Array(PRESET_DRINKS.prefix(3))
-        let rest = Array(PRESET_DRINKS.dropFirst(3))
+        let top = featured ?? Array(PRESET_DRINKS.prefix(3))
+        let rest = PRESET_DRINKS.filter { p in !top.contains { $0.lowercased() == p.lowercased() } }
         VStack(spacing: 0) {
             ForEach(top, id: \.self) { row($0) }
             if expanded {
@@ -40,7 +45,7 @@ struct DrinkLogger: View {
                 Haptics.light()
             } label: {
                 HStack(spacing: 4) {
-                    Text(expanded ? "Fewer drinks" : "More drinks")
+                    Text(expanded ? "Fewer drinks" : expandLabel)
                         .font(.scaled(13, weight: .semibold))
                     Image(systemName: "chevron.down")
                         .font(.scaled(11, weight: .semibold))

@@ -367,6 +367,17 @@ final class StatsTests: XCTestCase {
         XCTAssertEqual(Stats.progressCaption("on-a-roll", current: 5, target: 3), "0 more days to go")
     }
 
+    func testTopDrinkTypesMostUsedFirstThenPresetFill() {
+        let vs = [
+            visit("eagle-nyc", "2026-5-10", [("Wine", 5), ("Shot", 2)]),
+            visit("boxers-nyc", "2026-5-11", [("Shot", 4)]),
+        ]
+        // Shot (6) then Wine (5), padded with the first unused preset (Beer).
+        XCTAssertEqual(Stats.topDrinkTypes(vs), ["Shot", "Wine", "Beer"])
+        // No history → the first three presets.
+        XCTAssertEqual(Stats.topDrinkTypes([]), ["Beer", "Cocktail", "Wine"])
+    }
+
     func testBadgesFirstDrinkAndStonewall() {
         let vs = [visit("the-stonewall-inn", "2026-5-10", [("Beer", 1)])]
         let ids = Set(["the-stonewall-inn"])
