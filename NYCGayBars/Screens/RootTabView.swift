@@ -10,6 +10,9 @@ final class TabSwipe: ObservableObject {
     /// Bumped each time the Explore tab button is tapped (even when already on
     /// Explore) so ExploreView can reset its filter to "All".
     @Published var exploreResetTick = 0
+    /// Bar id to frame on the Explore map (Tonight "Map" chip). RootTabView
+    /// switches tabs on it; ExploreView consumes it and resets it to nil.
+    @Published var mapTarget: String?
 }
 
 /// Root shell: four swipeable pages with a floating glass pill tab bar, plus
@@ -90,6 +93,13 @@ struct RootTabView: View {
             guard code != nil, pillPage != .friends else { return }
             withAnimation(.snappy(duration: 0.18)) { pillPage = .friends }
             page = .friends
+        }
+        // Tonight "Map" chip: land on Explore (map mode), where ExploreView
+        // consumes the target and frames the bar.
+        .onChange(of: tabSwipe.mapTarget) { _, target in
+            guard target != nil, pillPage != .explore else { return }
+            withAnimation(.snappy(duration: 0.18)) { pillPage = .explore }
+            page = .explore
         }
         // Tapping a friend-request notification lands on the Friends tab, where
         // the Accept row is shown from the push payload.

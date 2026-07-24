@@ -72,6 +72,13 @@ struct ExploreView: View {
         .onChange(of: tabSwipe.exploreResetTick) { _, _ in
             if neighborhood != "All" { selectNeighborhood("All") }
         }
+        // Tonight "Map" chip: frame the friend's bar in map mode (redesign 4a).
+        .onChange(of: tabSwipe.mapTarget) { _, target in
+            guard let id = target, let bar = AppData.barsById[id] else { return }
+            tabSwipe.mapTarget = nil
+            mode = 0
+            selectNeighborhood(bar.neighborhood)
+        }
         .sheet(item: $selectedBar) { bar in
             BarDetailSheet(bar: bar, day: nil)
                 .environmentObject(visits)
