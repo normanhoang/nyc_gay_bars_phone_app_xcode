@@ -5,11 +5,24 @@ import MapKit
 /// tappable neighborhood polygons; otherwise it drops bar pins. Zooming out far
 /// enough to span 2+ neighborhoods switches the filter to All. Port of RN
 /// components/BarMap.tsx.
+/// A friend's active check-in rendered as an avatar pin (redesign 3a).
+struct FriendPin: Identifiable {
+    let id: String
+    /// Display label, e.g. "Alex is here" / "2 friends here".
+    let label: String
+    /// Initial shown in the avatar circle.
+    let initial: String
+    let barId: String
+    let latitude: Double
+    let longitude: Double
+}
+
 struct BarMapView: View {
     let bars: [Bar]
     let showOutlines: Bool
     let visitedIds: Set<String>
     let frameNonce: Int
+    var friendPins: [FriendPin] = []
     var onSelectBar: (String) -> Void
     var onSelectNeighborhood: (String) -> Void
     /// Returns true if the zoom-out actually changed the filter (suppress reframe).
@@ -48,6 +61,12 @@ struct BarMapView: View {
                             pin(for: bar).onTapGesture { onSelectBar(bar.id) }
                         }
                     }
+                    ForEach(friendPins) { fp in
+                        Annotation("", coordinate: CLLocationCoordinate2D(
+                            latitude: fp.latitude, longitude: fp.longitude)) {
+                            friendPin(fp).onTapGesture { onSelectBar(fp.barId) }
+                        }
+                    }
                 }
             }
             .mapStyle(.standard)
@@ -65,15 +84,43 @@ struct BarMapView: View {
         .onMapCameraChange(frequency: .onEnd) { ctx in handleCameraChange(ctx.region) }
     }
 
+    /// Unvisited pins stay the target (primary ring + 🍸); visited ones recede
+    /// to a dimmed green check (redesign 3a).
     @ViewBuilder
     private func pin(for bar: Bar) -> some View {
         let visited = visitedIds.contains(bar.id)
-        Text("🍸")
-            .font(.scaled(16))
-            .frame(width: 36, height: 36)
-            .background(Circle().fill(visited ? Palette.primary.opacity(0.4) : Palette.ink.opacity(0.8)))
-            .overlay(Circle().strokeBorder(
-                visited ? Palette.primary : Color.white.opacity(0.5), lineWidth: 2))
+        Group {
+            if visited {
+                Image(systemName: "checkmark")
+                    .font(.scaled(14, weight: .bold))
+                    .foregroundStyle(Palette.green)
+            } else {
+                Text("🍸").font(.scaled(16))
+            }
+        }
+        .frame(width: 36, height: 36)
+        .background(Circle().fill(Palette.ink.opacity(0.85)))
+        .overlay(Circle().strokeBorder(
+            visited ? Palette.green.opacity(0.75) : Palette.primary, lineWidth: 2))
+        .opacity(visited ? 0.8 : 1)
+    }
+
+    /// 30px gradient avatar + label chip for a friend's check-in (redesign 3a).
+    private func friendPin(_ fp: FriendPin) -> some View {
+        VStack(spacing: 3) {
+            Text(fp.initial)
+                .font(.scaled(13, weight: .bold)).foregroundStyle(.white)
+                .frame(width: 30, height: 30)
+                .background(Circle().fill(LinearGradient(
+                    colors: [Palette.primary, Palette.violet],
+                    startPoint: .topLeading, endPoint: .bottomTrailing)))
+                .overlay(Circle().strokeBorder(.white, lineWidth: 2))
+            Text(fp.label)
+                .font(.scaled(10, weight: .semibold)).foregroundStyle(.white)
+                .padding(.horizontal, 8).padding(.vertical, 3)
+                .background(Capsule().fill(Palette.ink.opacity(0.85)))
+                .overlay(Capsule().strokeBorder(Color.white.opacity(0.2), lineWidth: 1))
+        }
     }
 
     // MARK: - Framing

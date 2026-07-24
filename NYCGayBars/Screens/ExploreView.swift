@@ -6,6 +6,7 @@ import UIKit
 struct ExploreView: View {
     @EnvironmentObject private var visits: VisitsStore
     @EnvironmentObject private var tabSwipe: TabSwipe
+    @EnvironmentObject private var social: SocialStore
     @StateObject private var zip = ZipQuery()
     @StateObject private var location = LocationManager()
 
@@ -48,6 +49,19 @@ struct ExploreView: View {
 
     private var neighborhoodBars: [Bar] {
         neighborhood == "All" ? AppData.bars : (AppData.barsByNeighborhood[neighborhood] ?? [])
+    }
+
+    /// Friends' active check-ins as avatar pins, one per bar (redesign 3a).
+    private var friendPins: [FriendPin] {
+        Dictionary(grouping: social.tonight, by: \.barId).compactMap { barId, checkIns in
+            guard let bar = AppData.barsById[barId] else { return nil }
+            let names = Array(Set(checkIns.map(\.authorName))).sorted()
+            return FriendPin(
+                id: barId,
+                label: names.count == 1 ? "\(names[0]) is here" : "\(names.count) friends here",
+                initial: String(names[0].prefix(1)).uppercased(),
+                barId: barId, latitude: bar.latitude, longitude: bar.longitude)
+        }
     }
 
     var body: some View {
@@ -232,6 +246,7 @@ struct ExploreView: View {
                     showOutlines: neighborhood == "All" && zip.query.trimmingCharacters(in: .whitespaces).isEmpty,
                     visitedIds: visits.visitedIds,
                     frameNonce: frameNonce,
+                    friendPins: friendPins,
                     onSelectBar: { selectedBar = AppData.bar(id: $0) },
                     onSelectNeighborhood: { selectNeighborhood($0) },
                     onZoomOut: {
@@ -257,7 +272,38 @@ struct ExploreView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(alignment: .bottom) {
+                if neighborhood != "All" {
+                    coverageCallout
+                }
+            }
         }
+    }
+
+    /// Floating neighborhood coverage callout above the tab bar (redesign 3a).
+    private var coverageCallout: some View {
+        let bars = neighborhoodBars
+        let visitedCount = bars.filter { visits.visitedIds.contains($0.id) }.count
+        let remaining = bars.count - visitedCount
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(neighborhood)
+                    .font(.scaled(14, weight: .bold)).foregroundStyle(.white)
+                Spacer()
+                Text("\(visitedCount) / \(bars.count) visited")
+                    .font(.scaled(12, weight: .semibold)).foregroundStyle(Palette.gray300)
+            }
+            ProgressBar(progress: bars.isEmpty ? 0 : Double(visitedCount) / Double(bars.count), height: 6)
+            Text(remaining > 0
+                 ? "\(remaining) to go for Neighborhood Hero 🏘️"
+                 : "Neighborhood Hero earned 🏘️")
+                .font(.scaled(11)).foregroundStyle(Palette.gray400)
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Palette.ink.opacity(0.85)))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 92)
     }
 
     private func selectNeighborhood(_ value: String) {
