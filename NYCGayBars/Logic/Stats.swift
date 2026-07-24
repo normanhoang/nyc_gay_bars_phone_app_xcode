@@ -192,6 +192,53 @@ enum Stats {
         return best
     }
 
+    // MARK: - Year recap (redesign 2a)
+
+    /// The year a recap should cover: last year during January, else this year
+    /// to date.
+    static func recapYear(for date: Date = Date()) -> Int {
+        let c = Calendar.current.dateComponents([.year, .month], from: date)
+        return c.month == 1 ? c.year! - 1 : c.year!
+    }
+
+    /// Visits whose local day falls in calendar year `year`.
+    static func visitsIn(year: Int, _ visits: [Visit]) -> [Visit] {
+        visits.filter { $0.dayKey.hasPrefix("\(year)-") }
+    }
+
+    /// Month (0-indexed, mirroring dayKey) with the most drink-days.
+    static func busiestMonth(_ visits: [Visit]) -> (month: Int, nights: Int)? {
+        var daysByMonth: [Int: Set<String>] = [:]
+        for v in visits {
+            let parts = v.dayKey.split(separator: "-")
+            guard parts.count == 3, let m = Int(parts[1]) else { continue }
+            daysByMonth[m, default: []].insert(v.dayKey)
+        }
+        return daysByMonth.map { (month: $0.key, nights: $0.value.count) }
+            .max { a, b in a.nights != b.nights ? a.nights < b.nights : a.month > b.month }
+    }
+
+    /// Neighborhood with the most drink-days.
+    static func homeTurf(_ visits: [Visit]) -> (neighborhood: String, nights: Int)? {
+        var daysByHood: [String: Set<String>] = [:]
+        for v in visits {
+            guard let hood = AppData.barsById[v.barId]?.neighborhood else { continue }
+            daysByHood[hood, default: []].insert(v.dayKey)
+        }
+        return daysByHood.map { (neighborhood: $0.key, nights: $0.value.count) }
+            .max { a, b in a.nights != b.nights ? a.nights < b.nights : a.neighborhood > b.neighborhood }
+    }
+
+    /// Days spent at one bar (drink-days, not drinks).
+    static func nightsAt(_ barId: String, _ visits: [Visit]) -> Int {
+        Set(visits.filter { $0.barId == barId }.map(\.dayKey)).count
+    }
+
+    /// Distinct boroughs among the bars in `visits`.
+    static func boroughCount(_ visits: [Visit]) -> Int {
+        Set(visits.compactMap { AppData.barsById[$0.barId]?.neighborhood }.map(borough)).count
+    }
+
     // MARK: - Badges
 
     /// Progress toward countable badges, keyed by badge id. Only badges with a

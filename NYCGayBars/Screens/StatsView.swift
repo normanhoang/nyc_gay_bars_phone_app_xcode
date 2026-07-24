@@ -7,6 +7,7 @@ struct StatsView: View {
     @EnvironmentObject private var badges: BadgesStore
     @EnvironmentObject private var tabSwipe: TabSwipe
     @State private var showAllBadges = false
+    @State private var showRecap = false
     @State private var badgeFilter: BadgeFilter = .all
     @State private var scrollPos = ScrollPosition()
     // Cached so mutations made on other pages don't recompute the full stats
@@ -92,6 +93,9 @@ struct StatsView: View {
             }
         }
         .sheet(isPresented: $showAllBadges) { allBadgesSheet }
+        .fullScreenCover(isPresented: $showRecap) {
+            RecapView(year: Stats.recapYear(), onClose: { showRecap = false })
+        }
         .onAppear { snap = makeSnapshot() }
         .onChange(of: SnapshotKey(visits: visits.visits, visitedIds: visits.visitedIds)) { _, _ in
             if tabSwipe.page == .stats {
@@ -140,6 +144,24 @@ struct StatsView: View {
                     if snap.streak > 0 {
                         statCard("LONGEST STREAK", "\(snap.streak) \(snap.streak == 1 ? "day" : "days")", "In a row with drinks")
                     }
+                }
+
+                let recapYear = Stats.recapYear()
+                if !Stats.visitsIn(year: recapYear, visits.visits).isEmpty {
+                    Button { showRecap = true } label: {
+                        HStack {
+                            Text("🪩")
+                            Text("Your \(String(recapYear)) Recap")
+                                .font(.scaled(15, weight: .bold)).foregroundStyle(.white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.scaled(12, weight: .semibold)).foregroundStyle(Palette.gray400)
+                        }
+                        .padding(16)
+                        .contentPanel(radius: 16)
+                    }
+                    .buttonStyle(PressableScale())
+                    .padding(.top, 12)
                 }
 
                 let next = upNext()
