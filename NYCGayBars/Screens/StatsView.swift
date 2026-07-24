@@ -7,6 +7,7 @@ struct StatsView: View {
     @EnvironmentObject private var badges: BadgesStore
     @EnvironmentObject private var tabSwipe: TabSwipe
     @State private var showAllBadges = false
+    @State private var badgeFilter: BadgeFilter = .all
     @State private var scrollPos = ScrollPosition()
     // Cached so mutations made on other pages don't recompute the full stats
     // aggregation while this page is offscreen; refreshed on becoming active.
@@ -205,21 +206,10 @@ struct StatsView: View {
     private func upNextPanel(_ next: [(badge: Badge, current: Int, target: Int)]) -> some View {
         VStack(spacing: 0) {
             ForEach(Array(next.enumerated()), id: \.element.badge.id) { i, item in
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text(item.badge.emoji).font(.scaled(24))
-                        Text(item.badge.title)
-                            .font(.scaled(14, weight: .bold)).foregroundStyle(.white)
-                        Spacer()
-                        Text("\(item.current) / \(item.target)")
-                            .font(.scaled(11, weight: .semibold)).foregroundStyle(Palette.gray400)
-                    }
-                    ProgressBar(progress: Double(item.current) / Double(item.target),
-                                delay: Double(i) * 0.06, height: 6)
-                    Text(Stats.progressCaption(item.badge.id, current: item.current, target: item.target))
-                        .font(.scaled(11)).foregroundStyle(Palette.gray600)
-                }
-                .padding(.vertical, 10)
+                BadgeProgressRow(
+                    badge: item.badge, current: item.current, target: item.target,
+                    delay: Double(i) * 0.06,
+                    caption: Stats.progressCaption(item.badge.id, current: item.current, target: item.target))
             }
         }
         .padding(.horizontal, 16).padding(.vertical, 6)
@@ -248,13 +238,27 @@ struct StatsView: View {
         .contentPanel()
     }
 
+    private enum BadgeFilter: CaseIterable { case all, earned, inProgress }
+
     private var allBadgesSheet: some View {
-        ZStack {
+        let progressById = Stats.badgeProgress(visits.visits, visits.visitedIds)
+        // Unearned countable badges with any progress, closest to done first.
+        let inProgress: [(badge: Badge, current: Int, target: Int)] = unearnedBadges
+            .compactMap { b in
+                guard let p = progressById[b.id], p.current > 0 else { return nil }
+                return (badge: b, current: p.current, target: p.target)
+            }
+            .sorted { Double($0.current) / Double($0.target) > Double($1.current) / Double($1.target) }
+        let inProgressIds = Set(inProgress.map(\.badge.id))
+        let locked = unearnedBadges.filter { !inProgressIds.contains($0.id) }
+
+        return ZStack {
             AppBackground()
             VStack(spacing: 0) {
-                HStack {
-                    Text("Badges · \(earnedBadges.count)/\(badges.badges.count) earned")
-                        .font(.scaled(18, weight: .heavy)).foregroundStyle(.white)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text("Badges").font(.scaled(18, weight: .heavy)).foregroundStyle(.white)
+                    Text("\(earnedBadges.count) of \(badges.badges.count)")
+                        .font(.scaled(13)).foregroundStyle(Palette.gray400)
                     Spacer()
                     Button { showAllBadges = false } label: {
                         Image(systemName: "xmark").font(.scaled(20)).foregroundStyle(.white)
@@ -267,12 +271,48 @@ struct StatsView: View {
                 }
                 .padding(.horizontal, 16).padding(.top, 20).padding(.bottom, 12)
 
+                HStack(spacing: 8) {
+                    filterChip("All", .all)
+                    filterChip("Earned · \(earnedBadges.count)", .earned)
+                    filterChip("In progress · \(inProgress.count)", .inProgress)
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 16).padding(.bottom, 12)
+
                 ScrollView {
-                    let progressById = Stats.badgeProgress(visits.visits, visits.visitedIds)
-                    LazyVGrid(columns: columns, spacing: 12) {
-                        ForEach(milestonesLast(earnedBadges)) { BadgeTile(badge: $0, showDate: true) }
-                        ForEach(milestonesLast(unearnedBadges)) {
-                            BadgeTile(badge: $0, progress: progressById[$0.id])
+                    VStack(alignment: .leading, spacing: 0) {
+                        if badgeFilter != .earned && !inProgress.isEmpty {
+                            sectionLabel("ALMOST THERE")
+                            VStack(spacing: 0) {
+                                let rows = badgeFilter == .all ? Array(inProgress.prefix(5)) : inProgress
+                                ForEach(Array(rows.enumerated()), id: \.element.badge.id) { i, item in
+                                    BadgeProgressRow(
+                                        badge: item.badge, current: item.current,
+                                        target: item.target, delay: Double(i) * 0.06)
+                                }
+                            }
+                            .padding(.horizontal, 16).padding(.vertical, 6)
+                            .contentPanel()
+                            .padding(.bottom, 20)
+                        }
+
+                        if badgeFilter != .inProgress && !earnedBadges.isEmpty {
+                            sectionLabel("EARNED")
+                            LazyVGrid(columns: columns, spacing: 12) {
+                                ForEach(milestonesLast(earnedBadges)) {
+                                    BadgeTile(badge: $0, showDate: true, showDescription: false)
+                                }
+                            }
+                            .padding(.bottom, 20)
+                        }
+
+                        if badgeFilter == .all && !locked.isEmpty {
+                            sectionLabel("MORE BADGES")
+                            LazyVGrid(columns: columns, spacing: 12) {
+                                ForEach(milestonesLast(locked)) {
+                                    BadgeTile(badge: $0, progress: progressById[$0.id])
+                                }
+                            }
                         }
                     }
                     .padding(16)
@@ -280,5 +320,29 @@ struct StatsView: View {
                 }
             }
         }
+    }
+
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text).font(.scaled(12)).tracking(0.8)
+            .foregroundStyle(Palette.gray400)
+            .padding(.bottom, 8)
+    }
+
+    private func filterChip(_ label: String, _ value: BadgeFilter) -> some View {
+        let active = badgeFilter == value
+        return Button {
+            withAnimation(Anim.chip) { badgeFilter = value }
+            Haptics.selection()
+        } label: {
+            Text(label)
+                .font(.scaled(13, weight: .semibold))
+                .foregroundStyle(active ? .white : Palette.gray300)
+                .padding(.horizontal, 14).padding(.vertical, 7)
+                .background(Capsule().fill(active ? Palette.primary : Color.white.opacity(0.08)))
+                .overlay {
+                    if !active { Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 1) }
+                }
+        }
+        .buttonStyle(PressableScale())
     }
 }

@@ -19,6 +19,7 @@
 		32BE164ADE21AC12627961BE /* FilterChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C9AEE9C76BF3770FA4BDE5 /* FilterChips.swift */; };
 		3592D1D69FB998F6485DF5C3 /* KeyboardDismiss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F28F373FFFBF7655744414 /* KeyboardDismiss.swift */; };
 		39142DEA98095B61B604EA41 /* BarMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2DE83E5D877E615C5E7642 /* BarMapView.swift */; };
+		3976F13C4F2E4AC33CD9E57F /* BadgeProgressRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 071553DC705E470FD992DA7C /* BadgeProgressRow.swift */; };
 		3C86C12FA6FF617B331D7947 /* BadgeTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30AFBE2E59FDFCFCD7E8EA0 /* BadgeTile.swift */; };
 		3E393A67CE2AE0F06764C1B8 /* bars.json in Resources */ = {isa = PBXBuildFile; fileRef = CB21A6E691857F61F5742553 /* bars.json */; };
 		4046CF348E1325E5E9535D8C /* zips.json in Resources */ = {isa = PBXBuildFile; fileRef = 3FE82916D6F73805684F020A /* zips.json */; };
@@ -80,6 +81,7 @@
 /* Begin PBXFileReference section */
 		01D55F9E01785AD115D5B129 /* VisitCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitCard.swift; sourceTree = "<group>"; };
 		02F28F373FFFBF7655744414 /* KeyboardDismiss.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardDismiss.swift; sourceTree = "<group>"; };
+		071553DC705E470FD992DA7C /* BadgeProgressRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeProgressRow.swift; sourceTree = "<group>"; };
 		0715C93C3976A142C4727245 /* DrinkLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkLogger.swift; sourceTree = "<group>"; };
 		0A78E2C8B08CC339744833B0 /* Stats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stats.swift; sourceTree = "<group>"; };
 		0D32F0B9D8891FFCD2251FCF /* BarDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarDetailSheet.swift; sourceTree = "<group>"; };
@@ -260,6 +262,7 @@
 		F212EC41F8D5CDD465044BDC /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				071553DC705E470FD992DA7C /* BadgeProgressRow.swift */,
 				E30AFBE2E59FDFCFCD7E8EA0 /* BadgeTile.swift */,
 				B5AB110A7AC0A69A887C6B98 /* BadgeToast.swift */,
 				7C0E3C68064192C81E87A4B1 /* BarListItem.swift */,
@@ -419,6 +422,7 @@
 			files = (
 				D9A27629E5EA8050FFF79953 /* AppBackground.swift in Sources */,
 				D8E1A93AA5D46F0A7E71DAE2 /* AppData.swift in Sources */,
+				3976F13C4F2E4AC33CD9E57F /* BadgeProgressRow.swift in Sources */,
 				3C86C12FA6FF617B331D7947 /* BadgeTile.swift in Sources */,
 				8907AE4B0E8FA23D18F9E6C6 /* BadgeToast.swift in Sources */,
 				E6BD532D4EFD3956D33D886B /* BadgesStore.swift in Sources */,
