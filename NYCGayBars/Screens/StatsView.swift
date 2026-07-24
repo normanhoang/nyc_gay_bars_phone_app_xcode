@@ -310,7 +310,8 @@ struct StatsView: View {
                                 ForEach(Array(rows.enumerated()), id: \.element.badge.id) { i, item in
                                     BadgeProgressRow(
                                         badge: item.badge, current: item.current,
-                                        target: item.target, delay: Double(i) * 0.06)
+                                        target: item.target, delay: Double(i) * 0.06,
+                                        caption: item.badge.description)
                                 }
                             }
                             .padding(.horizontal, 16).padding(.vertical, 6)
@@ -322,7 +323,7 @@ struct StatsView: View {
                             sectionLabel("EARNED")
                             LazyVGrid(columns: columns, spacing: 12) {
                                 ForEach(milestonesLast(earnedBadges)) {
-                                    BadgeTile(badge: $0, showDate: true, showDescription: false)
+                                    BadgeTile(badge: $0, showDate: true)
                                 }
                             }
                             .padding(.bottom, 20)
