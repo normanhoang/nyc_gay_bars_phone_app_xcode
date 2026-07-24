@@ -8,6 +8,7 @@ struct StatsView: View {
     @EnvironmentObject private var tabSwipe: TabSwipe
     @State private var showAllBadges = false
     @State private var showRecap = false
+    @State private var expandedBoroughs: Set<String> = []
     @State private var badgeFilter: BadgeFilter = .all
     @State private var scrollPos = ScrollPosition()
     // Cached so mutations made on other pages don't recompute the full stats
@@ -238,22 +239,59 @@ struct StatsView: View {
         .contentPanel()
     }
 
-    /// One line per borough: name · progress bar · count (redesign 1b).
+    /// One tappable line per borough (name · progress bar · count, redesign 1b);
+    /// tapping expands the per-neighborhood breakdown.
     private func neighborhoods(_ boroughs: [BoroughProgress]) -> some View {
         VStack(spacing: 0) {
             ForEach(Array(boroughs.enumerated()), id: \.element.id) { i, b in
                 let complete = b.visited == b.total
-                HStack(spacing: 12) {
-                    Text(b.borough + (complete ? " 👑" : ""))
-                        .font(.scaled(14, weight: .semibold)).foregroundStyle(.white)
-                        .frame(width: 96, alignment: .leading)
-                    ProgressBar(progress: Double(b.visited) / Double(b.total),
-                                delay: Double(i) * 0.06, height: 6)
-                    Text("\(b.visited)/\(b.total)")
-                        .font(.scaled(12, weight: complete ? .bold : .semibold))
-                        .foregroundStyle(complete ? Palette.primary : Palette.gray400)
+                let expanded = expandedBoroughs.contains(b.borough)
+                Button {
+                    withAnimation(Anim.chip) {
+                        if expanded { expandedBoroughs.remove(b.borough) }
+                        else { expandedBoroughs.insert(b.borough) }
+                    }
+                } label: {
+                    HStack(spacing: 12) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.down")
+                                .font(.scaled(10, weight: .semibold)).foregroundStyle(Palette.gray400)
+                                .rotationEffect(.degrees(expanded ? 0 : -90))
+                            Text(b.borough + (complete ? " 👑" : ""))
+                                .font(.scaled(14, weight: .semibold)).foregroundStyle(.white)
+                        }
+                        .frame(width: 108, alignment: .leading)
+                        ProgressBar(progress: Double(b.visited) / Double(b.total),
+                                    delay: Double(i) * 0.06, height: 6)
+                        Text("\(b.visited)/\(b.total)")
+                            .font(.scaled(12, weight: complete ? .bold : .semibold))
+                            .foregroundStyle(complete ? Palette.primary : Palette.gray400)
+                    }
+                    .padding(.vertical, 12)
+                    .contentShape(Rectangle())
                 }
-                .padding(.vertical, 12)
+                .buttonStyle(.plain)
+
+                if expanded {
+                    VStack(spacing: 0) {
+                        ForEach(b.neighborhoods) { p in
+                            let done = p.visited == p.total
+                            HStack(spacing: 12) {
+                                Text(p.neighborhood + (done ? " 👑" : ""))
+                                    .font(.scaled(13)).foregroundStyle(Palette.gray300)
+                                    .frame(width: 128, alignment: .leading)
+                                    .lineLimit(1).minimumScaleFactor(0.8)
+                                ProgressBar(progress: Double(p.visited) / Double(p.total), height: 5)
+                                Text("\(p.visited)/\(p.total)")
+                                    .font(.scaled(11, weight: done ? .bold : .semibold))
+                                    .foregroundStyle(done ? Palette.primary : Palette.gray400)
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    .padding(.leading, 16)
+                    .transition(.opacity)
+                }
             }
         }
         .padding(.horizontal, 16).padding(.vertical, 4)
