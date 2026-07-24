@@ -355,6 +355,18 @@ final class StatsTests: XCTestCase {
         XCTAssertEqual(Stats.badgeProgress(vs, ["eagle-nyc"])["shots-shots-shots"]?.current, 3)
     }
 
+    func testProgressCaptionUnitsAndPluralization() {
+        XCTAssertEqual(Stats.progressCaption("bar-star", current: 9, target: 10), "1 more bar to go")
+        XCTAssertEqual(Stats.progressCaption("nifty-fifty", current: 47, target: 50), "3 more drinks to go")
+        XCTAssertEqual(Stats.progressCaption("mixologist", current: 3, target: 5), "2 more drink types to go")
+        // Every countable badge id has a real unit (no "step" fallback).
+        for id in Stats.badgeProgress([], []).keys {
+            XCTAssertNotEqual(Stats.badgeUnit(id), "step", "missing unit for \(id)")
+        }
+        // Overshoot clamps to zero rather than going negative.
+        XCTAssertEqual(Stats.progressCaption("on-a-roll", current: 5, target: 3), "0 more days to go")
+    }
+
     func testBadgesFirstDrinkAndStonewall() {
         let vs = [visit("the-stonewall-inn", "2026-5-10", [("Beer", 1)])]
         let ids = Set(["the-stonewall-inn"])

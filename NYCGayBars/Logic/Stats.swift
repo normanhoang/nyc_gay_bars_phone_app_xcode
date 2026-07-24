@@ -244,6 +244,31 @@ enum Stats {
         ]
     }
 
+    /// Progress caption for a countable badge, e.g. "3 more drinks to go".
+    static func progressCaption(_ id: String, current: Int, target: Int) -> String {
+        let n = max(target - current, 0)
+        let unit = badgeUnit(id)
+        return "\(n) more \(n == 1 ? unit : unit + "s") to go"
+    }
+
+    /// Singular noun for a countable badge's progress unit.
+    static func badgeUnit(_ id: String) -> String {
+        switch id {
+        case "sampler", "grand-tour": return "neighborhood"
+        case "crawler", "marathon", "bar-star", "explorer",
+             "half-the-city", "conqueror", "neighborhood-hero": return "bar"
+        case "regular", "old-faithful", "on-a-roll", "full-week": return "day"
+        case "mixologist", "variety-pack": return "drink type"
+        case "shots-shots-shots": return "shot"
+        case "nifty-fifty", "century-club", "double-digits": return "drink"
+        case "borough-hopper": return "borough"
+        case "hophead": return "beer"
+        case "wine-not": return "wine"
+        case "shaken-stirred": return "cocktail"
+        default: return "step"
+        }
+    }
+
     static func badges(_ visits: [Visit], _ visitedIds: Set<String>) -> [Badge] {
         let neighborhoodsVisited = Set(
             visitedIds.compactMap { AppData.bar(id: $0)?.neighborhood }

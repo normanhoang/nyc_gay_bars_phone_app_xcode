@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// A bar row in the Explore / picker lists. Glass surface; gets a primary
-/// border + wash when visited; shows a drink-count badge. Port of RN
-/// components/BarListItem.tsx.
+/// A bar row in the Explore / picker lists. Unvisited rows are full glass and
+/// stay the visual target; visited rows recede (flat 4% fill, dimmed content,
+/// green check). Shows a drink-count badge.
 struct BarListItem: View {
     let bar: Bar
     var distance: Double?
@@ -48,18 +48,26 @@ struct BarListItem: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.trailing, 12)
+                .opacity(visited ? 0.55 : 1)
 
                 if drinkCount > 0 {
                     HStack(spacing: 2) {
                         Text("🍹").font(.scaled(13))
                         Text("\(drinkCount)")
                             .font(.scaled(14, weight: .bold))
-                            .foregroundStyle(Palette.primary)
+                            .foregroundStyle(visited ? Palette.gray200 : Palette.primary)
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(Capsule().fill(Palette.primary.opacity(0.25)))
-                    .padding(.trailing, 4)
+                    .background(Capsule().fill(visited ? Color.white.opacity(0.08) : Palette.primary.opacity(0.25)))
+                    .padding(.trailing, 8)
+                }
+
+                if visited {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.scaled(20))
+                        .foregroundStyle(Palette.green)
+                        .padding(.trailing, 8)
                 }
 
                 Image(systemName: "chevron.right")
@@ -67,15 +75,20 @@ struct BarListItem: View {
                     .foregroundStyle(Palette.gray400)
             }
             .padding(16)
-            .background {
-                if visited {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(Palette.primary.opacity(0.20))
-                }
-            }
-            .glassSurface(radius: 24, bordered: visited,
-                          borderColor: visited ? Palette.primary.opacity(0.5) : Color.white.opacity(0.16))
+            .modifier(RowSurface(visited: visited))
         }
         .buttonStyle(PressableScale())
+    }
+}
+
+/// Full glass for unvisited rows; a flat, quieter panel for visited ones.
+private struct RowSurface: ViewModifier {
+    let visited: Bool
+    func body(content: Content) -> some View {
+        if visited {
+            content.contentPanel(radius: 24, fill: Color.white.opacity(0.04))
+        } else {
+            content.glassSurface(radius: 24, bordered: true)
+        }
     }
 }

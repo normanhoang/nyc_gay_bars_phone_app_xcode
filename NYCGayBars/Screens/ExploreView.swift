@@ -57,12 +57,12 @@ struct ExploreView: View {
         let d = distances
         let bars = filteredBars(d)
         VStack(spacing: 0) {
-            header
+            header(hasDistances: d != nil)
             FilterChips(options: ["All"] + neighborhoodOptions, selected: Binding(
                 get: { neighborhood }, set: { selectNeighborhood($0) }))
                 .padding(.leading, 16)
                 .padding(.bottom, 4)
-            statsRow(d)
+            statsRow()
             content(d, bars)
         }
         .dismissKeyboardOnBackgroundTap()
@@ -79,27 +79,28 @@ struct ExploreView: View {
         .onAppear { zip.onZip = { selectNeighborhood($0) } }
     }
 
-    private var header: some View {
+    private func header(hasDistances: Bool) -> some View {
         VStack(spacing: 0) {
             HStack(alignment: .center) {
                 Text("NYC Gay Bars")
-                    .font(.scaled(30, weight: .heavy))
+                    .font(.scaled(22, weight: .heavy))
                     .foregroundStyle(.white)
                 Spacer()
                 Button(action: openInstagram) {
-                    ZStack {
-                        InstagramGlyph(size: 66)
-                        Image("AppLogo").resizable().scaledToFit().frame(width: 96, height: 96)
-                    }
+                    InstagramGlyph(size: 36, corner: 12)
                 }
                 .buttonStyle(PressableScale())
-                .offset(x: 12)
                 .accessibilityLabel("Open NYC Gay Bars on Instagram")
             }
-            .padding(.bottom, 6)
+            .padding(.bottom, 10)
 
-            SearchBox(text: zip.query, onChangeText: { zip.change($0) }, onFocus: { mode = 1 })
-                .padding(.bottom, 12)
+            SearchBox(text: zip.query, placeholder: "Search bars, ZIP…",
+                      onChangeText: { zip.change($0) }, onFocus: { mode = 1 }) {
+                if hasDistances {
+                    sortChip
+                }
+            }
+            .padding(.bottom, 12)
 
             if let note = zip.zipNote {
                 ZipNote(text: note).padding(.bottom, 8)
@@ -135,40 +136,42 @@ struct ExploreView: View {
         }
     }
 
-    private func statsRow(_ distances: [String: Double]?) -> some View {
+    /// Sort toggle chip that lives inside the search bar (redesign 1a).
+    private var sortChip: some View {
+        Button {
+            nearest.toggle()
+            Haptics.selection()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.up.arrow.down")
+                    .font(.scaled(11, weight: .semibold))
+                Text(nearest ? "Nearest" : "A–Z")
+                    .font(.scaled(12, weight: .semibold))
+            }
+            .foregroundStyle(Palette.gray200)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Capsule().fill(Color.white.opacity(0.08)))
+            .overlay(Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Sort by \(nearest ? "nearest" : "name")")
+    }
+
+    private func statsRow() -> some View {
         let bars = neighborhoodBars
         let ids = visits.visitedIds
         let visitedCount = bars.filter { ids.contains($0.id) }.count
-        return HStack {
-            HStack(spacing: 0) {
-                Text("\(visitedCount) / \(bars.count)")
-                    .font(.scaled(12, weight: .semibold))
-                    .foregroundStyle(Palette.primary)
-                Text(" visited · ").font(.scaled(12)).foregroundStyle(Palette.gray500)
-                Text(visitMessage(visitedCount, bars.count, neighborhood == "All"))
-                    .font(.scaled(12)).foregroundStyle(Palette.gray400)
-            }
-            if mode == 1 && distances != nil {
-                Spacer()
-                HStack(spacing: 0) {
-                    Button { nearest = false } label: {
-                        Text("A–Z").font(.scaled(12, weight: nearest ? .semibold : .bold))
-                            .foregroundStyle(nearest ? Palette.gray500 : Palette.primary)
-                    }
-                    Text(" · ").font(.scaled(12)).foregroundStyle(Palette.gray600)
-                    Button { nearest = true } label: {
-                        Text("Nearest").font(.scaled(12, weight: nearest ? .bold : .semibold))
-                            .foregroundStyle(nearest ? Palette.primary : Palette.gray500)
-                    }
-                }
-                .buttonStyle(.plain)
-            } else {
-                Spacer()
-            }
+        return HStack(spacing: 0) {
+            Text("\(visitedCount) of \(bars.count) visited")
+                .font(.scaled(12, weight: .semibold))
+                .foregroundStyle(Palette.gray300)
+            Text(" · " + visitMessage(visitedCount, bars.count, neighborhood == "All"))
+                .font(.scaled(12)).foregroundStyle(Palette.gray400)
+            Spacer(minLength: 0)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
-        .frame(maxWidth: .infinity, alignment: mode == 1 && distances != nil ? .leading : .center)
     }
 
     @ViewBuilder
@@ -283,30 +286,32 @@ struct ExploreView: View {
 /// Liquid Glass — a `.glassEffect` squircle masked to the stroke shapes.
 private struct InstagramGlyph: View {
     var size: CGFloat
+    var corner: CGFloat? = nil
+    private var cornerRadius: CGFloat { corner ?? size * 0.28 }
     var body: some View {
-        let corner = size * 0.28
         ZStack {
             // Full Liquid Glass squircle tile — maximum glass surface.
             Color.clear
                 .frame(width: size, height: size)
-                .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: corner, style: .continuous))
+                .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             // Faint Instagram cues (frame edge + lens + flash dot) on the glass.
-            outline(lineWidth: size * 0.04, color: .white.opacity(0.22))
+            outline(lineWidth: max(size * 0.04, 1.2), color: .white.opacity(0.35))
         }
         .frame(width: size, height: size)
     }
 
     private func outline(lineWidth: CGFloat, color: Color) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius * 0.6, style: .continuous)
                 .strokeBorder(color, lineWidth: lineWidth)
+                .padding(size * 0.18)
             Circle()
                 .stroke(color, lineWidth: lineWidth)
-                .frame(width: size * 0.52, height: size * 0.52)
+                .frame(width: size * 0.30, height: size * 0.30)
             Circle()
                 .fill(color)
-                .frame(width: size * 0.10, height: size * 0.10)
-                .offset(x: size * 0.27, y: -size * 0.27)
+                .frame(width: size * 0.08, height: size * 0.08)
+                .offset(x: size * 0.185, y: -size * 0.185)
         }
         .frame(width: size, height: size)
     }
