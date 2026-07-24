@@ -13,7 +13,9 @@ struct HistoryView: View {
     @State private var visitToDelete: Visit?
     @State private var openBar: Bar?
 
-    private var markedDays: Set<String> { Set(visits.visits.map { $0.dayKey }) }
+    private var dayTotals: [String: Int] {
+        visits.visits.reduce(into: [:]) { $0[$1.dayKey, default: 0] += $1.drinkTotal }
+    }
     private var dayVisits: [Visit] { visits.getVisitsForDay(selectedDay) }
     private var dayTotal: Int { dayVisits.reduce(0) { $0 + $1.drinkTotal } }
     private var isFutureDay: Bool { DayKey.isFuture(selectedDay) }
@@ -25,34 +27,54 @@ struct HistoryView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("History").font(.scaled(30, weight: .heavy)).foregroundStyle(.white)
-                            .padding(.bottom, 16)
-
-                        MonthCalendar(selected: $selectedDay, markedDays: markedDays)
-
-                        Text(DayKey.format(selectedDay))
-                            .font(.scaled(16, weight: .bold)).foregroundStyle(.white)
-                            .padding(.top, 16)
-                        if !dayVisits.isEmpty {
-                            Text("\(dayVisits.count) \(dayVisits.count == 1 ? "bar" : "bars") • \(dayTotal) \(dayTotal == 1 ? "drink" : "drinks")")
-                                .font(.scaled(14)).foregroundStyle(Palette.gray400)
-                                .padding(.top, 2)
-                        }
-                        if !isFutureDay {
-                            Button { showPicker = true } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "plus.circle").font(.scaled(18))
-                                    Text("Add drinks for this day").font(.scaled(16, weight: .semibold))
+                        HStack {
+                            Text("History").font(.scaled(22, weight: .heavy)).foregroundStyle(.white)
+                            Spacer()
+                            if !visits.visits.isEmpty {
+                                Menu {
+                                    Button(role: .destructive) { showClear = true } label: {
+                                        Label("Clear History", systemImage: "trash")
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis")
+                                        .font(.scaled(15, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                        .frame(width: 36, height: 36)
+                                        .glassSurface(radius: 12, bordered: true)
+                                        .contentShape(Rectangle())
                                 }
-                                .foregroundStyle(Palette.primary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.horizontal, 16).padding(.vertical, 12)
-                                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Palette.primary.opacity(0.15)))
-                                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Palette.primary.opacity(0.4), lineWidth: 1))
                             }
-                            .buttonStyle(PressableScale())
-                            .padding(.top, 12)
                         }
+                        .padding(.bottom, 16)
+
+                        MonthCalendar(selected: $selectedDay, dayTotals: dayTotals)
+
+                        HStack(alignment: .center) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(DayKey.format(selectedDay))
+                                    .font(.scaled(16, weight: .bold)).foregroundStyle(.white)
+                                if !dayVisits.isEmpty {
+                                    Text("\(dayVisits.count) \(dayVisits.count == 1 ? "bar" : "bars") • \(dayTotal) \(dayTotal == 1 ? "drink" : "drinks")")
+                                        .font(.scaled(14)).foregroundStyle(Palette.gray400)
+                                }
+                            }
+                            Spacer()
+                            if !isFutureDay {
+                                Button { showPicker = true } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "plus").font(.scaled(13, weight: .semibold))
+                                        Text("Add").font(.scaled(14, weight: .semibold))
+                                    }
+                                    .foregroundStyle(Palette.primary)
+                                    .padding(.horizontal, 14).padding(.vertical, 8)
+                                    .background(Capsule().fill(Palette.primary.opacity(0.15)))
+                                    .overlay(Capsule().strokeBorder(Palette.primary.opacity(0.4), lineWidth: 1))
+                                }
+                                .buttonStyle(PressableScale())
+                                .accessibilityLabel("Add drinks for this day")
+                            }
+                        }
+                        .padding(.top, 16)
 
                         if dayVisits.isEmpty {
                             VStack(spacing: 8) {
@@ -71,22 +93,6 @@ struct HistoryView: View {
                                 }
                             }
                             .padding(.top, 16)
-                        }
-
-                        if !visits.visits.isEmpty {
-                            Button { showClear = true } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "trash").font(.scaled(18))
-                                    Text("Clear History").font(.scaled(16, weight: .semibold))
-                                }
-                                .foregroundStyle(Palette.red)
-                                .frame(maxWidth: .infinity)
-                                .padding(.horizontal, 16).padding(.vertical, 12)
-                                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Palette.red.opacity(0.15)))
-                                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Palette.red.opacity(0.4), lineWidth: 1))
-                            }
-                            .buttonStyle(PressableScale())
-                            .padding(.top, 24)
                         }
                     }
                     .padding(.horizontal, 16)

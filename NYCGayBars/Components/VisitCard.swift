@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// A logged visit on the History screen: bar, drinks, optional note, delete.
-/// Port of RN components/VisitCard.tsx.
+/// A logged visit on the History screen: bar, drinks, optional note; delete
+/// lives in a quiet ⋯ menu (redesign 5a).
 struct VisitCard: View {
     let visit: Visit
     var onDelete: () -> Void
@@ -20,10 +20,6 @@ struct VisitCard: View {
                     Text(bar?.neighborhood ?? "")
                         .font(.scaled(12, weight: .medium))
                         .foregroundStyle(Palette.primary)
-                    Text(DayKey.format(visit.dayKey))
-                        .font(.scaled(12))
-                        .foregroundStyle(Palette.gray400)
-                        .padding(.top, 2)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.trailing, 12)
@@ -37,6 +33,20 @@ struct VisitCard: View {
                         .tracking(0.5)
                         .foregroundStyle(Palette.gray400)
                 }
+
+                Menu {
+                    Button(role: .destructive, action: onDelete) {
+                        Label("Delete visit", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.scaled(13, weight: .semibold))
+                        .foregroundStyle(Palette.gray400)
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
+                }
+                .padding(.top, -6)
+                .padding(.trailing, -8)
             }
 
             if visit.drinks.isEmpty {
@@ -74,17 +84,6 @@ struct VisitCard: View {
                     .foregroundStyle(Palette.gray400)
                     .padding(.top, 12)
             }
-
-            Button(action: onDelete) {
-                HStack(spacing: 4) {
-                    Image(systemName: "trash").font(.scaled(12))
-                    Text("Delete").font(.scaled(12, weight: .semibold))
-                }
-                .foregroundStyle(Palette.red)
-                .padding(.vertical, 8)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
         }
         .padding(16)
         .contentPanel()
