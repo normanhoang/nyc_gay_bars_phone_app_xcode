@@ -240,15 +240,8 @@ struct FriendsView: View {
                     groupsSection.padding(.bottom, 20)
                 }
 
-                HStack(alignment: .firstTextBaseline) {
-                    Text("Your friends").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
-                    Spacer()
-                    if !social.friends.isEmpty {
-                        Text("\(social.friends.count)")
-                            .font(.scaled(12)).foregroundStyle(Palette.gray400)
-                    }
-                }
-                .padding(.bottom, 8)
+                Text("Your friends").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
+                    .padding(.bottom, 8)
                 friendsSection
 
                 Text("Check-ins share only your display name and the bar. Friends see them for 6 hours; they're deleted after 24.")
