@@ -97,14 +97,19 @@ struct FriendsView: View {
     private var onboarding: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Friends").font(.scaled(30, weight: .heavy)).foregroundStyle(.white)
+                Text("Friends").font(.scaled(22, weight: .heavy)).foregroundStyle(.white)
                     .padding(.bottom, 16)
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("See when your friends are out")
                         .font(.scaled(18, weight: .bold)).foregroundStyle(.white)
-                    Text("Add friends with a private code — no accounts, no directory. When you tap “Share with friends” at a bar, it shows up in their Tonight feed — no notifications. Nothing is shared unless you tap it, and check-ins disappear after a few hours.")
-                        .font(.scaled(14)).foregroundStyle(Palette.gray300)
+
+                    valueProp("qrcode", "Private code, no accounts",
+                              "Add friends with a code or QR — there's no directory to be found in.")
+                    valueProp("wineglass", "Share only when you tap",
+                              "Logging drinks never notifies anyone — “Share with friends” is its own button.")
+                    valueProp("clock.arrow.circlepath", "Check-ins expire",
+                              "Friends see them for 6 hours; they're deleted after 24.")
 
                     Text("PICK A DISPLAY NAME").font(.scaled(12)).tracking(0.5)
                         .foregroundStyle(Palette.gray300).padding(.top, 8)
@@ -116,7 +121,8 @@ struct FriendsView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
                         .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.white.opacity(0.06)))
-                        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(focusedField == .name ? Palette.primary.opacity(0.6) : Color.white.opacity(0.10), lineWidth: 1))
 
                     Button {
                         let name = nameDraft
@@ -130,6 +136,7 @@ struct FriendsView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
                             .background(Capsule().fill(Palette.primary.opacity(startDisabled ? 0.4 : 1)))
+                            .shadow(color: startDisabled ? .clear : Palette.primary.opacity(0.45), radius: 10, y: 2)
                     }
                     .buttonStyle(.plain)
                     .disabled(startDisabled)
@@ -152,6 +159,25 @@ struct FriendsView: View {
         // Tap anywhere outside the text field to drop the keyboard; buttons
         // and the field itself win the gesture, so they're unaffected.
         .onTapGesture { focusedField = nil }
+    }
+
+    /// Icon-tile value-prop row for onboarding (redesign 6c).
+    private func valueProp(_ icon: String, _ title: String, _ body: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.scaled(16, weight: .semibold))
+                .foregroundStyle(Palette.primary)
+                .frame(width: 36, height: 36)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Palette.primary.opacity(0.15)))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(Palette.primary.opacity(0.3), lineWidth: 1))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.scaled(14, weight: .semibold)).foregroundStyle(.white)
+                Text(body).font(.scaled(13)).foregroundStyle(Palette.gray400)
+            }
+        }
+        .padding(.top, 4)
     }
 
     private var startDisabled: Bool {
