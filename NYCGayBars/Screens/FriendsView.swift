@@ -29,6 +29,8 @@ struct FriendsView: View {
     @State private var editMembersGroup: FriendGroup?
     @State private var groupsForFriend: FriendProfile?
     @State private var deleteGroupTarget: FriendGroup?
+    // Own check-in pending removal (confirmation dialog).
+    @State private var removeCheckInTarget: FriendCheckIn?
 
     var body: some View {
         Group {
@@ -225,8 +227,9 @@ struct FriendsView: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text("Tonight").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
                     Spacer()
-                    if !social.tonight.isEmpty {
-                        let n = Set(social.tonight.map(\.authorID)).count
+                    let out = social.friendsTonight
+                    if !out.isEmpty {
+                        let n = Set(out.map(\.authorID)).count
                         Text("\(n) friend\(n == 1 ? "" : "s") out")
                             .font(.scaled(12)).foregroundStyle(Palette.gray400)
                     }
@@ -244,7 +247,7 @@ struct FriendsView: View {
                     .padding(.bottom, 8)
                 friendsSection
 
-                Text("Check-ins share only your display name and the bar. Friends see them for 6 hours; they're deleted after 24.")
+                Text("Check-ins share only your display name and the bar. Friends see them for 6 hours; they're deleted after 24. Remove yours anytime from Tonight.")
                     .font(.scaled(12)).foregroundStyle(Palette.gray500)
                     .padding(.top, 16)
             }
@@ -287,6 +290,21 @@ struct FriendsView: View {
             Button("Cancel", role: .cancel) { deleteGroupTarget = nil }
         } message: {
             Text("This only deletes the group, not the friends in it.")
+        }
+        // `presenting:` hands the check-in to the builder, so the action can't
+        // read a target the dismissal has already nil'd out.
+        .confirmationDialog("Remove your check-in?",
+                            isPresented: Binding(get: { removeCheckInTarget != nil },
+                                                 set: { if !$0 { removeCheckInTarget = nil } }),
+                            titleVisibility: .visible,
+                            presenting: removeCheckInTarget) { checkIn in
+            Button("Remove", role: .destructive) {
+                Haptics.light()
+                Task { await social.removeOwnCheckIn(checkIn) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { checkIn in
+            Text("Friends will stop seeing you at \(checkIn.barName).")
         }
     }
 
@@ -484,11 +502,14 @@ struct FriendsView: View {
     }
 
     /// Rich Tonight card: avatar, live dot, bar · neighborhood · age, Map chip
-    /// that frames the bar on the Explore map (redesign 4a).
+    /// that frames the bar on the Explore map (redesign 4a). My own check-in
+    /// is badged "YOU" and swaps the Map chip for Remove — three trailing
+    /// elements would squeeze the name out on a narrow phone.
     private func tonightCard(_ checkIn: FriendCheckIn, now: Date) -> some View {
         let minutes = max(0, Int(now.timeIntervalSince(checkIn.date) / 60))
         let age = minutes < 60 ? "\(minutes) min" : "\(minutes / 60) h"
         let neighborhood = AppData.barsById[checkIn.barId]?.neighborhood
+        let isMe = checkIn.authorID == social.myID
         return Button {
             if let bar = AppData.barsById[checkIn.barId] { selectedBar = bar }
         } label: {
@@ -499,6 +520,7 @@ struct FriendsView: View {
                         Text(checkIn.authorName)
                             .font(.scaled(15, weight: .bold)).foregroundStyle(.white)
                             .lineLimit(1)
+                        if isMe { youBadge }
                         if minutes < 15 {
                             Circle().fill(Palette.green).frame(width: 6, height: 6)
                             Text("Now").font(.scaled(11, weight: .semibold)).foregroundStyle(Palette.green)
@@ -511,27 +533,52 @@ struct FriendsView: View {
                         .lineLimit(1)
                 }
                 Spacer(minLength: 8)
-                Button {
-                    Haptics.light()
-                    tabSwipe.mapTarget = checkIn.barId
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "mappin.circle.fill").font(.scaled(12))
-                        Text("Map").font(.scaled(13, weight: .semibold))
+                if isMe {
+                    Button {
+                        Haptics.light()
+                        removeCheckInTarget = checkIn
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "trash").font(.scaled(12))
+                            Text("Remove").font(.scaled(13, weight: .semibold))
+                        }
+                        .foregroundStyle(Palette.red)
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .background(Capsule().fill(Color.white.opacity(0.08)))
+                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
                     }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 12).padding(.vertical, 7)
-                    .background(Capsule().fill(Color.white.opacity(0.08)))
-                    .overlay(Capsule().strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
+                    .buttonStyle(PressableScale())
+                    .accessibilityLabel("Remove your check-in at \(checkIn.barName)")
+                } else {
+                    Button {
+                        Haptics.light()
+                        tabSwipe.mapTarget = checkIn.barId
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "mappin.circle.fill").font(.scaled(12))
+                            Text("Map").font(.scaled(13, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .background(Capsule().fill(Color.white.opacity(0.08)))
+                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
+                    }
+                    .buttonStyle(PressableScale())
+                    .accessibilityLabel("Show \(checkIn.barName) on the map")
                 }
-                .buttonStyle(PressableScale())
-                .accessibilityLabel("Show \(checkIn.barName) on the map")
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .glassSurface(radius: 16, bordered: true)
         }
         .buttonStyle(PressableScale())
+    }
+
+    private var youBadge: some View {
+        Text("YOU")
+            .font(.scaled(9, weight: .heavy)).foregroundStyle(.white)
+            .padding(.horizontal, 5).padding(.vertical, 2)
+            .background(Capsule().fill(Palette.primary))
     }
 
     /// Gradient initial avatar (redesign 4a).

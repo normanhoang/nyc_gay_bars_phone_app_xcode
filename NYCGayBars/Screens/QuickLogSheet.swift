@@ -15,6 +15,7 @@ struct QuickLogSheet: View {
     @State private var bar: Bar?
     @State private var showPicker = false
     @State private var hasLogged = false
+    @State private var showRemoveAlert = false
 
     private var today: String { DayKey.key() }
     private var visit: Visit? { bar.flatMap { visits.getVisitFor($0.id, day: today) } }
@@ -33,6 +34,12 @@ struct QuickLogSheet: View {
                         .padding(.top, 2)
 
                     barCard.padding(.top, 12)
+
+                    if let bar {
+                        BarActionPills(bar: bar, day: nil,
+                                       onConfirmUnvisit: { showRemoveAlert = true })
+                            .padding(.top, 12)
+                    }
 
                     if hasLogged, let context = sessionContext() {
                         Text(context)
@@ -66,6 +73,22 @@ struct QuickLogSheet: View {
 
             BadgeToast().padding(.top, 8)
         }
+        // Hosted here, not inside BarActionPills: ConfirmDialog dims the whole
+        // surface behind it and would otherwise be clipped to the pill row.
+        .overlay {
+            if showRemoveAlert, let bar {
+                let n = visits.getVisitsForBar(bar.id).count
+                ConfirmDialog(
+                    title: "Mark as never visited?",
+                    message: "This will remove \(n) logged drink-day\(n == 1 ? "" : "s") for \(bar.name).",
+                    actions: [
+                        .init(label: "Remove", style: .destructive) { visits.setVisited(bar.id, false) },
+                        .init(label: "Cancel", style: .cancel) {},
+                    ],
+                    onDismiss: { withAnimation(.easeOut(duration: 0.2)) { showRemoveAlert = false } })
+            }
+        }
+        .animation(.easeOut(duration: 0.2), value: showRemoveAlert)
         .onAppear { if bar == nil { bar = initialBar } }
         .sheet(isPresented: $showPicker) {
             QuickLogBarPicker(distances: distances) { picked in

@@ -34,6 +34,7 @@
 		73D3419917ADDDBED31BB38B /* NYCGayBarsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C83583F518BDE62626A5E2F /* NYCGayBarsApp.swift */; };
 		763D78EFACF0281C67D3318C /* meta.json in Resources */ = {isa = PBXBuildFile; fileRef = D4D914076E4525196618332F /* meta.json */; };
 		793AB44910CFA0A23FCD98BD /* ZipQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33F5686C61BE3EC9DA41BC0 /* ZipQuery.swift */; };
+		80E05000479EC8317EF07952 /* BarActionPills.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC351E12C586F9B966A238D /* BarActionPills.swift */; };
 		815D539114F294548DBCB5CC /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745F2200D91FA91FED20C99C /* FriendsView.swift */; };
 		8907AE4B0E8FA23D18F9E6C6 /* BadgeToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5AB110A7AC0A69A887C6B98 /* BadgeToast.swift */; };
 		8C8C99CFC2C7710674384618 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6C2ABE78BDC4816F37638D /* Palette.swift */; };
@@ -97,6 +98,7 @@
 		3A2DE83E5D877E615C5E7642 /* BarMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarMapView.swift; sourceTree = "<group>"; };
 		3A60362DDA4AE75915EA919D /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		3A9A7174D5CE19C0673CCAAF /* AppBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBackground.swift; sourceTree = "<group>"; };
+		3AC351E12C586F9B966A238D /* BarActionPills.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarActionPills.swift; sourceTree = "<group>"; };
 		3AEA18EACEA2E909DE412CA5 /* NYCGayBarsTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NYCGayBarsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FE82916D6F73805684F020A /* zips.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = zips.json; sourceTree = "<group>"; };
 		417A49560F9ECD23C5C0E133 /* Geo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geo.swift; sourceTree = "<group>"; };
@@ -271,6 +273,7 @@
 				071553DC705E470FD992DA7C /* BadgeProgressRow.swift */,
 				E30AFBE2E59FDFCFCD7E8EA0 /* BadgeTile.swift */,
 				B5AB110A7AC0A69A887C6B98 /* BadgeToast.swift */,
+				3AC351E12C586F9B966A238D /* BarActionPills.swift */,
 				7C0E3C68064192C81E87A4B1 /* BarListItem.swift */,
 				789FAD37EC579F1E13118A4B /* Confetti.swift */,
 				D238B7F76F5A764AEDDAF032 /* ConfirmDialog.swift */,
@@ -432,6 +435,7 @@
 				3C86C12FA6FF617B331D7947 /* BadgeTile.swift in Sources */,
 				8907AE4B0E8FA23D18F9E6C6 /* BadgeToast.swift in Sources */,
 				E6BD532D4EFD3956D33D886B /* BadgesStore.swift in Sources */,
+				80E05000479EC8317EF07952 /* BarActionPills.swift in Sources */,
 				B809A54429E2F7DDBE280087 /* BarDetailSheet.swift in Sources */,
 				ADB01E5585D4CE7DECF24D53 /* BarListItem.swift in Sources */,
 				39142DEA98095B61B604EA41 /* BarMapView.swift in Sources */,

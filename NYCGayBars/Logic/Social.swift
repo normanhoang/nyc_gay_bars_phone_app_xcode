@@ -50,6 +50,108 @@ enum Social {
             .filter { seen.insert($0.authorID + "|" + $0.barId).inserted }
     }
 
+    /// How far apart two check-in timestamps may be and still count as copies
+    /// of one fan-out. Every recipient copy (including my own) is stamped with
+    /// a single `now`, but the value round-trips through CloudKit as a Double —
+    /// match a window rather than equality.
+    static let checkInMatchWindow: TimeInterval = 1
+
+    /// How long a just-removed own check-in stays suppressed locally. CloudKit
+    /// queries are eventually consistent and non-monotonic, so a refresh right
+    /// after the delete can hand the record back; without this the row would
+    /// flicker straight back into the feed. Matches `friendRetentionGrace`.
+    static let checkInTombstoneGrace: TimeInterval = 300
+
+    /// Own check-ins removed moments ago, suppressed until CloudKit stops
+    /// returning them (see `checkInTombstoneGrace`).
+    struct CheckInTombstone: Equatable {
+        /// Timestamp of the removed fan-out (shared by every recipient copy).
+        let ts: Date
+        /// When the removal was issued.
+        let at: Date
+    }
+
+    /// How long a just-shared own check-in is shown from local state, before
+    /// CloudKit's query index makes the record fetchable.
+    static let ownCheckInGrace: TimeInterval = 60
+
+    /// Server record names of one shared check-in fan-out, retained from the
+    /// create so a removal can delete by ID. A query-based delete can't be
+    /// trusted right after a share: CloudKit's public-DB query index lags the
+    /// write by seconds, so it matches nothing, deletes nothing, and reports
+    /// success — leaving every copy live in friends' feeds while the local row
+    /// hides behind a tombstone that eventually expires.
+    struct CheckInFanOut: Equatable {
+        /// The stamp every copy shares — how a feed row maps back to its fan-out.
+        let ts: Date
+        let recordNames: [String]
+    }
+
+    /// The retained fan-out this check-in belongs to, if still held (only
+    /// fan-outs shared this launch are).
+    static func fanOut(matching date: Date, in fanOuts: [CheckInFanOut]) -> CheckInFanOut? {
+        fanOuts.first { isSameCheckIn($0.ts, date) }
+    }
+
+    /// Drop retained fan-outs past the record TTL: those records are being
+    /// reaped anyway, and by then the query fallback is long consistent.
+    static func prunedFanOuts(_ fanOuts: [CheckInFanOut], now: Date) -> [CheckInFanOut] {
+        fanOuts.filter { !isExpired($0.ts, now: now) }
+    }
+
+    /// Two check-in stamps belong to the same fan-out.
+    static func isSameCheckIn(_ a: Date, _ b: Date) -> Bool {
+        abs(a.timeIntervalSince(b)) <= checkInMatchWindow
+    }
+
+    static func prunedTombstones(_ tombstones: [CheckInTombstone], now: Date,
+                                 grace: TimeInterval = checkInTombstoneGrace) -> [CheckInTombstone] {
+        tombstones.filter { now.timeIntervalSince($0.at) < grace }
+    }
+
+    /// Drop my own check-ins that a removal already deleted server-side. Only
+    /// own records are ever tombstoned — a friend's record with a coincidentally
+    /// close timestamp must not be filtered out.
+    static func withoutTombstoned(_ checkIns: [FriendCheckIn], me: String,
+                                  tombstones: [CheckInTombstone]) -> [FriendCheckIn] {
+        guard !tombstones.isEmpty else { return checkIns }
+        return checkIns.filter { checkIn in
+            guard checkIn.authorID == me else { return true }
+            return !tombstones.contains { isSameCheckIn($0.ts, checkIn.date) }
+        }
+    }
+
+    /// Merge a just-shared own check-in into a freshly-fetched feed, so the row
+    /// is visible the instant the write succeeds instead of after CloudKit makes
+    /// the record queryable (seconds later). Symmetric to `mergedIncoming` /
+    /// `mergedFriends`: an optimistic entry is kept only while the fetch has no
+    /// copy of it and it's younger than `grace`; once the canonical record
+    /// arrives, it wins. Returns (merged list, ids to keep optimistic).
+    static func mergedOwnCheckIns(fetched: [FriendCheckIn],
+                                  optimistic: [(checkIn: FriendCheckIn, at: Date)],
+                                  now: Date, grace: TimeInterval = ownCheckInGrace)
+        -> (merged: [FriendCheckIn], keepIDs: Set<String>) {
+        var merged = fetched
+        var keep = Set<String>()
+        for entry in optimistic {
+            let landed = fetched.contains {
+                $0.authorID == entry.checkIn.authorID && $0.barId == entry.checkIn.barId
+                    && isSameCheckIn($0.date, entry.checkIn.date)
+            }
+            guard !landed, now.timeIntervalSince(entry.at) < grace else { continue }
+            merged.append(entry.checkIn)
+            keep.insert(entry.checkIn.id)
+        }
+        return (merged, keep)
+    }
+
+    /// Check-ins by someone other than me — the "who's out" surfaces (map pins,
+    /// the friends-out count) are about friends, so my own row is excluded.
+    static func friendsOnly(_ checkIns: [FriendCheckIn], me: String?) -> [FriendCheckIn] {
+        guard let me else { return checkIns }
+        return checkIns.filter { $0.authorID != me }
+    }
+
     /// Friends whose own Friendship{them→me} record is gone and who have no
     /// request pending in either direction: they unfriended me, so my mirror
     /// record should be deleted too. A pending request marks the acceptance

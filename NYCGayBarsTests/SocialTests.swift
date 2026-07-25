@@ -74,6 +74,141 @@ final class SocialTests: XCTestCase {
         XCTAssertEqual(Social.tonightFeed([bar1, bar2], now: now).map(\.id), [bar2.id, bar1.id])
     }
 
+    // MARK: Own check-in (self-addressed copy, removal tombstones)
+
+    func testIsSameCheckInMatchesWithinWindow() {
+        let ts = Date()
+        XCTAssertTrue(Social.isSameCheckIn(ts, ts))
+        XCTAssertTrue(Social.isSameCheckIn(ts, ts.addingTimeInterval(0.5)))
+        XCTAssertTrue(Social.isSameCheckIn(ts, ts.addingTimeInterval(-Social.checkInMatchWindow)))
+        XCTAssertFalse(Social.isSameCheckIn(ts, ts.addingTimeInterval(2)))
+    }
+
+    func testWithoutTombstonedDropsOwnRemovedCheckIn() {
+        let now = Date()
+        let mine = checkIn("me", "bar1", minutesAgo: 5, now: now)
+        let friend = checkIn("a", "bar2", minutesAgo: 5, now: now)
+        let tombstones = [Social.CheckInTombstone(ts: mine.date, at: now)]
+        let kept = Social.withoutTombstoned([mine, friend], me: "me", tombstones: tombstones)
+        XCTAssertEqual(kept.map(\.id), [friend.id])
+    }
+
+    func testWithoutTombstonedKeepsFriendWithMatchingStamp() {
+        // A friend sharing at the same instant must not be filtered out by my
+        // own removal — only my records are ever tombstoned.
+        let now = Date()
+        let mine = checkIn("me", "bar1", minutesAgo: 5, now: now)
+        let friend = checkIn("a", "bar1", minutesAgo: 5, now: now)
+        let kept = Social.withoutTombstoned([mine, friend], me: "me",
+                                            tombstones: [.init(ts: mine.date, at: now)])
+        XCTAssertEqual(kept.map(\.id), [friend.id])
+    }
+
+    func testWithoutTombstonedKeepsMyOtherCheckIn() {
+        // Bar hopping: removing one own check-in leaves the other standing.
+        let now = Date()
+        let removed = checkIn("me", "bar1", minutesAgo: 50, now: now)
+        let current = checkIn("me", "bar2", minutesAgo: 5, now: now)
+        let kept = Social.withoutTombstoned([removed, current], me: "me",
+                                            tombstones: [.init(ts: removed.date, at: now)])
+        XCTAssertEqual(kept.map(\.id), [current.id])
+    }
+
+    func testFanOutMatchesRetainedShare() {
+        // The feed row's date round-trips through CloudKit as a Double, so the
+        // lookup matches on the same ±window as the delete-by-timestamp path.
+        let ts = Date()
+        let fanOut = Social.CheckInFanOut(ts: ts, recordNames: ["a", "b"])
+        XCTAssertEqual(Social.fanOut(matching: ts, in: [fanOut]), fanOut)
+        XCTAssertEqual(Social.fanOut(matching: ts.addingTimeInterval(0.5), in: [fanOut]), fanOut)
+        XCTAssertNil(Social.fanOut(matching: ts.addingTimeInterval(2), in: [fanOut]))
+        XCTAssertNil(Social.fanOut(matching: ts, in: []))
+    }
+
+    func testFanOutPicksTheMatchingShare() {
+        // Bar hopping: two fan-outs held at once, each removable on its own.
+        let now = Date()
+        let earlier = Social.CheckInFanOut(ts: now.addingTimeInterval(-3600), recordNames: ["old"])
+        let latest = Social.CheckInFanOut(ts: now, recordNames: ["new"])
+        XCTAssertEqual(Social.fanOut(matching: now, in: [earlier, latest]), latest)
+        XCTAssertEqual(Social.fanOut(matching: earlier.ts, in: [earlier, latest]), earlier)
+    }
+
+    func testPrunedFanOutsDropsPastTTL() {
+        let now = Date()
+        let live = Social.CheckInFanOut(ts: now.addingTimeInterval(-3600), recordNames: ["a"])
+        let expired = Social.CheckInFanOut(
+            ts: now.addingTimeInterval(-Social.checkInTTL - 1), recordNames: ["b"])
+        XCTAssertEqual(Social.prunedFanOuts([live, expired], now: now), [live])
+    }
+
+    func testPrunedTombstonesDropsAfterGrace() {
+        let now = Date()
+        let fresh = Social.CheckInTombstone(ts: now, at: now.addingTimeInterval(-10))
+        let stale = Social.CheckInTombstone(
+            ts: now, at: now.addingTimeInterval(-Social.checkInTombstoneGrace - 1))
+        XCTAssertEqual(Social.prunedTombstones([fresh, stale], now: now), [fresh])
+    }
+
+    func testMergedOwnCheckInsShowsJustSharedRow() {
+        let now = Date()
+        let mine = checkIn("me", "bar1", minutesAgo: 0, now: now)
+        let friend = checkIn("a", "bar2", minutesAgo: 5, now: now)
+        let (merged, keep) = Social.mergedOwnCheckIns(
+            fetched: [friend], optimistic: [(mine, now)], now: now)
+        XCTAssertEqual(Set(merged.map(\.id)), [friend.id, mine.id])
+        XCTAssertEqual(keep, [mine.id])
+    }
+
+    func testMergedOwnCheckInsCanonicalTakesOverWithoutDuplicate() {
+        // Same fan-out read back from CloudKit: server record name differs, the
+        // stamp doesn't. The optimistic row must drop out, not double up.
+        let now = Date()
+        let mine = checkIn("me", "bar1", minutesAgo: 0, now: now)
+        let canonical = FriendCheckIn(id: "ck-server", authorID: "me", authorName: "me",
+                                      barId: "bar1", barName: "bar1", date: mine.date)
+        let (merged, keep) = Social.mergedOwnCheckIns(
+            fetched: [canonical], optimistic: [(mine, now)], now: now)
+        XCTAssertEqual(merged.map(\.id), [canonical.id])
+        XCTAssertTrue(keep.isEmpty)
+    }
+
+    func testMergedOwnCheckInsKeepsRowForADifferentBar() {
+        // Bar hop before the first record is queryable: the earlier row is a
+        // different author|bar pair and must not be treated as landed.
+        let now = Date()
+        let earlier = checkIn("me", "bar1", minutesAgo: 20, now: now)
+        let fresh = checkIn("me", "bar2", minutesAgo: 0, now: now)
+        let (merged, _) = Social.mergedOwnCheckIns(
+            fetched: [earlier], optimistic: [(fresh, now)], now: now)
+        XCTAssertEqual(Set(merged.map(\.barId)), ["bar1", "bar2"])
+    }
+
+    func testMergedOwnCheckInsDropsExpiredOptimistic() {
+        let now = Date()
+        let mine = checkIn("me", "bar1", minutesAgo: 5, now: now)
+        let (merged, keep) = Social.mergedOwnCheckIns(
+            fetched: [], optimistic: [(mine, now.addingTimeInterval(-61))], now: now)
+        XCTAssertTrue(merged.isEmpty)
+        XCTAssertTrue(keep.isEmpty)
+    }
+
+    func testFriendsOnlyExcludesMe() {
+        let now = Date()
+        let mine = checkIn("me", "bar1", minutesAgo: 5, now: now)
+        let friend = checkIn("a", "bar2", minutesAgo: 5, now: now)
+        XCTAssertEqual(Social.friendsOnly([mine, friend], me: "me").map(\.id), [friend.id])
+        // Not onboarded / unknown id: nothing to exclude.
+        XCTAssertEqual(Social.friendsOnly([mine, friend], me: nil).count, 2)
+    }
+
+    func testTonightFeedKeepsOwnRowAlongsideFriends() {
+        let now = Date()
+        let mine = checkIn("me", "bar1", minutesAgo: 2, now: now)
+        let friend = checkIn("a", "bar2", minutesAgo: 20, now: now)
+        XCTAssertEqual(Social.tonightFeed([friend, mine], now: now).map(\.id), [mine.id, friend.id])
+    }
+
     // MARK: Mirror removal (unfriend seen from the other side)
 
     func testRemovedFriendIDsDetectsRemoval() {

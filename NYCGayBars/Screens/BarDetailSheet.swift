@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 /// Full bar-logging UI, presented as a sheet. Logs today by default, or against
 /// `day` for backdated entry. Port of RN components/BarDetailSheet.tsx.
@@ -12,21 +11,16 @@ struct BarDetailSheet: View {
     var onClose: (() -> Void)?
 
     @EnvironmentObject private var visits: VisitsStore
-    @EnvironmentObject private var social: SocialStore
     @EnvironmentObject private var badges: BadgesStore
     @Environment(\.dismiss) private var dismiss
 
     @State private var noteDraft = ""
     @State private var showRemoveAlert = false
-    @State private var showDirections = false
-    @State private var sharedWithFriends = false
-    @State private var shareError: String?
 
     private var targetDay: String { day ?? DayKey.key() }
     private var isTargetToday: Bool { targetDay == DayKey.key() }
     private var visit: Visit? { visits.getVisitFor(bar.id, day: targetDay) }
     private var total: Int { visit?.drinkTotal ?? 0 }
-    private var visited: Bool { visits.isVisited(bar.id) }
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -45,11 +39,9 @@ struct BarDetailSheet: View {
                                 .padding(.top, 12)
                         }
 
-                        actionRow.padding(.top, 16)
-                        if let shareError {
-                            Text(shareError).font(.scaled(12)).foregroundStyle(Palette.gray400)
-                                .padding(.top, 6)
-                        }
+                        BarActionPills(bar: bar, day: day,
+                                       onConfirmUnvisit: { showRemoveAlert = true })
+                            .padding(.top, 16)
 
                         HStack(alignment: .firstTextBaseline) {
                             Text("Log a drink")
@@ -82,11 +74,6 @@ struct BarDetailSheet: View {
                 .padding(.top, 52)
         }
         .presentationDragIndicator(.hidden)
-        .confirmationDialog("Get directions", isPresented: $showDirections, titleVisibility: .visible) {
-            Button("Apple Maps") { openMaps(google: false) }
-            Button("Google Maps") { openMaps(google: true) }
-            Button("Cancel", role: .cancel) {}
-        } message: { Text("Open directions to \(bar.name) in:") }
         .overlay {
             if showRemoveAlert {
                 let n = visits.getVisitsForBar(bar.id).count
@@ -138,66 +125,6 @@ struct BarDetailSheet: View {
             .lineLimit(2)
     }
 
-    /// Equal-width Directions / Share / Visited chips (redesign 6a).
-    private var actionRow: some View {
-        HStack(spacing: 8) {
-            Button { showDirections = true } label: {
-                chipLabel("location.fill", "Directions", tint: nil)
-            }
-            .buttonStyle(PressableScale())
-
-            // Presence broadcast is a deliberate, separate action — logging
-            // drinks never notifies anyone. Hidden until at least one friend
-            // is send-enabled (and hides again at 0).
-            if social.canShareCheckIns && isTargetToday {
-                Button {
-                    guard !sharedWithFriends else { return }
-                    Haptics.light()
-                    shareError = nil
-                    Task {
-                        if await social.shareCheckIn(bar: bar) {
-                            Haptics.success()
-                            sharedWithFriends = true
-                        } else {
-                            shareError = social.errorMessage ?? "Couldn't share — try again."
-                        }
-                    }
-                } label: {
-                    chipLabel(sharedWithFriends ? "checkmark" : "person.2.fill",
-                              sharedWithFriends ? "Shared" : "Share",
-                              tint: sharedWithFriends ? Palette.green : nil)
-                }
-                .buttonStyle(PressableScale())
-                .disabled(sharedWithFriends)
-            }
-
-            Button(action: toggleVisited) {
-                chipLabel("checkmark", "Visited", tint: visited ? Palette.green : nil)
-            }
-            .buttonStyle(PressableScale())
-        }
-    }
-
-    /// Pill chip content: tinted fill/border when `tint` is set, glass otherwise.
-    @ViewBuilder
-    private func chipLabel(_ icon: String, _ label: String, tint: Color?) -> some View {
-        let content = HStack(spacing: 6) {
-            Image(systemName: icon).font(.scaled(13, weight: .semibold))
-            Text(label).font(.scaled(14, weight: .semibold))
-        }
-        .foregroundStyle(tint ?? .white)
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 9)
-
-        if let tint {
-            content
-                .background(Capsule().fill(tint.opacity(0.14)))
-                .overlay(Capsule().strokeBorder(tint.opacity(0.45), lineWidth: 1))
-        } else {
-            content.glassSurface(radius: 999, bordered: true)
-        }
-    }
-
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Notes").font(.scaled(16, weight: .bold)).foregroundStyle(.white)
@@ -225,30 +152,7 @@ struct BarDetailSheet: View {
         }
     }
 
-    private func toggleVisited() {
-        if !visited {
-            Haptics.light()
-            visits.setVisited(bar.id, true, day: targetDay)
-            return
-        }
-        if visits.getVisitsForBar(bar.id).count > 0 {
-            showRemoveAlert = true
-        } else {
-            Haptics.light()
-            visits.setVisited(bar.id, false)
-        }
-    }
-
     private func commitNote() {
         if visit != nil { visits.setVisitNote(bar.id, day: targetDay, note: noteDraft) }
-    }
-
-    private func openMaps(google: Bool) {
-        let lat = bar.latitude, lng = bar.longitude
-        let encoded = "\(bar.name), \(bar.address)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let urlStr = google
-            ? "https://www.google.com/maps/dir/?api=1&destination=\(encoded)"
-            : "https://maps.apple.com/?daddr=\(lat),\(lng)&q=\(bar.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
-        if let url = URL(string: urlStr) { UIApplication.shared.open(url) }
     }
 }

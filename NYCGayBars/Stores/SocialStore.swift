@@ -57,6 +57,18 @@ final class SocialStore: ObservableObject {
     /// Incoming requests shown from a tapped push payload before the record is
     /// queryable; merged through refresh() until CloudKit catches up.
     private var optimisticIncoming: [(item: FriendRequestItem, at: Date)] = []
+    /// Own check-ins removed moments ago. CloudKit queries are eventually
+    /// consistent and non-monotonic, so the delete may not be reflected in the
+    /// next fetch — suppress those stamps locally until it is.
+    private var checkInTombstones: [Social.CheckInTombstone] = []
+    /// Own check-ins shared moments ago, shown before CloudKit's query index
+    /// catches up so the row is in Tonight the instant the write succeeds.
+    private var optimisticOwnCheckIns: [(checkIn: FriendCheckIn, at: Date)] = []
+    /// Record names of the check-in fan-outs shared this launch, so a removal
+    /// deletes by id. The query-based delete can't be used inside the same
+    /// index-lag window the share just opened — it would match nothing and
+    /// report success. See `Social.CheckInFanOut`.
+    private var ownFanOuts: [Social.CheckInFanOut] = []
     /// Friends accepted moments ago, kept in the list until the Friendship
     /// write becomes queryable — a refresh inside CloudKit's index lag would
     /// otherwise drop the friend and resurrect the Accept row.
@@ -277,8 +289,7 @@ final class SocialStore: ObservableObject {
             persistPrefs()
             // Drop check-ins from anyone no longer a friend (their unexpired
             // records can outlive the friendship by up to the Tonight window).
-            tonight = Social.tonightFeed(
-                try await tonightFetch.filter { friendIDSet.contains($0.authorID) }, now: Date())
+            tonight = rebuildTonight(try await tonightFetch, friendIDs: friendIDSet, me: me)
             try await syncSubscriptionsIfNeeded(me: me, friendIDs: ids)
         } catch {
             errorMessage = friendlyError(error)
@@ -533,7 +544,17 @@ final class SocialStore: ObservableObject {
 
     // MARK: - Check-ins
 
+    /// My CloudKit user record name once known — the identity every own-row
+    /// check (feed filtering, the "YOU" badge, removal) is made against.
+    var myID: String? { userID }
+
+    /// Check-ins by friends only — the "who's out" surfaces (map pins, the
+    /// friends-out count) exclude my own row.
+    var friendsTonight: [FriendCheckIn] { Social.friendsOnly(tonight, me: myID) }
+
     /// Broadcast presence at a bar to send-enabled friends. Returns true on success.
+    /// A copy addressed to myself rides along so the check-in also lands in my
+    /// own Tonight feed (the feed query is `recipientID == me`).
     @discardableResult
     func shareCheckIn(bar: Bar) async -> Bool {
         guard let me = profile else { return false }
@@ -546,25 +567,110 @@ final class SocialStore: ObservableObject {
         }
         busy = true
         defer { busy = false }
+        // One stamp for every copy and for the local row: the retained fan-out,
+        // the delete-by-timestamp fallback and the optimistic merge all match
+        // on it.
+        let ts = Date()
         do {
-            try await ck.createCheckIn(author: me, bar: bar, recipients: recipients)
-            return true
+            let (saved, failure) = try await ck.createCheckIn(author: me, bar: bar,
+                                                              recipients: recipients + [me.id], now: ts)
+            // Retain the ids first even when the batch was partial: the copies
+            // that did land are live in those friends' feeds, and this is the
+            // only handle on them until the 24h TTL.
+            retainFanOut(ts: ts, ids: saved)
+            if let failure {
+                errorMessage = friendlyError(failure)
+                return false
+            }
         } catch {
             errorMessage = friendlyError(error)
             return false
+        }
+        // Show it in Tonight now rather than when the record becomes queryable
+        // (CloudKit index lag is seconds). The canonical copy takes over on a
+        // later refresh; tonightFeed's author|bar dedupe keeps it to one row.
+        let row = FriendCheckIn(id: "own-\(bar.id)-\(Int(ts.timeIntervalSince1970))",
+                                authorID: me.id, authorName: me.displayName,
+                                barId: bar.id, barName: bar.name, date: ts)
+        optimisticOwnCheckIns.removeAll { $0.checkIn.barId == bar.id }
+        optimisticOwnCheckIns.append((row, Date()))
+        // Append to the published feed directly rather than re-running the
+        // rebuild over it: the rebuild treats its input as a fetch, so feeding
+        // the current feed back in would read the overlay rows already in it as
+        // "canonical arrived" and retire them before CloudKit can serve them.
+        tonight = Social.tonightFeed(tonight + [row], now: Date())
+        return true
+    }
+
+    /// Retain a shared fan-out's record names so its removal can delete by id.
+    private func retainFanOut(ts: Date, ids: [CKRecord.ID]) {
+        guard !ids.isEmpty else { return }
+        ownFanOuts = Social.prunedFanOuts(ownFanOuts, now: Date())
+        ownFanOuts.append(.init(ts: ts, recordNames: ids.map(\.recordName)))
+    }
+
+    /// Retract one of my own check-ins: deletes every recipient copy, so it
+    /// leaves friends' Tonight feeds too, plus my own copy. Deletes by the
+    /// record names retained at share time when we still hold them — a
+    /// query-based delete right after a share matches nothing (CloudKit's
+    /// query index lags the write by seconds) and would silently leave every
+    /// copy live. Fan-outs from an earlier launch fall back to the
+    /// timestamp query, which retries and throws rather than reporting a
+    /// no-op as success. The row goes immediately and is tombstoned so an
+    /// eventually-consistent query can't resurrect it; a failed delete rolls
+    /// both back.
+    func removeOwnCheckIn(_ checkIn: FriendCheckIn) async {
+        guard let me = userID, checkIn.authorID == me else { return }
+        let previous = tonight
+        let previousOptimistic = optimisticOwnCheckIns
+        checkInTombstones.append(.init(ts: checkIn.date, at: Date()))
+        // Drop the overlay entry too, or the next rebuild re-adds the row that
+        // was just removed.
+        optimisticOwnCheckIns.removeAll { Social.isSameCheckIn($0.checkIn.date, checkIn.date) }
+        tonight = Social.withoutTombstoned(tonight, me: me, tombstones: checkInTombstones)
+        let retained = Social.fanOut(matching: checkIn.date, in: ownFanOuts)
+        do {
+            if let retained {
+                try await ck.deleteCheckIns(recordNames: retained.recordNames)
+                ownFanOuts.removeAll { $0 == retained }
+            } else {
+                try await ck.deleteCheckIns(authorID: me, at: checkIn.date)
+            }
+        } catch {
+            errorMessage = friendlyError(error)
+            checkInTombstones.removeAll { $0.ts == checkIn.date }
+            optimisticOwnCheckIns = previousOptimistic
+            tonight = previous
         }
     }
 
     func refreshTonight() async {
         guard let me = userID, onboarded else { return }
         do {
-            let friendIDSet = Set(friends.map(\.id))
-            tonight = Social.tonightFeed(
-                try await ck.tonightCheckIns(userID: me).filter { friendIDSet.contains($0.authorID) },
-                now: Date())
+            tonight = rebuildTonight(try await ck.tonightCheckIns(userID: me),
+                                     friendIDs: Set(friends.map(\.id)), me: me)
         } catch {
             errorMessage = friendlyError(error)
         }
+    }
+
+    /// Feed rebuild shared by both fetch paths: keep current friends' check-ins
+    /// plus my own self-addressed copies, drop anything a just-issued removal
+    /// already deleted, then apply the 6h window + per-author/bar dedupe.
+    ///
+    /// `fetched` must be a fresh server read — the overlay and tombstone lists
+    /// are pruned against it as a side effect, so passing the current feed back
+    /// in would retire overlay rows that CloudKit hasn't actually served yet.
+    private func rebuildTonight(_ fetched: [FriendCheckIn], friendIDs: Set<String>,
+                                me: String) -> [FriendCheckIn] {
+        let now = Date()
+        checkInTombstones = Social.prunedTombstones(checkInTombstones, now: now)
+        let kept = fetched.filter { friendIDs.contains($0.authorID) || $0.authorID == me }
+        let (merged, keepIDs) = Social.mergedOwnCheckIns(
+            fetched: kept, optimistic: optimisticOwnCheckIns, now: now)
+        optimisticOwnCheckIns.removeAll { !keepIDs.contains($0.checkIn.id) }
+        return Social.tonightFeed(
+            Social.withoutTombstoned(merged, me: me, tombstones: checkInTombstones), now: now)
     }
 
     // MARK: - Push
@@ -663,6 +769,9 @@ final class SocialStore: ObservableObject {
         optimisticFriends = []
         removalCandidateSince = [:]
         friendMissingSince = [:]
+        checkInTombstones = []
+        optimisticOwnCheckIns = []
+        ownFanOuts = []
         syncedSubIDs = nil
         defaults.removeObject(forKey: Self.profileKey)
         defaults.removeObject(forKey: Self.friendsKey)
@@ -688,6 +797,9 @@ final class SocialStore: ObservableObject {
     }
 
     private func friendlyError(_ error: Error) -> String {
+        if error is CloudKitSocial.CheckInRemovalFailed {
+            return "Couldn't remove that check-in — try again."
+        }
         if let ck = error as? CKError {
             switch ck.code {
             case .networkUnavailable, .networkFailure: return "No connection — try again."

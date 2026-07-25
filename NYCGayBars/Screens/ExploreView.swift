@@ -60,7 +60,7 @@ struct ExploreView: View {
 
     /// Friends' active check-ins as avatar pins, one per bar (redesign 3a).
     private var friendPins: [FriendPin] {
-        Dictionary(grouping: social.tonight, by: \.barId).compactMap { barId, checkIns in
+        Dictionary(grouping: social.friendsTonight, by: \.barId).compactMap { barId, checkIns in
             guard let bar = AppData.barsById[barId] else { return nil }
             let names = Array(Set(checkIns.map(\.authorName))).sorted()
             return FriendPin(
@@ -107,6 +107,7 @@ struct ExploreView: View {
         .sheet(isPresented: $showQuickLog) {
             QuickLogSheet(initialBar: nearestBar(d), distances: d)
                 .environmentObject(visits)
+                .environmentObject(social)
         }
         .dismissKeyboardOnBackgroundTap()
         .onAppear { location.start(); tabSwipe.enabled = (mode == 1) }
