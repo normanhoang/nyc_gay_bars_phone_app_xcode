@@ -55,9 +55,9 @@
     <div class="row"><div class="k">Primary Language</div><div class="v">English (U.S.)</div></div>
   </div>
 
-  <h2>Version — 1.1.0</h2>
+  <h2>Version — 1.2.0</h2>
   <div class="card">
-    <div class="row"><div class="k">Version String</div><div class="v"><code>1.1.0</code> &nbsp; Build <code>12</code></div></div>
+    <div class="row"><div class="k">Version String</div><div class="v"><code>1.2.0</code> &nbsp; Build <code>17</code></div></div>
     <div class="row"><div class="k">Copyright</div><div class="v copy" data-copy>2026 Norman Hoang</div></div>
     <div class="row"><div class="k">Promotional Text <span class="count">170 max</span></div>
       <div class="v copy" data-copy>Your pocket map to every gay bar in NYC. Check in, log the night, earn badges, and watch your nightlife stats come alive — 100% private, all on your device. <span class="count">152</span></div></div>
@@ -65,20 +65,28 @@
 
   <h2>What's New in This Version <span class="count" style="float:none">4000 max</span></h2>
   <div class="card copy" data-copy>
-<pre>Introducing Friends — the night is better together.
+<pre>Friends is here — and the whole app got a redesign.
 
+FRIENDS (optional)
 • Add friends with a QR code, invite code, or share link — no accounts, no directory, no phone numbers
-• Share a check-in with exactly the friends you choose; it appears in their Tonight feed
 • Tonight: see which bars your friends are at right now
+• Share a check-in with exactly the friends you choose; it appears in their Tonight feed
 • Per-friend controls — pick who gets your check-ins, friend by friend or in groups
 • Get a notification when someone sends you a friend request; nothing is shared until you approve
 • Private by design: runs on your iCloud, invite codes instead of a directory, and shared check-ins auto-delete within 24 hours
 
-Friends is completely optional — everything else stays 100% on your device.
+REDESIGNED THROUGHOUT
+• Quick Log button — log a night from anywhere in the app, in two taps
+• Map pins you can read at a glance, plus a coverage callout showing how much of the city you've hit
+• Your Year in Bars: a recap of the year's nights out
+• History calendar now shades your busiest days
+• Bar detail opens straight to logging, and the badges sheet leads with what's within reach
+• Neighborhood breakdown is back on Stats, and every badge explains how to earn it
+• New app icon and launch screen
 
-Also in this update: smoother friend requests and accepts, plus polish and performance fixes throughout.</pre>
+Friends is completely optional — everything else stays 100% on your device.</pre>
   </div>
-  <p class="hint">Click the box to copy the release notes.</p>
+  <p class="hint">Click the box to copy the release notes. <b>1.1.0 was never released</b>, so for users this update lands against 1.0.0 — hence Friends and the redesign are announced together.</p>
 
   <h2>Description <span class="count" style="float:none">4000 max</span></h2>
   <div class="card copy" data-copy>
@@ -91,9 +99,10 @@ Been somewhere? Check in and log what you drank — tonight or backdated. Your h
 FEATURES
 • Map + list of 80+ NYC gay bars, by neighborhood
 • Sort by distance to what's closest right now
-• One-tap check-ins and drink logging (today or any past day)
-• A calendar history of your nights out
+• One-tap check-ins and drink logging (today or any past day), from anywhere via Quick Log
+• A calendar history of your nights out, shaded by your busiest days
 • Personal stats: favorite bar, top drink, biggest night, longest streak
+• Your Year in Bars — a recap of the year's nights out
 • Neighborhood progress bars — how much of the city have you hit?
 • 30 unlockable badges to chase
 • Optional Friends: share a check-in with exactly the friends you choose — they see it in their Tonight feed, with per-friend controls over who gets yours
@@ -135,7 +144,7 @@ Whether you're a local completist or visiting for Pride, NYC Gay Bars makes expl
 
   <h2>App Icon</h2>
   <div class="card">
-    <div class="row"><div class="k">1024 × 1024</div><div class="v"><span class="badge ok">1024² · no alpha ✓</span> &nbsp; <code>NYCGayBars/Assets.xcassets/AppIcon.appiconset/icon.png</code><div class="hint">Uploaded automatically inside the build; also usable as the App Store icon.</div></div></div>
+    <div class="row"><div class="k">1024 × 1024</div><div class="v"><span class="badge ok">1024² · no alpha ✓</span> &nbsp; <code>NYCGayBars/Assets.xcassets/AppIcon.appiconset/icon.png</code><div class="hint">The O4 mark (martini glass with a Progress Pride fill on an opaque plum ground), new in 1.2.0. Uploaded automatically inside the build; also usable as the App Store icon.</div></div></div>
   </div>
 
   <h2>Age Rating <span class="badge">likely 17+</span></h2>
@@ -190,13 +199,15 @@ Alcohol content: the app is a bar directory and personal drink journal. It does 
   <h2>Submission Checklist</h2>
   <div class="card">
     <ul>
-      <li>☐ Archive in Xcode → Distribute App → App Store Connect (uploads build 1)</li>
-      <li>☐ Create app record (bundle <code>com.normanhoang.nycgaybars</code>)</li>
+      <li>☐ <b>Deploy the CloudKit schema to Production first</b> (dashboard → container <code>iCloud.com.normanhoang.nycgaybars</code> → Deploy Schema Changes; indexes are manual). A production build against an undeployed schema breaks Friends silently.</li>
+      <li>☐ Upload build 17 — the exported IPA is at <code>build/ipa/NYCGayBars.ipa</code> (signed, <code>aps-environment: production</code> verified). Upload via Xcode Organizer, Transporter, or <code>xcrun altool</code>.</li>
+      <li>☐ Create the <b>1.2.0</b> version record (1.1.0 was never released; the 1.0.0 train is closed)</li>
       <li>☐ Paste name, subtitle, promo text, description, keywords (above)</li>
-      <li>☐ Upload the 4 screenshots</li>
-      <li>☐ Host privacy policy + support page, paste URLs</li>
+      <li>☐ Upload the 5 screenshots</li>
+      <li>☐ Privacy policy + support URLs (above — already hosted on GitHub Pages)</li>
       <li>☐ Complete age rating (17+) and App Privacy (declare Name / User ID / Other User Content as described above — <b>not</b> "Data Not Collected")</li>
-      <li>☐ Attach build 1, set price (Free), submit for review</li>
+      <li>☐ App Review Information: leave sign-in unchecked, paste the review notes (above)</li>
+      <li>☐ Attach build 17, set price (Free), submit for review</li>
     </ul>
   </div>
 </div>

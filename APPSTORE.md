@@ -16,11 +16,11 @@ Everything to paste into App Store Connect. Character counts shown against Apple
 | Secondary Category | Travel (optional) | — |
 | Primary Language | English (U.S.) | — |
 
-## Version — 1.1.0
+## Version — 1.2.0
 
 | Field | Value |
 |---|---|
-| Version String | `1.1.0` · Build `12` |
+| Version String | `1.2.0` · Build `17` |
 | Copyright | 2026 Norman Hoang |
 
 **Promotional Text** (170 max, 152):
@@ -29,21 +29,29 @@ Everything to paste into App Store Connect. Character counts shown against Apple
 
 ## What's New in This Version (4000 max)
 
-1.1.0 vs 1.0.0: the Friends feature is the headline (1.0 was fully solo: map/list, check-ins, drink log, history, stats, badges).
+**1.1.0 was never released**, so for users this update lands against **1.0.0** (fully solo: map/list, check-ins, drink log, history, stats, badges). The text below therefore announces both Friends *and* the 1.2.0 redesign.
 
 ```
-Introducing Friends — the night is better together.
+Friends is here — and the whole app got a redesign.
 
+FRIENDS (optional)
 • Add friends with a QR code, invite code, or share link — no accounts, no directory, no phone numbers
-• Share a check-in with exactly the friends you choose; it appears in their Tonight feed
 • Tonight: see which bars your friends are at right now
+• Share a check-in with exactly the friends you choose; it appears in their Tonight feed
 • Per-friend controls — pick who gets your check-ins, friend by friend or in groups
 • Get a notification when someone sends you a friend request; nothing is shared until you approve
 • Private by design: runs on your iCloud, invite codes instead of a directory, and shared check-ins auto-delete within 24 hours
 
-Friends is completely optional — everything else stays 100% on your device.
+REDESIGNED THROUGHOUT
+• Quick Log button — log a night from anywhere in the app, in two taps
+• Map pins you can read at a glance, plus a coverage callout showing how much of the city you've hit
+• Your Year in Bars: a recap of the year's nights out
+• History calendar now shades your busiest days
+• Bar detail opens straight to logging, and the badges sheet leads with what's within reach
+• Neighborhood breakdown is back on Stats, and every badge explains how to earn it
+• New app icon and launch screen
 
-Also in this update: smoother friend requests and accepts, plus polish and performance fixes throughout.
+Friends is completely optional — everything else stays 100% on your device.
 ```
 
 ## Description (4000 max)
@@ -58,9 +66,10 @@ Been somewhere? Check in and log what you drank — tonight or backdated. Your h
 FEATURES
 • Map + list of 80+ NYC gay bars, by neighborhood
 • Sort by distance to what's closest right now
-• One-tap check-ins and drink logging (today or any past day)
-• A calendar history of your nights out
+• One-tap check-ins and drink logging (today or any past day), from anywhere via Quick Log
+• A calendar history of your nights out, shaded by your busiest days
 • Personal stats: favorite bar, top drink, biggest night, longest streak
+• Your Year in Bars — a recap of the year's nights out
 • Neighborhood progress bars — how much of the city have you hit?
 • 30 unlockable badges to chase
 • Optional Friends: share a check-in with exactly the friends you choose — they see it in their Tonight feed, with per-friend controls over who gets yours
@@ -94,16 +103,17 @@ These are the 6.5" display size (1284 × 2778). Apple auto-scales them for small
 
 | # | File | Screen |
 |---|---|---|
-| 1 · hero | `docs/appstore/screenshots/page-0.png` | Map |
-| 2 | `docs/appstore/screenshots/page-1.png` | Stats |
-| 3 | `docs/appstore/screenshots/page-2.png` | History |
-| 4 | `docs/appstore/screenshots/page-3.png` | Friends |
+| 1 · hero | `docs/appstore/screenshots/explore.png` | Map |
+| 2 | `docs/appstore/screenshots/friends.png` | Friends — private by default (onboarding) |
+| 3 | `docs/appstore/screenshots/friends_1.png` | Friends — see who's out (populated) |
+| 4 | `docs/appstore/screenshots/stats.png` | Stats |
+| 5 | `docs/appstore/screenshots/history.png` | History |
 
-Seed data is demo-only; not shipped.
+Files are named for the tab, in tab order. Seed data is demo-only; not shipped.
 
 ## App Icon
 
-**1024 × 1024** (1024² · no alpha ✓) — `NYCGayBars/Assets.xcassets/AppIcon.appiconset/icon.png`. Uploaded automatically inside the build; also usable as the App Store icon.
+**1024 × 1024** (1024² · no alpha ✓) — `NYCGayBars/Assets.xcassets/AppIcon.appiconset/icon.png`. The O4 mark (martini glass with a Progress Pride fill on an opaque plum ground), new in 1.2.0. Uploaded automatically inside the build; also usable as the App Store icon.
 
 ## Age Rating (likely 17+)
 
@@ -153,11 +163,11 @@ Alcohol content: the app is a bar directory and personal drink journal. It does 
 ## Submission Checklist
 
 - ☐ **Deploy the CloudKit schema to Production first** (dashboard → container `iCloud.com.normanhoang.nycgaybars` → Deploy Schema Changes; indexes are manual — see FINDINGS.md). A production build against an undeployed schema breaks Friends silently.
-- ☐ Upload build 12 — the exported IPA is at `build/ipa/NYCGayBars.ipa` (signed, `aps-environment: production` verified; the `aps-environment` entitlement is configuration-conditional now, no manual flip). Upload via Xcode Organizer, Transporter, or `xcrun altool`.
-- ☐ Create the **1.1.0** version record (the 1.0.0 train is closed)
+- ☐ Upload build 17 — the exported IPA is at `build/ipa/NYCGayBars.ipa` (signed, `aps-environment: production` verified; the `aps-environment` entitlement is configuration-conditional now, no manual flip). Upload via Xcode Organizer, Transporter, or `xcrun altool`.
+- ☐ Create the **1.2.0** version record (1.1.0 was never released; the 1.0.0 train is closed)
 - ☐ Paste name, subtitle, promo text, description, keywords (above)
-- ☐ Upload the 4 screenshots
+- ☐ Upload the 5 screenshots
 - ☐ Privacy policy + support URLs (above — already hosted on GitHub Pages)
 - ☐ Complete age rating (17+) and App Privacy (Name / User ID / Other User Content)
 - ☐ App Review Information: leave sign-in unchecked, paste the review notes (above)
-- ☐ Attach build 12, set price (Free), submit for review
+- ☐ Attach build 17, set price (Free), submit for review
