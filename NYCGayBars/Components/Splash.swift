@@ -9,7 +9,7 @@ struct Splash: View {
             Image("AppLogo")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 300, height: 300)
+                .frame(width: 115, height: 115)
                 .accessibilityLabel("NYC Gay Bars logo")
         }
         .ignoresSafeArea()
