@@ -305,7 +305,7 @@ struct CloudKitSocial {
         }
     }
 
-    /// Delete own check-in records past the 24h TTL.
+    /// Delete own check-in records past `Social.checkInTTL`.
     func deleteExpiredCheckIns(authorID: String, now: Date = Date()) async throws {
         let cutoff = now.addingTimeInterval(-Social.checkInTTL)
         let q = CKQuery(recordType: RT.checkIn,

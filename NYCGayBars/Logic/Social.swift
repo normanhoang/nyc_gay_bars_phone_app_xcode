@@ -7,9 +7,9 @@ enum Social {
     static let codeAlphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
     static let codeLength = 6
     /// Friends' check-ins stay in the Tonight feed this long.
-    static let tonightWindow: TimeInterval = 6 * 3600
+    static let tonightWindow: TimeInterval = 3 * 3600
     /// Own CheckIn records older than this are deleted from CloudKit.
-    static let checkInTTL: TimeInterval = 24 * 3600
+    static let checkInTTL: TimeInterval = 6 * 3600
     /// Max display-name length (no server enforces it; shown in others' pushes).
     static let maxDisplayNameLength = 40
 
@@ -39,7 +39,7 @@ enum Social {
         return code
     }
 
-    /// Check-ins from the last 6h, newest first. Future-dated entries (friend
+    /// Check-ins within `tonightWindow`, newest first. Future-dated entries (friend
     /// clock skew) are kept. Repeated shares collapse to the newest per
     /// friend + bar (the same friend at a different bar stays a separate row).
     static func tonightFeed(_ checkIns: [FriendCheckIn], now: Date) -> [FriendCheckIn] {

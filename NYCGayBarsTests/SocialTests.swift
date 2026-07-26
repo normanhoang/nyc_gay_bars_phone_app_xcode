@@ -37,13 +37,14 @@ final class SocialTests: XCTestCase {
         XCTAssertEqual(Social.normalizeCode(code.lowercased()), code)
     }
 
-    // MARK: Tonight feed (6h window, newest first)
+    // MARK: Tonight feed (tonightWindow, newest first)
 
     func testTonightFeedFiltersAndSorts() {
         let now = Date()
+        let windowMinutes = Social.tonightWindow / 60
         let recent = checkIn("a", "bar1", minutesAgo: 60, now: now)
-        let edge = checkIn("b", "bar2", minutesAgo: 359, now: now)
-        let stale = checkIn("c", "bar3", minutesAgo: 60 * 7, now: now)
+        let edge = checkIn("b", "bar2", minutesAgo: windowMinutes - 1, now: now)
+        let stale = checkIn("c", "bar3", minutesAgo: windowMinutes + 60, now: now)
         let feed = Social.tonightFeed([stale, recent, edge], now: now)
         XCTAssertEqual(feed.map(\.id), [recent.id, edge.id])
     }
@@ -542,12 +543,12 @@ final class SocialTests: XCTestCase {
         XCTAssertEqual(back, p)
     }
 
-    // MARK: 24h TTL for own check-in records
+    // MARK: TTL for own check-in records
 
     func testIsExpired() {
         let now = Date()
-        XCTAssertTrue(Social.isExpired(now.addingTimeInterval(-25 * 3600), now: now))
-        XCTAssertFalse(Social.isExpired(now.addingTimeInterval(-23 * 3600), now: now))
+        XCTAssertTrue(Social.isExpired(now.addingTimeInterval(-Social.checkInTTL - 3600), now: now))
+        XCTAssertFalse(Social.isExpired(now.addingTimeInterval(-Social.checkInTTL + 3600), now: now))
     }
 
     // MARK: Ignored-request hiding + pruning

@@ -111,7 +111,7 @@ struct FriendsView: View {
                     valueProp("wineglass", "Share only when you tap",
                               "Logging drinks never notifies anyone — “Share with friends” is its own button.")
                     valueProp("clock.arrow.circlepath", "Check-ins expire",
-                              "Friends see them for 6 hours; they're deleted after 24.")
+                              "Friends see them for 3 hours; they're deleted after 6.")
 
                     Text("PICK A DISPLAY NAME").font(.scaled(12)).tracking(0.5)
                         .foregroundStyle(Palette.gray300).padding(.top, 8)
@@ -247,7 +247,7 @@ struct FriendsView: View {
                     .padding(.bottom, 8)
                 friendsSection
 
-                Text("Check-ins share only your display name and the bar. Friends see them for 6 hours; they're deleted after 24. Remove yours anytime from Tonight.")
+                Text("Check-ins share only your display name and the bar. Friends see them for 3 hours; they're deleted after 6. Remove yours anytime from Tonight.")
                     .font(.scaled(12)).foregroundStyle(Palette.gray500)
                     .padding(.top, 16)
             }
