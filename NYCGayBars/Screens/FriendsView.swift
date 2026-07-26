@@ -269,28 +269,6 @@ struct FriendsView: View {
             Button("Create") { social.createGroup(name: groupNameDraft) }
             Button("Cancel", role: .cancel) {}
         }
-        .alert("Rename group", isPresented: Binding(
-            get: { renameGroupTarget != nil },
-            set: { if !$0 { renameGroupTarget = nil } })) {
-            TextField("Group name", text: $groupNameDraft)
-            Button("Save") {
-                if let g = renameGroupTarget { social.renameGroup(g, to: groupNameDraft) }
-                renameGroupTarget = nil
-            }
-            Button("Cancel", role: .cancel) { renameGroupTarget = nil }
-        }
-        .confirmationDialog("Delete \(deleteGroupTarget?.name ?? "group")?",
-                            isPresented: Binding(get: { deleteGroupTarget != nil },
-                                                 set: { if !$0 { deleteGroupTarget = nil } }),
-                            titleVisibility: .visible) {
-            Button("Delete", role: .destructive) {
-                if let g = deleteGroupTarget { social.deleteGroup(g) }
-                deleteGroupTarget = nil
-            }
-            Button("Cancel", role: .cancel) { deleteGroupTarget = nil }
-        } message: {
-            Text("This only deletes the group, not the friends in it.")
-        }
         // `presenting:` hands the check-in to the builder, so the action can't
         // read a target the dismissal has already nil'd out.
         .confirmationDialog("Remove your check-in?",
@@ -310,8 +288,8 @@ struct FriendsView: View {
 
     // MARK: Groups
 
-    /// Groups as chips: tap edits members, long-press menu for sharing toggle,
-    /// rename and delete (redesign 4a).
+    /// Groups as chips: tap opens the group sheet (members, sharing toggle,
+    /// rename and delete).
     private var groupsSection: some View {
         FlowLayout(spacing: 8) {
             ForEach(social.prefs.groups) { groupChip($0) }
@@ -334,9 +312,7 @@ struct FriendsView: View {
     }
 
     private func groupChip(_ group: FriendGroup) -> some View {
-        let sends = social.prefs.groupSends(group)
-        let gets = social.prefs.groupGets(group)
-        return Button {
+        Button {
             editMembersGroup = group
         } label: {
             HStack(spacing: 6) {
@@ -351,43 +327,58 @@ struct FriendsView: View {
             .overlay(Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
         }
         .buttonStyle(PressableScale())
-        .accessibilityLabel("Edit members of \(group.name)")
-        .contextMenu {
-            Button {
-                social.setGroupSend(group, on: !sends)
-            } label: {
-                Label(sends ? "Stop sharing check-ins" : "Share check-ins",
-                      systemImage: sends ? "paperplane" : "paperplane.fill")
-            }
-            .disabled(group.members.isEmpty)
-            if Social.checkInPushEnabled {
-                Button {
-                    Task { await social.setGroupGet(group, on: !gets) }
-                } label: {
-                    Label(gets ? "Mute notifications" : "Notify me",
-                          systemImage: gets ? "bell.slash" : "bell.fill")
-                }
-                .disabled(group.members.isEmpty)
-            }
-            Button { groupNameDraft = group.name; renameGroupTarget = group } label: {
-                Label("Rename", systemImage: "pencil")
-            }
-            Button(role: .destructive) { deleteGroupTarget = group } label: {
-                Label("Delete", systemImage: "trash")
-            }
-        }
+        .accessibilityLabel("Open group \(group.name)")
     }
 
     private func membersSheet(_ group: FriendGroup) -> some View {
         // Re-read the live group so checkmarks reflect taps immediately.
         let live = social.prefs.groups.first { $0.id == group.id } ?? group
+        let sends = social.prefs.groupSends(live)
+        let gets = social.prefs.groupGets(live)
         return ZStack {
             AppBackground()
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(live.name).font(.scaled(22, weight: .heavy)).foregroundStyle(.white)
+                    HStack(spacing: 10) {
+                        Text(live.name).font(.scaled(22, weight: .heavy)).foregroundStyle(.white)
+                        Button {
+                            groupNameDraft = live.name
+                            renameGroupTarget = live
+                        } label: {
+                            Image(systemName: "pencil")
+                                .font(.scaled(16, weight: .semibold)).foregroundStyle(Palette.gray300)
+                        }
+                        .buttonStyle(PressableScale())
+                        .accessibilityLabel("Rename group")
+                    }
+                    Toggle(isOn: Binding(get: { sends },
+                                         set: { social.setGroupSend(live, on: $0) })) {
+                        HStack(spacing: 8) {
+                            Image(systemName: sends ? "paperplane.fill" : "paperplane")
+                                .font(.scaled(15)).foregroundStyle(sends ? Palette.primary : Palette.gray400)
+                            Text("Share check-ins").font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
+                        }
+                    }
+                    .tint(Palette.primary)
+                    .disabled(live.members.isEmpty)
+                    .padding(.horizontal, 16).padding(.vertical, 12)
+                    .contentPanel(radius: 16)
+                    if Social.checkInPushEnabled {
+                        Toggle(isOn: Binding(get: { gets },
+                                             set: { on in Task { await social.setGroupGet(live, on: on) } })) {
+                            HStack(spacing: 8) {
+                                Image(systemName: gets ? "bell.fill" : "bell.slash")
+                                    .font(.scaled(15)).foregroundStyle(gets ? Palette.primary : Palette.gray400)
+                                Text("Notify me").font(.scaled(15, weight: .semibold)).foregroundStyle(.white)
+                            }
+                        }
+                        .tint(Palette.primary)
+                        .disabled(live.members.isEmpty)
+                        .padding(.horizontal, 16).padding(.vertical, 12)
+                        .contentPanel(radius: 16)
+                    }
                     Text("Tap friends to add or remove them from this group.")
-                        .font(.scaled(13)).foregroundStyle(Palette.gray400).padding(.bottom, 4)
+                        .font(.scaled(13)).foregroundStyle(Palette.gray400).padding(.vertical, 4)
                     ForEach(social.friends) { friend in
                         let isMember = live.members.contains(friend.id)
                         Button {
@@ -405,12 +396,46 @@ struct FriendsView: View {
                         }
                         .buttonStyle(.plain)
                     }
+                    Button {
+                        deleteGroupTarget = live
+                    } label: {
+                        Text("Delete Group").font(.scaled(15, weight: .semibold))
+                            .foregroundStyle(Palette.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .contentPanel(radius: 16)
+                    }
+                    .buttonStyle(PressableScale())
+                    .padding(.top, 8)
                 }
                 .padding(24)
             }
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .alert("Rename group", isPresented: Binding(
+            get: { renameGroupTarget != nil },
+            set: { if !$0 { renameGroupTarget = nil } })) {
+            TextField("Group name", text: $groupNameDraft)
+            Button("Save") {
+                if let g = renameGroupTarget { social.renameGroup(g, to: groupNameDraft) }
+                renameGroupTarget = nil
+            }
+            Button("Cancel", role: .cancel) { renameGroupTarget = nil }
+        }
+        .confirmationDialog("Delete \(deleteGroupTarget?.name ?? "group")?",
+                            isPresented: Binding(get: { deleteGroupTarget != nil },
+                                                 set: { if !$0 { deleteGroupTarget = nil } }),
+                            titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                if let g = deleteGroupTarget { social.deleteGroup(g) }
+                deleteGroupTarget = nil
+                editMembersGroup = nil
+            }
+            Button("Cancel", role: .cancel) { deleteGroupTarget = nil }
+        } message: {
+            Text("This only deletes the group, not the friends in it.")
+        }
     }
 
     // Groups a single friend belongs to; tap a row to add/remove.
