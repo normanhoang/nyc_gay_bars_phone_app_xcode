@@ -18,6 +18,11 @@ final class SocialCheckInCryptoTests: XCTestCase {
             authorName: "Alex", barID: "stonewall", barName: "Stonewall Inn")
     }
 
+    func testKeyIDIncludesVersionAndDeterministicDigest() {
+        XCTAssertEqual(SocialCheckInCrypto.keyID(for: Data()),
+                       "v2.47DEQpj8HBSa-_TImW-5JA")
+    }
+
     func testIntendedRecipientRoundTripsAuthenticatedPayload() throws {
         let opened = try SocialCheckInCrypto.open(envelope(), recipientPrivateKey: recipient)
         XCTAssertEqual(opened.authorName, "Alex")
@@ -69,10 +74,63 @@ final class SocialCheckInCryptoTests: XCTestCase {
             recipientPrivateKey: recipient))
     }
 
-    func testChangedRecipientKeyAndEncapsulatedKeyCannotOpen() throws {
+    func testFractionalEnvelopeTimestampCannotOpen() throws {
+        let original = try envelope()
+        XCTAssertThrowsError(try SocialCheckInCrypto.open(
+            original.replacing(sentAt: original.sentAt.addingTimeInterval(0.5)),
+            recipientPrivateKey: recipient)) { error in
+            XCTAssertEqual(error as? SocialCheckInCrypto.CryptoError, .invalidTimestamp)
+        }
+    }
+
+    func testInvalidEnvelopeTimestampsCannotOpen() throws {
+        let original = try envelope()
+        let invalidSeconds = [Double.nan, Double.infinity, -Double.infinity,
+                              Double(Int64.max)]
+        for seconds in invalidSeconds {
+            XCTAssertThrowsError(try SocialCheckInCrypto.open(
+                original.replacing(sentAt: Date(timeIntervalSince1970: seconds)),
+                recipientPrivateKey: recipient)) { error in
+                XCTAssertEqual(error as? SocialCheckInCrypto.CryptoError, .invalidTimestamp)
+            }
+        }
+    }
+
+    func testSealRejectsInvalidTimestamps() {
+        let identity = CheckInPublicIdentity(
+            version: SocialCheckInCrypto.version,
+            keyID: SocialCheckInCrypto.keyID(for: recipient.publicKey.rawRepresentation),
+            publicKey: recipient.publicKey.rawRepresentation)
+        let invalidSeconds = [Double.nan, Double.infinity, -Double.infinity,
+                              Double(Int64.max)]
+        for seconds in invalidSeconds {
+            XCTAssertThrowsError(try SocialCheckInCrypto.seal(
+                recordName: "invalid-time", authorID: "author", recipientID: "recipient",
+                sentAt: Date(timeIntervalSince1970: seconds), senderPrivateKey: sender,
+                recipient: identity, authorName: "Alex", barID: "stonewall",
+                barName: "Stonewall Inn")) { error in
+                XCTAssertEqual(error as? SocialCheckInCrypto.CryptoError, .invalidTimestamp)
+            }
+        }
+    }
+
+    func testChangedRecipientKeyCannotOpen() throws {
         let original = try envelope()
         XCTAssertThrowsError(try SocialCheckInCrypto.open(
             original.replacing(recipientKeyID: "wrong"), recipientPrivateKey: recipient))
+    }
+
+    func testChangedEncapsulatedKeyCannotOpen() throws {
+        let original = try envelope()
+        var changedKey = original.encapsulatedKey
+        changedKey[changedKey.startIndex] ^= 0x01
+        XCTAssertEqual(changedKey.count, original.encapsulatedKey.count)
+        XCTAssertThrowsError(try SocialCheckInCrypto.open(
+            original.replacing(encapsulatedKey: changedKey), recipientPrivateKey: recipient))
+    }
+
+    func testMalformedEncapsulatedKeyCannotOpen() throws {
+        let original = try envelope()
         XCTAssertThrowsError(try SocialCheckInCrypto.open(
             original.replacing(encapsulatedKey: Data([0])), recipientPrivateKey: recipient))
     }

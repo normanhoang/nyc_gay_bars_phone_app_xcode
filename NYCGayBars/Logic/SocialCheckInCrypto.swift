@@ -29,11 +29,11 @@ enum SocialCheckInCrypto {
     }
 
     static func normalized(_ date: Date) -> Date {
-        Date(timeIntervalSince1970: TimeInterval(Int64(date.timeIntervalSince1970.rounded(.down))))
+        Date(timeIntervalSince1970: date.timeIntervalSince1970.rounded(.down))
     }
 
     static func keyID(for publicKey: Data) -> String {
-        Data(SHA256.hash(data: publicKey).prefix(16)).base64EncodedString()
+        "v2." + Data(SHA256.hash(data: publicKey).prefix(16)).base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
@@ -46,7 +46,7 @@ enum SocialCheckInCrypto {
         guard recipient.version == version,
               recipient.keyID == keyID(for: recipient.publicKey) else { throw CryptoError.invalidKeyID }
         let senderPublicKey = senderPrivateKey.publicKey.rawRepresentation
-        let seconds = Int64(normalized(sentAt).timeIntervalSince1970)
+        let seconds = try timestampSeconds(sentAt, requireCanonical: false)
         let header = Header(protocolVersion: version, recordName: recordName,
                             authorID: authorID, recipientID: recipientID,
                             sentAtSeconds: seconds,
@@ -74,7 +74,7 @@ enum SocialCheckInCrypto {
         guard envelope.senderKeyID == keyID(for: envelope.senderPublicKey),
               envelope.recipientKeyID == keyID(for: recipientPrivateKey.publicKey.rawRepresentation)
         else { throw CryptoError.invalidKeyID }
-        let seconds = Int64(envelope.sentAt.timeIntervalSince1970)
+        let seconds = try timestampSeconds(envelope.sentAt, requireCanonical: true)
         let header = Header(protocolVersion: envelope.protocolVersion,
                             recordName: envelope.recordName, authorID: envelope.authorID,
                             recipientID: envelope.recipientID, sentAtSeconds: seconds,
@@ -98,5 +98,16 @@ enum SocialCheckInCrypto {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
         return try encoder.encode(value)
+    }
+
+    private static func timestampSeconds(_ date: Date, requireCanonical: Bool) throws -> Int64 {
+        let interval = date.timeIntervalSince1970
+        guard interval.isFinite else { throw CryptoError.invalidTimestamp }
+        let canonical = interval.rounded(.down)
+        guard let seconds = Int64(exactly: canonical),
+              !requireCanonical || interval == canonical else {
+            throw CryptoError.invalidTimestamp
+        }
+        return seconds
     }
 }

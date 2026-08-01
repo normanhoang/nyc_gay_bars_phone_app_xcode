@@ -13,6 +13,7 @@ final class SocialTests: XCTestCase {
         let privateKey = Curve25519.KeyAgreement.PrivateKey()
         let publicKey = privateKey.publicKey.rawRepresentation
         let keyID = SocialCheckInCrypto.keyID(for: publicKey)
+        XCTAssertTrue(keyID.hasPrefix("v2."))
         let profile = FriendProfile(id: "a", displayName: "Alex", code: "ABC234",
                                     checkInCryptoVersion: 2, checkInKeyID: keyID,
                                     checkInPublicKey: publicKey)
