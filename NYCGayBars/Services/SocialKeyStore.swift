@@ -79,7 +79,8 @@ struct SocialKeyStore: SocialKeyStoring {
         try items(userID: userID).compactMap { item in
             guard let key = try? JSONDecoder().decode(SocialKeyMaterial.self, from: item.data),
                   let privateKey = try? key.privateKey,
-                  SocialCheckInCrypto.keyID(for: privateKey.publicKey.rawRepresentation) == key.keyID
+                  SocialCheckInCrypto.keyID(for: privateKey.publicKey.rawRepresentation) == key.keyID,
+                  item.account == userID + "|" + key.keyID
             else { return nil }
             return key
         }.sorted {
