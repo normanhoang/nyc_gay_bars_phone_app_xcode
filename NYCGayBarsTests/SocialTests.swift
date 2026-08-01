@@ -1,7 +1,42 @@
+import CryptoKit
 import XCTest
 @testable import NYCGayBars
 
 final class SocialTests: XCTestCase {
+    func testLegacyProfileDecodesWithoutCheckInKey() throws {
+        let data = #"{"id":"a","displayName":"Alex","code":"ABC234"}"#.data(using: .utf8)!
+        let profile = try JSONDecoder().decode(FriendProfile.self, from: data)
+        XCTAssertNil(profile.checkInIdentity)
+    }
+
+    func testProfileBuildsValidCheckInIdentity() throws {
+        let privateKey = Curve25519.KeyAgreement.PrivateKey()
+        let publicKey = privateKey.publicKey.rawRepresentation
+        let keyID = SocialCheckInCrypto.keyID(for: publicKey)
+        let profile = FriendProfile(id: "a", displayName: "Alex", code: "ABC234",
+                                    checkInCryptoVersion: 2, checkInKeyID: keyID,
+                                    checkInPublicKey: publicKey)
+        XCTAssertEqual(profile.checkInIdentity,
+                       CheckInPublicIdentity(version: 2, keyID: keyID, publicKey: publicKey))
+    }
+
+    func testRenamePreservesCheckInIdentity() {
+        let profile = FriendProfile(id: "a", displayName: "Old", code: "ABC234",
+                                    checkInCryptoVersion: 2, checkInKeyID: "key",
+                                    checkInPublicKey: Data(repeating: 1, count: 32))
+        XCTAssertEqual(profile.renamed(to: "New").checkInKeyID, "key")
+    }
+
+    func testProfileRejectsUnsupportedOrMalformedIdentity() {
+        let malformed = Data([1, 2, 3])
+        let profile = FriendProfile(
+            id: "a", displayName: "Alex", code: "ABC234",
+            checkInCryptoVersion: 99,
+            checkInKeyID: SocialCheckInCrypto.keyID(for: malformed),
+            checkInPublicKey: malformed)
+        XCTAssertNil(profile.checkInIdentity)
+    }
+
     private func checkIn(_ author: String, _ bar: String, minutesAgo: Double, now: Date) -> FriendCheckIn {
         FriendCheckIn(id: UUID().uuidString, authorID: author, authorName: author,
                       barId: bar, barName: bar, date: now.addingTimeInterval(-minutesAgo * 60))

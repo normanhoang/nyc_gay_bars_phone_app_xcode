@@ -15,6 +15,7 @@
 		14779FB2C4502F579723A355 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E5EE1326FD313C1BAF4F87 /* StatsView.swift */; };
 		1851EEDD1913443CF27669F0 /* SegmentedToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5CBB33EC05392CE4D02073 /* SegmentedToggle.swift */; };
 		1E546B3D615B3EBED2FF6DEF /* DayKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCD591C8B681CE1D3C9D0D81 /* DayKey.swift */; };
+		1F7454E2C985B831652761DA /* SocialCheckInCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88191CB3ECB4B4C168E8DC6C /* SocialCheckInCrypto.swift */; };
 		240DCFCC1E4C6AAF7427DE95 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE8CE4ACAEF21D3435843EAC /* ExploreView.swift */; };
 		32BE164ADE21AC12627961BE /* FilterChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C9AEE9C76BF3770FA4BDE5 /* FilterChips.swift */; };
 		3592D1D69FB998F6485DF5C3 /* KeyboardDismiss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F28F373FFFBF7655744414 /* KeyboardDismiss.swift */; };
@@ -120,6 +121,7 @@
 		7C83583F518BDE62626A5E2F /* NYCGayBarsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NYCGayBarsApp.swift; sourceTree = "<group>"; };
 		7E03F5F703A15AFBA5E7098B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		83138B7279C86041EDE65FFA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		88191CB3ECB4B4C168E8DC6C /* SocialCheckInCrypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialCheckInCrypto.swift; sourceTree = "<group>"; };
 		9111D5F236C2420820A109B5 /* LogDayPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogDayPicker.swift; sourceTree = "<group>"; };
 		9D480D58858A417E92C01206 /* Splash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Splash.swift; sourceTree = "<group>"; };
 		A33F5686C61BE3EC9DA41BC0 /* ZipQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipQuery.swift; sourceTree = "<group>"; };
@@ -313,6 +315,7 @@
 				417A49560F9ECD23C5C0E133 /* Geo.swift */,
 				39E9BF540387EF4D64E45C98 /* Page.swift */,
 				F603597EF494CA7A027648CE /* Social.swift */,
+				88191CB3ECB4B4C168E8DC6C /* SocialCheckInCrypto.swift */,
 				0A78E2C8B08CC339744833B0 /* Stats.swift */,
 				A33F5686C61BE3EC9DA41BC0 /* ZipQuery.swift */,
 			);
@@ -471,6 +474,7 @@
 				D1198B08BF67143233BA5E3B /* SearchBox.swift in Sources */,
 				1851EEDD1913443CF27669F0 /* SegmentedToggle.swift in Sources */,
 				49040A134A07FBEAE86CE248 /* Social.swift in Sources */,
+				1F7454E2C985B831652761DA /* SocialCheckInCrypto.swift in Sources */,
 				ABF8831B85F6EAE68F8C1479 /* SocialModels.swift in Sources */,
 				51481E2157A3F92847FBF6C2 /* SocialStore.swift in Sources */,
 				9D3E88C6D81D366913604E6D /* Splash.swift in Sources */,
