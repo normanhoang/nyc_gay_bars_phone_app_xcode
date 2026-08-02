@@ -28,6 +28,23 @@ final class SocialTests: XCTestCase {
         XCTAssertEqual(profile.renamed(to: "New").checkInKeyID, "key")
     }
 
+    func testRenamedProfilePreservesEncryptionIdentity() {
+        let profile = FriendProfile(id: "me", displayName: "Before", code: "ABC234",
+                                    checkInCryptoVersion: 2, checkInKeyID: "key",
+                                    checkInPublicKey: Data(repeating: 7, count: 32))
+        let renamed = profile.renamed(to: "After")
+        XCTAssertEqual(renamed.displayName, "After")
+        XCTAssertEqual(renamed.checkInCryptoVersion, 2)
+        XCTAssertEqual(renamed.checkInKeyID, "key")
+        XCTAssertEqual(renamed.checkInPublicKey, Data(repeating: 7, count: 32))
+    }
+
+    func testKeySyncRetryRequiresThreeAttemptsAndSixSeconds() {
+        XCTAssertFalse(SocialKeySyncRetry.shouldOfferReset(attempts: 2, elapsed: 10))
+        XCTAssertFalse(SocialKeySyncRetry.shouldOfferReset(attempts: 3, elapsed: 5.9))
+        XCTAssertTrue(SocialKeySyncRetry.shouldOfferReset(attempts: 3, elapsed: 6))
+    }
+
     func testProfileRejectsUnsupportedOrMalformedIdentity() {
         let malformed = Data([1, 2, 3])
         let profile = FriendProfile(

@@ -73,12 +73,10 @@ struct CloudKitSocial {
         }
     }
 
-    // `identity` defaults to nil so the pre-existing call site (SocialStore's
-    // onboarding, which doesn't yet generate a key — see Task 5) keeps
-    // compiling unchanged; Task 5 passes a real identity once key bootstrap
-    // lands there.
+    /// New users generate a check-in keypair before onboarding and publish
+    /// its public identity as part of profile creation (see `SocialStore`).
     func createProfile(userID: String, displayName: String,
-                      identity: CheckInPublicIdentity? = nil) async throws -> FriendProfile {
+                      identity: CheckInPublicIdentity) async throws -> FriendProfile {
         // Regenerate on the (astronomically rare) code collision so two users
         // never share an invite code — lookupProfile takes the first match.
         var code = Social.generateFriendCode()
@@ -91,11 +89,9 @@ struct CloudKitSocial {
         rec["userID"] = userID
         rec["displayName"] = displayName
         rec["code"] = code
-        if let identity {
-            rec["checkInCryptoVersion"] = identity.version
-            rec["checkInKeyID"] = identity.keyID
-            rec["checkInPublicKey"] = identity.publicKey
-        }
+        rec["checkInCryptoVersion"] = identity.version
+        rec["checkInKeyID"] = identity.keyID
+        rec["checkInPublicKey"] = identity.publicKey
         return Self.profile(from: try await db.save(rec))!
     }
 

@@ -2,6 +2,20 @@ import Foundation
 import CloudKit
 import Combine
 
+/// State of the local check-in encryption key: whether it's usable, waiting
+/// on Keychain iCloud sync to catch up, or needs an explicit reset because
+/// sync never resolved.
+enum CheckInSecurityState: Equatable {
+    case unknown, ready, syncing, resetRequired
+}
+
+/// Retry policy for the key-sync wait loop in `SocialStore.prepareCheckInKey`.
+enum SocialKeySyncRetry {
+    static func shouldOfferReset(attempts: Int, elapsed: TimeInterval) -> Bool {
+        attempts >= 3 && elapsed >= 6
+    }
+}
+
 /// Friends-feature state: own profile, friends, requests, and the Tonight
 /// feed, all backed by the CloudKit public database via `CloudKitSocial`.
 /// Own profile + friends are cached in UserDefaults so relaunches don't
@@ -42,10 +56,17 @@ final class SocialStore: ObservableObject {
     @Published var pendingAddCode: String?
     /// Transient success feedback (e.g. auto-sent friend request).
     @Published var infoMessage: String?
+    /// State of the local check-in encryption key — `.ready` once it's usable
+    /// for encrypting/decrypting CheckInV2 envelopes.
+    @Published private(set) var checkInSecurityState: CheckInSecurityState = .unknown
 
     private let ck = CloudKitSocial()
+    private let keyStore: any SocialKeyStoring = SocialKeyStore()
     private let defaults = UserDefaults.standard
     private var userID: String?
+    /// The local device's active check-in encryption keypair, resolved by
+    /// `prepareCheckInKey`. Nil until `checkInSecurityState` is `.ready`.
+    private var checkInKey: SocialKeyMaterial?
     /// When each friend first looked like a removal candidate — debounces the
     /// mirror-removal so a fresh acceptance's consistency blip isn't acted on.
     private var removalCandidateSince: [String: Date] = [:]
@@ -125,6 +146,7 @@ final class SocialStore: ObservableObject {
                 persistProfile()
             }
             guard onboarded else { return }
+            try await prepareCheckInKey(userID: userID!, profile: profile)
             await refresh()
             await consumePendingAddCode()
             try? await ck.deleteExpiredCheckIns(authorID: userID!)
@@ -321,7 +343,11 @@ final class SocialStore: ObservableObject {
         busy = true
         defer { busy = false }
         do {
-            profile = try await ck.createProfile(userID: me, displayName: name)
+            let key = SocialKeyMaterial.generate()
+            try keyStore.save(key, userID: me)
+            checkInKey = key
+            checkInSecurityState = .ready
+            profile = try await ck.createProfile(userID: me, displayName: name, identity: key.publicIdentity)
             persistProfile()
             await refresh()
             await consumePendingAddCode()
@@ -337,7 +363,7 @@ final class SocialStore: ObservableObject {
         let name = String(rawName.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Social.maxDisplayNameLength))
         guard !name.isEmpty, let me = userID, let current = profile, current.displayName != name else { return }
         let previous = current
-        profile = FriendProfile(id: current.id, displayName: name, code: current.code)
+        profile = current.renamed(to: name)
         persistProfile()
         busy = true
         defer { busy = false }
@@ -347,7 +373,6 @@ final class SocialStore: ObservableObject {
             // Best-effort: leftover old-name copies expire on their own (24h for
             // check-ins) and don't block the rename.
             try? await ck.renameOutgoingRequests(fromID: me, newName: name)
-            try? await ck.renameCheckIns(authorID: me, newName: name)
         } catch {
             errorMessage = friendlyError(error)
             profile = previous
@@ -755,6 +780,96 @@ final class SocialStore: ObservableObject {
         }
     }
 
+    // MARK: - Check-in key bootstrap
+
+    /// Resolve the local check-in encryption key against the profile's
+    /// published `checkInKeyID`, waiting out Keychain's iCloud sync when the
+    /// two disagree (a fresh device hasn't synced yet). Never overwrites a
+    /// profile key that doesn't match a local key — `resetCheckInKey()` is the
+    /// only path that does that, and only on explicit user action.
+    private func prepareCheckInKey(userID: String, profile current: FriendProfile?) async throws {
+        let started = Date()
+        var attempts = 0
+        while true {
+            let localKeys = try keyStore.keys(userID: userID)
+            switch SocialKeyResolution.resolve(profileKeyID: current?.checkInKeyID,
+                                                localKeys: localKeys) {
+            case .generate:
+                let key = SocialKeyMaterial.generate()
+                try keyStore.save(key, userID: userID)
+                checkInKey = key
+                checkInSecurityState = .ready
+                if current != nil {
+                    profile = try await ck.updateProfileKey(userID: userID,
+                                                            identity: key.publicIdentity)
+                    persistProfile()
+                }
+                try pruneNoncurrentKeys(userID: userID, currentKeyID: key.keyID)
+                return
+            case .publish(let keyID), .ready(let keyID):
+                guard let key = localKeys.first(where: { $0.keyID == keyID }) else { continue }
+                checkInKey = key
+                checkInSecurityState = .ready
+                if current?.checkInKeyID == nil, current != nil {
+                    profile = try await ck.updateProfileKey(userID: userID,
+                                                            identity: key.publicIdentity)
+                    persistProfile()
+                }
+                try pruneNoncurrentKeys(userID: userID, currentKeyID: keyID)
+                return
+            case .waitForSync:
+                attempts += 1
+                checkInSecurityState = .syncing
+                let elapsed = Date().timeIntervalSince(started)
+                if SocialKeySyncRetry.shouldOfferReset(attempts: attempts, elapsed: elapsed) {
+                    checkInSecurityState = .resetRequired
+                    return
+                }
+                try await Task.sleep(nanoseconds: attempts == 1 ? 2_000_000_000 : 4_000_000_000)
+            }
+        }
+    }
+
+    /// After a key becomes ready, retire every other still-active local key so
+    /// it stops being resolvable as current, then delete whichever retired
+    /// keys have aged past the check-in TTL. Keeps a previous key available
+    /// long enough to decrypt envelopes already in flight without
+    /// accumulating Keychain items indefinitely.
+    private func pruneNoncurrentKeys(userID: String, currentKeyID: String) throws {
+        let now = Date()
+        for key in try keyStore.keys(userID: userID) where key.keyID != currentKeyID && key.retiredAt == nil {
+            try keyStore.save(key.retired(at: now), userID: userID)
+        }
+        let updated = try keyStore.keys(userID: userID)
+        for keyID in SocialKeyResolution.prunableKeyIDs(updated, currentKeyID: currentKeyID, now: now) {
+            try keyStore.delete(keyID: keyID, userID: userID)
+        }
+    }
+
+    /// Explicit recovery when Keychain sync never resolves
+    /// (`checkInSecurityState == .resetRequired`): rotate to a brand new key,
+    /// publish it, and let friends re-encrypt to the new one going forward.
+    /// The only mismatch-recovery path — `prepareCheckInKey` never rewrites a
+    /// profile key on its own.
+    func resetCheckInKey() async {
+        guard let me = userID else { return }
+        do {
+            if let previous = checkInKey {
+                try keyStore.save(previous.retired(at: Date()), userID: me)
+            }
+            let key = SocialKeyMaterial.generate()
+            try keyStore.save(key, userID: me)
+            profile = try await ck.updateProfileKey(userID: me, identity: key.publicIdentity)
+            checkInKey = key
+            checkInSecurityState = .ready
+            persistProfile()
+            try pruneNoncurrentKeys(userID: me, currentKeyID: key.keyID)
+            await refreshTonight()
+        } catch {
+            errorMessage = friendlyError(error)
+        }
+    }
+
     // MARK: - Helpers
 
     /// Wipe the previous account's cached identity and per-friend state.
@@ -773,6 +888,10 @@ final class SocialStore: ObservableObject {
         optimisticOwnCheckIns = []
         ownFanOuts = []
         syncedSubIDs = nil
+        // In-memory only — the old account's Keychain items are untouched so a
+        // sign-back-in can still resolve them via prepareCheckInKey.
+        checkInKey = nil
+        checkInSecurityState = .unknown
         defaults.removeObject(forKey: Self.profileKey)
         defaults.removeObject(forKey: Self.friendsKey)
         defaults.removeObject(forKey: Self.prefsKey)
