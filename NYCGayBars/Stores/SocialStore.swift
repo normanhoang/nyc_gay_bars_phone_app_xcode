@@ -152,7 +152,12 @@ final class SocialStore: ObservableObject {
                 persistProfile()
             }
             guard onboarded else { return }
-            try await prepareCheckInKey(userID: userID!, profile: profile)
+            // Isolated from the rest of startup, the same way performRefresh
+            // isolates its key re-read: a Keychain or CloudKit failure here must
+            // not skip the friend/request/Tonight sync below. Key trouble
+            // surfaces through checkInSecurityState (and retries on the next
+            // refresh), rather than taking the whole Friends tab down with it.
+            try? await prepareCheckInKey(userID: userID!, profile: profile)
             await refresh()
             await consumePendingAddCode()
             try? await ck.deleteExpiredCheckInV2(authorID: userID!)
@@ -363,9 +368,12 @@ final class SocialStore: ObservableObject {
         do {
             let key = SocialKeyMaterial.generate()
             try keyStore.save(key, userID: me)
+            // Same publish-gates-readiness rule as applyResolvedCheckInKey: the
+            // key is only current once the profile carrying it exists, so a
+            // failed create leaves no .ready state behind an unpublished key.
+            profile = try await ck.createProfile(userID: me, displayName: name, identity: key.publicIdentity)
             checkInKey = key
             checkInSecurityState = .ready
-            profile = try await ck.createProfile(userID: me, displayName: name, identity: key.publicIdentity)
             persistProfile()
             await refresh()
             await consumePendingAddCode()
@@ -741,7 +749,10 @@ final class SocialStore: ObservableObject {
     /// rest of the feed.
     private func decryptCheckIns(_ envelopes: [EncryptedCheckInEnvelope], me: String,
                                  friendIDs: Set<String>) throws -> [FriendCheckIn] {
-        guard !envelopes.isEmpty else { return [] }
+        guard !envelopes.isEmpty else {
+            noteCheckInDecryptFailures(0)
+            return []
+        }
         let needed = Set(envelopes.map(\.recipientKeyID))
         let pairs = try keyStore.keys(userID: me)
             .filter { needed.contains($0.keyID) }
@@ -749,10 +760,22 @@ final class SocialStore: ObservableObject {
         let result = SocialCheckInCrypto.openAll(
             envelopes, recipientID: me, allowedAuthorIDs: friendIDs.union([me]),
             privateKeysByID: Dictionary(pairs, uniquingKeysWith: { first, _ in first }))
-        if result.failureCount > 0 {
-            infoMessage = "Some encrypted check-ins couldn't be opened."
-        }
+        noteCheckInDecryptFailures(result.failureCount)
         return result.checkIns
+    }
+
+    private static let checkInDecryptFailureMessage = "Some encrypted check-ins couldn't be opened."
+
+    /// Raise or retire the aggregate decrypt-failure banner. A clean batch
+    /// clears it so a transient failure doesn't leave a banner the user can
+    /// only dismiss by hand — but only when it's still *this* message, so an
+    /// unrelated info message set elsewhere is never clobbered.
+    private func noteCheckInDecryptFailures(_ count: Int) {
+        if count > 0 {
+            infoMessage = Self.checkInDecryptFailureMessage
+        } else if infoMessage == Self.checkInDecryptFailureMessage {
+            infoMessage = nil
+        }
     }
 
     /// Feed rebuild shared by both fetch paths: keep current friends' check-ins
@@ -929,18 +952,30 @@ final class SocialStore: ObservableObject {
         }
     }
 
-    /// Marks `key` current/ready, publishes it to the profile when
-    /// `shouldPublish` (the profile doesn't have a key yet), and prunes other
-    /// local keys. Shared by `prepareCheckInKey`'s full loop and
+    /// Publishes `key` to the profile when `shouldPublish` (the profile doesn't
+    /// have a key yet), then marks it current/ready and prunes other local
+    /// keys. Shared by `prepareCheckInKey`'s full loop and
     /// `refreshCheckInKeyIfNeeded`'s single read.
+    ///
+    /// The publish gates readiness, not the other way round: friends encrypt to
+    /// whatever key the profile advertises, so a key nobody can see isn't
+    /// usable for sharing. A failed publish leaves `.syncing` rather than a
+    /// `.ready` state built on an unpublished key — `refreshCheckInKeyIfNeeded`
+    /// then re-attempts on the next refresh(). Only ever writes a profile key
+    /// that is absent; a *mismatched* one is still never rewritten here.
     private func applyResolvedCheckInKey(_ key: SocialKeyMaterial, userID: String,
                                          shouldPublish: Bool) async throws {
-        checkInKey = key
-        checkInSecurityState = .ready
         if shouldPublish {
-            profile = try await ck.updateProfileKey(userID: userID, identity: key.publicIdentity)
+            do {
+                profile = try await ck.updateProfileKey(userID: userID, identity: key.publicIdentity)
+            } catch {
+                checkInSecurityState = .syncing
+                throw error
+            }
             persistProfile()
         }
+        checkInKey = key
+        checkInSecurityState = .ready
         try pruneNoncurrentKeys(userID: userID, currentKeyID: key.keyID)
     }
 

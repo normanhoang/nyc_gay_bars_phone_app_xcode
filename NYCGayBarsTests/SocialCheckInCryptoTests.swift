@@ -160,16 +160,39 @@ final class SocialCheckInCryptoTests: XCTestCase {
         XCTAssertEqual(result.failureCount, 1)
     }
 
-    func testOpenAllDropsUnknownAuthorAndTamperedRecords() throws {
+    /// A record from someone who isn't (or is no longer) a friend is dropped
+    /// silently — it must not arm the caller's "couldn't be opened" banner.
+    func testOpenAllDropsUnknownAuthorWithoutCountingAFailure() throws {
+        let mine = try envelope()
+        let result = SocialCheckInCrypto.openAll(
+            [mine], recipientID: "recipient", allowedAuthorIDs: ["stranger"],
+            privateKeysByID: [mine.recipientKeyID: recipient])
+        XCTAssertTrue(result.checkIns.isEmpty)
+        XCTAssertEqual(result.failureCount, 0)
+    }
+
+    /// Tamper from an *allowed* author still counts: the author guard must not
+    /// short-circuit before the authenticated open runs.
+    func testOpenAllCountsTamperedRecordFromAllowedAuthor() throws {
         let mine = try envelope()
         var ciphertext = mine.ciphertext
         ciphertext[ciphertext.startIndex] ^= 0x01
         let result = SocialCheckInCrypto.openAll(
-            [mine, mine.replacing(ciphertext: ciphertext)],
-            recipientID: "recipient", allowedAuthorIDs: ["stranger"],
-            privateKeysByID: [mine.recipientKeyID: recipient])
+            [mine.replacing(ciphertext: ciphertext)], recipientID: "recipient",
+            allowedAuthorIDs: ["author"], privateKeysByID: [mine.recipientKeyID: recipient])
         XCTAssertTrue(result.checkIns.isEmpty)
-        XCTAssertEqual(result.failureCount, 2)
+        XCTAssertEqual(result.failureCount, 1)
+    }
+
+    /// Records sealed to a key this device no longer holds (rotated away by a
+    /// key reset) are surfaced, unlike unknown authors.
+    func testOpenAllCountsRecordsSealedToAKeyNoLongerHeld() throws {
+        let mine = try envelope()
+        let result = SocialCheckInCrypto.openAll(
+            [mine], recipientID: "recipient", allowedAuthorIDs: ["author"],
+            privateKeysByID: [:])
+        XCTAssertTrue(result.checkIns.isEmpty)
+        XCTAssertEqual(result.failureCount, 1)
     }
 }
 

@@ -95,8 +95,9 @@ enum SocialCheckInCrypto {
     }
 
     /// Outcome of a batch open: the envelopes that passed every check, and how
-    /// many were rejected. The count is deliberately opaque — callers surface
-    /// one aggregate message rather than per-record IDs or crypto errors.
+    /// many were rejected in a way worth telling the user about. The count is
+    /// deliberately opaque — callers surface one aggregate message rather than
+    /// per-record IDs or crypto errors.
     struct OpenResult {
         let checkIns: [FriendCheckIn]
         let failureCount: Int
@@ -104,17 +105,23 @@ enum SocialCheckInCrypto {
 
     /// Open a fetched batch, keeping only envelopes that are addressed to me,
     /// authored by someone I allow, and authenticate under a private key I
-    /// hold. Anything else — wrong recipient, unknown author, missing key,
-    /// tampered ciphertext — is counted, never thrown: one bad record must not
-    /// hide the rest of the feed.
+    /// hold. Nothing throws: one bad record must not hide the rest of the feed.
+    ///
+    /// An envelope from an author I don't allow is dropped *without* counting.
+    /// That is an expected steady state, not a fault: a just-unfriended
+    /// person's records stay live in the query until their own device revokes
+    /// them (only the creator can delete them), and counting those would arm
+    /// the caller's banner on every refresh for hours. Every other rejection —
+    /// wrong recipient, a `recipientKeyID` I hold no key for (records sealed to
+    /// a key retired by a reset, which the user *should* hear about), or a
+    /// failed authenticated open — is counted.
     static func openAll(_ envelopes: [EncryptedCheckInEnvelope], recipientID: String,
                         allowedAuthorIDs: Set<String>,
                         privateKeysByID: [String: Curve25519.KeyAgreement.PrivateKey]) -> OpenResult {
         var opened: [FriendCheckIn] = []
         var failures = 0
-        for envelope in envelopes {
+        for envelope in envelopes where allowedAuthorIDs.contains(envelope.authorID) {
             guard envelope.recipientID == recipientID,
-                  allowedAuthorIDs.contains(envelope.authorID),
                   let key = privateKeysByID[envelope.recipientKeyID],
                   let checkIn = try? open(envelope, recipientPrivateKey: key) else {
                 failures += 1
