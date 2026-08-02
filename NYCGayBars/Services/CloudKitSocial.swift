@@ -3,8 +3,10 @@ import Foundation
 
 /// Thin async wrapper around the CloudKit public database for the friends
 /// feature. Record types: `Profile`, `FriendRequest`, `Friendship`,
-/// `CheckIn` (legacy plaintext, being phased out), `CheckInV2` (recipient-
-/// encrypted transport — opaque HPKE envelope fields only).
+/// `CheckInV2` (recipient-encrypted transport — opaque HPKE envelope fields
+/// only). The legacy plaintext `CheckIn` type is never written or read any
+/// more; only `deleteLegacyCheckIns` still touches it, to sweep records this
+/// device wrote before the cutover.
 ///
 /// Trust model (public DB, creator-only writes):
 /// - A friendship is one record per direction; each side only ever creates
@@ -19,8 +21,8 @@ import Foundation
 ///
 /// Requires queryable indexes (CloudKit dashboard) on: Profile.code,
 /// FriendRequest.fromID/toID, Friendship.ownerID/friendID,
-/// CheckIn.authorID/recipientID/ts (ts also sortable),
-/// CheckInV2.authorID/recipientID/sentAt (sentAt also sortable).
+/// CheckInV2.authorID/recipientID/sentAt (sentAt also sortable), and
+/// CheckIn.authorID for the legacy sweep.
 struct CloudKitSocial {
     static let containerID = "iCloud.com.normanhoang.nycgaybars"
 
@@ -124,14 +126,6 @@ struct CloudKitSocial {
         _ = try await db.modifyRecords(saving: recs, deleting: [])
     }
 
-    func renameCheckIns(authorID: String, newName: String) async throws {
-        let q = CKQuery(recordType: RT.legacyCheckIn, predicate: NSPredicate(format: "authorID == %@", authorID))
-        let recs = try await records(q)
-        guard !recs.isEmpty else { return }
-        for rec in recs { rec["authorName"] = newName }
-        _ = try await db.modifyRecords(saving: recs, deleting: [])
-    }
-
     func lookupProfile(code: String) async throws -> FriendProfile? {
         let q = CKQuery(recordType: RT.profile, predicate: NSPredicate(format: "code == %@", code))
         return try await records(q, limit: 1).compactMap(Self.profile(from:)).first
@@ -225,116 +219,7 @@ struct CloudKitSocial {
         }, uniquingKeysWith: max)
     }
 
-    // MARK: - Check-ins
-
-    /// Broadcast presence: one small record per recipient, batch-saved. Returns
-    /// the copies that actually saved plus the first per-record failure, if any
-    /// — the ids come back even on a partial fan-out so the caller can retain
-    /// them and still retract what landed.
-    func createCheckIn(author: FriendProfile, bar: Bar, recipients: [String],
-                       now: Date = Date()) async throws -> (saved: [CKRecord.ID], failure: Error?) {
-        guard !recipients.isEmpty else { return ([], nil) }
-        let records = recipients.map { recipient in
-            let rec = CKRecord(recordType: RT.legacyCheckIn)
-            rec["authorID"] = author.id
-            rec["authorName"] = author.displayName
-            rec["recipientID"] = recipient
-            rec["barId"] = bar.id
-            rec["barName"] = bar.name
-            rec["ts"] = now
-            return rec
-        }
-        // The public DB saves batches non-atomically and reports per-record
-        // failures in the results, not as a thrown error — return them so a
-        // partial fan-out doesn't read as success.
-        let (saveResults, _) = try await db.modifyRecords(saving: records, deleting: [])
-        var saved: [CKRecord.ID] = []
-        var failure: Error?
-        for (id, result) in saveResults {
-            switch result {
-            case .success: saved.append(id)
-            case .failure(let error): failure = failure ?? error
-            }
-        }
-        return (saved, failure)
-    }
-
-    /// Check-ins addressed to me inside the Tonight window, newest first.
-    func tonightCheckIns(userID: String, now: Date = Date()) async throws -> [FriendCheckIn] {
-        let cutoff = now.addingTimeInterval(-Social.tonightWindow)
-        let q = CKQuery(recordType: RT.legacyCheckIn,
-                        predicate: NSPredicate(format: "recipientID == %@ AND ts > %@", userID, cutoff as NSDate))
-        q.sortDescriptors = [NSSortDescriptor(key: "ts", ascending: false)]
-        return try await records(q).compactMap(Self.checkIn(from:))
-    }
-
-    /// Retract own check-ins addressed to one recipient (unfriend revoke).
-    func deleteCheckIns(authorID: String, recipientID: String) async throws {
-        let q = CKQuery(recordType: RT.legacyCheckIn,
-                        predicate: NSPredicate(format: "authorID == %@ AND recipientID == %@",
-                                               authorID, recipientID))
-        let sent = try await records(q).map(\.recordID)
-        guard !sent.isEmpty else { return }
-        _ = try await db.modifyRecords(saving: [], deleting: sent)
-    }
-
-    /// A timestamp-matched removal that never found its records: CloudKit's
-    /// query index hadn't caught up. Thrown rather than swallowed so the caller
-    /// rolls the row back instead of hiding it over a delete that never
-    /// happened (the copies would stay live in friends' feeds).
-    struct CheckInRemovalFailed: Error {}
-
-    /// Retract one fan-out of my own check-ins — every recipient copy plus the
-    /// self-addressed one — so the check-in leaves friends' Tonight feeds.
-    /// Fallback for fan-outs shared in an earlier launch, whose record names
-    /// are no longer held: `createCheckIn` stamps every copy with a single
-    /// `now`, so the fan-out is identified by a narrow window around that stamp
-    /// (equality on a Double round-trip is fragile). Uses only the existing
-    /// authorID/ts indexes. Retries across the query-index lag and throws if it
-    /// never matches — prefer `deleteCheckIns(recordNames:)` when the ids are
-    /// known, which needs no index at all.
-    func deleteCheckIns(authorID: String, at ts: Date, attempts: Int = 4) async throws {
-        let window = Social.checkInMatchWindow
-        let q = CKQuery(recordType: RT.legacyCheckIn,
-                        predicate: NSPredicate(format: "authorID == %@ AND ts >= %@ AND ts <= %@",
-                                               authorID,
-                                               ts.addingTimeInterval(-window) as NSDate,
-                                               ts.addingTimeInterval(window) as NSDate))
-        for attempt in 0..<max(attempts, 1) {
-            let mine = try await records(q).map(\.recordID)
-            if !mine.isEmpty {
-                _ = try await db.modifyRecords(saving: [], deleting: mine)
-                return
-            }
-            if attempt < attempts - 1 { try await Task.sleep(nanoseconds: 1_500_000_000) }
-        }
-        throw CheckInRemovalFailed()
-    }
-
-    /// Retract a fan-out by the record names retained from its create. No
-    /// query, so it deletes correctly inside CloudKit's index lag — a
-    /// just-shared check-in isn't queryable for seconds, and the query-based
-    /// path above would match nothing.
-    func deleteCheckIns(recordNames: [String]) async throws {
-        guard !recordNames.isEmpty else { return }
-        let ids = recordNames.map { CKRecord.ID(recordName: $0) }
-        let (_, deleteResults) = try await db.modifyRecords(saving: [], deleting: ids)
-        for case .failure(let error) in deleteResults.values {
-            // Already gone (TTL sweep, another device) is the outcome we wanted.
-            if (error as? CKError)?.code == .unknownItem { continue }
-            throw error
-        }
-    }
-
-    /// Delete own check-in records past `Social.checkInTTL`.
-    func deleteExpiredCheckIns(authorID: String, now: Date = Date()) async throws {
-        let cutoff = now.addingTimeInterval(-Social.checkInTTL)
-        let q = CKQuery(recordType: RT.legacyCheckIn,
-                        predicate: NSPredicate(format: "authorID == %@ AND ts < %@", authorID, cutoff as NSDate))
-        let stale = try await records(q).map(\.recordID)
-        guard !stale.isEmpty else { return }
-        _ = try await db.modifyRecords(saving: [], deleting: stale)
-    }
+    // MARK: - Check-ins (legacy cleanup)
 
     /// Best-effort cleanup of legacy plaintext check-ins after the cutover to
     /// `CheckInV2`. The production schema revokes write/delete grants on the
@@ -351,7 +236,11 @@ struct CloudKitSocial {
 
     /// Fan out opaque HPKE envelopes, one CheckInV2 record per recipient
     /// (already including the self-addressed copy — callers build that list).
-    /// Same partial-failure contract as the legacy `createCheckIn`.
+    /// Returns the copies that actually saved plus the first per-record
+    /// failure, if any: the public DB saves batches non-atomically and reports
+    /// per-record failures in the results rather than as a thrown error, so the
+    /// ids come back even on a partial fan-out and the caller can retain them
+    /// and still retract what landed.
     func createCheckIns(_ envelopes: [EncryptedCheckInEnvelope]) async throws
         -> (saved: [CKRecord.ID], failure: Error?) {
         guard !envelopes.isEmpty else { return ([], nil) }
@@ -396,10 +285,20 @@ struct CloudKitSocial {
         _ = try await db.modifyRecords(saving: [], deleting: sent)
     }
 
+    /// A timestamp-matched removal that never found its records: CloudKit's
+    /// query index hadn't caught up. Thrown rather than swallowed so the caller
+    /// rolls the row back instead of hiding it over a delete that never
+    /// happened (the copies would stay live in friends' feeds).
+    struct CheckInRemovalFailed: Error {}
+
     /// Timestamp-matched fallback removal for fan-outs shared in an earlier
-    /// launch, whose record names are no longer held. Same reasoning and
-    /// retry/throw contract as the legacy `deleteCheckIns(authorID:at:attempts:)`,
-    /// matched on `sentAt` instead of `ts`.
+    /// launch, whose record names are no longer held: `shareCheckIn` stamps
+    /// every copy of a fan-out with a single `sentAt`, so the fan-out is
+    /// identified by a narrow window around that stamp (equality on a Double
+    /// round-trip is fragile). Uses only the existing authorID/sentAt indexes.
+    /// Retries across the query-index lag and throws if it never matches —
+    /// prefer `deleteCheckInV2(recordNames:)` when the ids are known, which
+    /// needs no index at all.
     func deleteCheckInV2(authorID: String, at sentAt: Date, attempts: Int = 4) async throws {
         let window = Social.checkInMatchWindow
         let q = CKQuery(recordType: RT.checkInV2,
@@ -567,17 +466,6 @@ struct CloudKitSocial {
         // the request can never be auto-completed by a stale friendship record.
         return FriendRequestItem(id: rec.recordID.recordName, fromID: fromID, fromName: fromName,
                                  toID: toID, created: rec.creationDate ?? .distantFuture)
-    }
-
-    private static func checkIn(from rec: CKRecord) -> FriendCheckIn? {
-        guard let authorID = rec["authorID"] as? String,
-              let authorName = rec["authorName"] as? String,
-              let barId = rec["barId"] as? String,
-              let barName = rec["barName"] as? String,
-              let ts = rec["ts"] as? Date,
-              creatorMatches(rec, claimedID: authorID) else { return nil }
-        return FriendCheckIn(id: rec.recordID.recordName, authorID: authorID, authorName: authorName,
-                             barId: barId, barName: barName, date: ts)
     }
 
     /// Audit finding #1: reject records whose self-declared author/sender ID

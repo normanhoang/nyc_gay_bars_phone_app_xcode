@@ -94,6 +94,37 @@ enum SocialCheckInCrypto {
                              date: Date(timeIntervalSince1970: TimeInterval(seconds)))
     }
 
+    /// Outcome of a batch open: the envelopes that passed every check, and how
+    /// many were rejected. The count is deliberately opaque — callers surface
+    /// one aggregate message rather than per-record IDs or crypto errors.
+    struct OpenResult {
+        let checkIns: [FriendCheckIn]
+        let failureCount: Int
+    }
+
+    /// Open a fetched batch, keeping only envelopes that are addressed to me,
+    /// authored by someone I allow, and authenticate under a private key I
+    /// hold. Anything else — wrong recipient, unknown author, missing key,
+    /// tampered ciphertext — is counted, never thrown: one bad record must not
+    /// hide the rest of the feed.
+    static func openAll(_ envelopes: [EncryptedCheckInEnvelope], recipientID: String,
+                        allowedAuthorIDs: Set<String>,
+                        privateKeysByID: [String: Curve25519.KeyAgreement.PrivateKey]) -> OpenResult {
+        var opened: [FriendCheckIn] = []
+        var failures = 0
+        for envelope in envelopes {
+            guard envelope.recipientID == recipientID,
+                  allowedAuthorIDs.contains(envelope.authorID),
+                  let key = privateKeysByID[envelope.recipientKeyID],
+                  let checkIn = try? open(envelope, recipientPrivateKey: key) else {
+                failures += 1
+                continue
+            }
+            opened.append(checkIn)
+        }
+        return .init(checkIns: opened, failureCount: failures)
+    }
+
     private static func canonical<T: Encodable>(_ value: T) throws -> Data {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]

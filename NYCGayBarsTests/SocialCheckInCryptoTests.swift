@@ -141,6 +141,36 @@ final class SocialCheckInCryptoTests: XCTestCase {
             senderKeyID: SocialCheckInCrypto.keyID(for: malformed), senderPublicKey: malformed)
         XCTAssertThrowsError(try SocialCheckInCrypto.open(changed, recipientPrivateKey: recipient))
     }
+
+    func testOpenAllKeepsOnlyAddressedAllowedAuthenticatedRecords() throws {
+        let mine = try envelope()
+        let result = SocialCheckInCrypto.openAll(
+            [mine], recipientID: "recipient", allowedAuthorIDs: ["author"],
+            privateKeysByID: [mine.recipientKeyID: recipient])
+        XCTAssertEqual(result.checkIns.map(\.id), [mine.id])
+        XCTAssertEqual(result.failureCount, 0)
+    }
+
+    func testOpenAllCountsWrongRecipientAndUnknownKeyWithoutThrowing() throws {
+        let mine = try envelope()
+        let result = SocialCheckInCrypto.openAll(
+            [mine.replacing(recipientID: "other")], recipientID: "recipient",
+            allowedAuthorIDs: ["author"], privateKeysByID: [:])
+        XCTAssertTrue(result.checkIns.isEmpty)
+        XCTAssertEqual(result.failureCount, 1)
+    }
+
+    func testOpenAllDropsUnknownAuthorAndTamperedRecords() throws {
+        let mine = try envelope()
+        var ciphertext = mine.ciphertext
+        ciphertext[ciphertext.startIndex] ^= 0x01
+        let result = SocialCheckInCrypto.openAll(
+            [mine, mine.replacing(ciphertext: ciphertext)],
+            recipientID: "recipient", allowedAuthorIDs: ["stranger"],
+            privateKeysByID: [mine.recipientKeyID: recipient])
+        XCTAssertTrue(result.checkIns.isEmpty)
+        XCTAssertEqual(result.failureCount, 2)
+    }
 }
 
 private extension EncryptedCheckInEnvelope {

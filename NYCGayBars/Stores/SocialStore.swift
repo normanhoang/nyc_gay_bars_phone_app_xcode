@@ -155,7 +155,11 @@ final class SocialStore: ObservableObject {
             try await prepareCheckInKey(userID: userID!, profile: profile)
             await refresh()
             await consumePendingAddCode()
-            try? await ck.deleteExpiredCheckIns(authorID: userID!)
+            try? await ck.deleteExpiredCheckInV2(authorID: userID!)
+            // Defense in depth: sweep any plaintext check-ins this device wrote
+            // before the encrypted cutover. Nothing reads them any more, but
+            // they'd otherwise sit in the public database until hand-deleted.
+            try? await ck.deleteLegacyCheckIns(authorID: userID!)
         } catch {
             errorMessage = friendlyError(error)
         }
@@ -270,7 +274,7 @@ final class SocialStore: ObservableObject {
                                                      since: &removalCandidateSince, now: Date())
             for id in removedBy {
                 try await ck.removeFriendship(ownerID: me, friendID: id)
-                try? await ck.deleteCheckIns(authorID: me, recipientID: id)
+                try? await ck.deleteCheckInV2(authorID: me, recipientID: id)
             }
             ids.removeAll(where: removedBy.contains)
             deliberateRemovals.formUnion(removedBy)
@@ -307,7 +311,7 @@ final class SocialStore: ObservableObject {
             outgoingRequests = outgoing
 
             async let profilesFetch = ck.profiles(userIDs: ids)
-            async let tonightFetch = ck.tonightCheckIns(userID: me)
+            async let tonightFetch = ck.tonightCheckInEnvelopes(userID: me)
             let fetchedProfiles = try await profilesFetch
             // Overlay just-accepted friends, reading optimisticFriends *after*
             // every await: an accept() that lands while this refresh's queries
@@ -324,7 +328,8 @@ final class SocialStore: ObservableObject {
             persistPrefs()
             // Drop check-ins from anyone no longer a friend (their unexpired
             // records can outlive the friendship by up to the Tonight window).
-            tonight = rebuildTonight(try await tonightFetch, friendIDs: friendIDSet, me: me)
+            let opened = try decryptCheckIns(try await tonightFetch, me: me, friendIDs: friendIDSet)
+            tonight = rebuildTonight(opened, friendIDs: friendIDSet, me: me)
             try await syncSubscriptionsIfNeeded(me: me, friendIDs: ids)
         } catch {
             errorMessage = friendlyError(error)
@@ -541,8 +546,8 @@ final class SocialStore: ObservableObject {
         do {
             try await ck.removeFriendship(ownerID: me, friendID: friend.id)
             // Best effort: retract already-sent check-ins so nothing lingers
-            // in their feed. Leftovers expire at the 24h TTL anyway.
-            try? await ck.deleteCheckIns(authorID: me, recipientID: friend.id)
+            // in their feed. Leftovers expire at the TTL anyway.
+            try? await ck.deleteCheckInV2(authorID: me, recipientID: friend.id)
             // Clear any lingering request between us (e.g. removed mid-handshake)
             // so re-adding later starts clean: drop my outgoing to them, and
             // hide their incoming to me until it disappears server-side.
@@ -590,14 +595,20 @@ final class SocialStore: ObservableObject {
     /// friends-out count) exclude my own row.
     var friendsTonight: [FriendCheckIn] { Social.friendsOnly(tonight, me: myID) }
 
-    /// Broadcast presence at a bar to send-enabled friends. Returns true on success.
+    /// Share presence at a bar with send-enabled friends, one HPKE envelope
+    /// sealed to each recipient's published key. Returns true on success.
     /// A copy addressed to myself rides along so the check-in also lands in my
     /// own Tonight feed (the feed query is `recipientID == me`).
+    ///
+    /// All-or-nothing by design: if any selected friend's profile is missing or
+    /// carries no usable check-in identity, nothing is written at all. Silently
+    /// omitting a recipient would look like a delivered share while that friend
+    /// never sees it.
     @discardableResult
     func shareCheckIn(bar: Bar) async -> Bool {
         guard let me = profile else { return false }
-        let recipients = prefs.recipients(of: friends.map(\.id))
-        guard !recipients.isEmpty else {
+        let recipientIDs = prefs.recipients(of: friends.map(\.id))
+        guard !recipientIDs.isEmpty else {
             errorMessage = friends.isEmpty
                 ? "Add friends first to share check-ins."
                 : "Sharing is switched off for all your friends."
@@ -605,39 +616,66 @@ final class SocialStore: ObservableObject {
         }
         busy = true
         defer { busy = false }
-        // One stamp for every copy and for the local row: the retained fan-out,
-        // the delete-by-timestamp fallback and the optimistic merge all match
-        // on it.
-        let ts = Date()
         do {
-            let (saved, failure) = try await ck.createCheckIn(author: me, bar: bar,
-                                                              recipients: recipients + [me.id], now: ts)
+            // Fetch the recipients' keys fresh: a cached profile can predate a
+            // friend's key rotation, and sealing to a retired key would produce
+            // a check-in they can't open.
+            let fetched = try await ck.profiles(userIDs: recipientIDs)
+            let byID = Dictionary(fetched.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+            let missing = recipientIDs.filter { byID[$0]?.checkInIdentity == nil }
+            guard missing.isEmpty else {
+                errorMessage = "\(missing.count) selected friend\(missing.count == 1 ? "" : "s") need to update before you can share."
+                return false
+            }
+            guard let key = checkInKey, case .ready = checkInSecurityState,
+                  let selfIdentity = profile?.checkInIdentity else {
+                errorMessage = "Your Friends security key is still syncing."
+                return false
+            }
+            // One stamp for every copy and for the local row: the retained
+            // fan-out, the delete-by-timestamp fallback and the optimistic
+            // merge all match on it. Normalized to whole seconds so it survives
+            // the envelope's canonical timestamp round-trip unchanged.
+            let sentAt = SocialCheckInCrypto.normalized(Date())
+            let targets = recipientIDs.compactMap { id in byID[id]?.checkInIdentity.map { (id, $0) } }
+                + [(me.id, selfIdentity)]
+            let senderPrivateKey = try key.privateKey
+            let envelopes = try targets.map { id, identity in
+                try SocialCheckInCrypto.seal(
+                    recordName: "checkin-v2-\(UUID().uuidString.lowercased())",
+                    authorID: me.id, recipientID: id, sentAt: sentAt,
+                    senderPrivateKey: senderPrivateKey, recipient: identity,
+                    authorName: me.displayName, barID: bar.id, barName: bar.name)
+            }
+            let (saved, failure) = try await ck.createCheckIns(envelopes)
             // Retain the ids first even when the batch was partial: the copies
             // that did land are live in those friends' feeds, and this is the
-            // only handle on them until the 24h TTL.
-            retainFanOut(ts: ts, ids: saved)
+            // only handle on them until the TTL sweep.
+            retainFanOut(ts: sentAt, ids: saved)
             if let failure {
                 errorMessage = friendlyError(failure)
                 return false
             }
+            // Show it in Tonight now rather than when the record becomes
+            // queryable (CloudKit index lag is seconds). The canonical copy
+            // takes over on a later refresh; tonightFeed's author|bar dedupe
+            // keeps it to one row.
+            let row = FriendCheckIn(id: "own-\(bar.id)-\(Int(sentAt.timeIntervalSince1970))",
+                                    authorID: me.id, authorName: me.displayName,
+                                    barId: bar.id, barName: bar.name, date: sentAt)
+            optimisticOwnCheckIns.removeAll { $0.checkIn.barId == bar.id }
+            optimisticOwnCheckIns.append((row, Date()))
+            // Append to the published feed directly rather than re-running the
+            // rebuild over it: the rebuild treats its input as a fetch, so
+            // feeding the current feed back in would read the overlay rows
+            // already in it as "canonical arrived" and retire them before
+            // CloudKit can serve them.
+            tonight = Social.tonightFeed(tonight + [row], now: Date())
+            return true
         } catch {
             errorMessage = friendlyError(error)
             return false
         }
-        // Show it in Tonight now rather than when the record becomes queryable
-        // (CloudKit index lag is seconds). The canonical copy takes over on a
-        // later refresh; tonightFeed's author|bar dedupe keeps it to one row.
-        let row = FriendCheckIn(id: "own-\(bar.id)-\(Int(ts.timeIntervalSince1970))",
-                                authorID: me.id, authorName: me.displayName,
-                                barId: bar.id, barName: bar.name, date: ts)
-        optimisticOwnCheckIns.removeAll { $0.checkIn.barId == bar.id }
-        optimisticOwnCheckIns.append((row, Date()))
-        // Append to the published feed directly rather than re-running the
-        // rebuild over it: the rebuild treats its input as a fetch, so feeding
-        // the current feed back in would read the overlay rows already in it as
-        // "canonical arrived" and retire them before CloudKit can serve them.
-        tonight = Social.tonightFeed(tonight + [row], now: Date())
-        return true
     }
 
     /// Retain a shared fan-out's record names so its removal can delete by id.
@@ -669,10 +707,10 @@ final class SocialStore: ObservableObject {
         let retained = Social.fanOut(matching: checkIn.date, in: ownFanOuts)
         do {
             if let retained {
-                try await ck.deleteCheckIns(recordNames: retained.recordNames)
+                try await ck.deleteCheckInV2(recordNames: retained.recordNames)
                 ownFanOuts.removeAll { $0 == retained }
             } else {
-                try await ck.deleteCheckIns(authorID: me, at: checkIn.date)
+                try await ck.deleteCheckInV2(authorID: me, at: checkIn.date)
             }
         } catch {
             errorMessage = friendlyError(error)
@@ -685,11 +723,36 @@ final class SocialStore: ObservableObject {
     func refreshTonight() async {
         guard let me = userID, onboarded else { return }
         do {
-            tonight = rebuildTonight(try await ck.tonightCheckIns(userID: me),
-                                     friendIDs: Set(friends.map(\.id)), me: me)
+            let envelopes = try await ck.tonightCheckInEnvelopes(userID: me)
+            let friendIDs = Set(friends.map(\.id))
+            tonight = rebuildTonight(try decryptCheckIns(envelopes, me: me, friendIDs: friendIDs),
+                                     friendIDs: friendIDs, me: me)
         } catch {
             errorMessage = friendlyError(error)
         }
+    }
+
+    /// Decrypt a fetched batch of envelopes — the single decrypt path for both
+    /// `performRefresh` and `refreshTonight`. Only the local keys actually
+    /// referenced by the batch are unlocked, and only friends (plus my own
+    /// self-addressed copies) count as allowed authors. Rejected records are
+    /// reported as one aggregate message: naming the record or the crypto error
+    /// would leak who sent what, and a single bad envelope must not hide the
+    /// rest of the feed.
+    private func decryptCheckIns(_ envelopes: [EncryptedCheckInEnvelope], me: String,
+                                 friendIDs: Set<String>) throws -> [FriendCheckIn] {
+        guard !envelopes.isEmpty else { return [] }
+        let needed = Set(envelopes.map(\.recipientKeyID))
+        let pairs = try keyStore.keys(userID: me)
+            .filter { needed.contains($0.keyID) }
+            .map { ($0.keyID, try $0.privateKey) }
+        let result = SocialCheckInCrypto.openAll(
+            envelopes, recipientID: me, allowedAuthorIDs: friendIDs.union([me]),
+            privateKeysByID: Dictionary(pairs, uniquingKeysWith: { first, _ in first }))
+        if result.failureCount > 0 {
+            infoMessage = "Some encrypted check-ins couldn't be opened."
+        }
+        return result.checkIns
     }
 
     /// Feed rebuild shared by both fetch paths: keep current friends' check-ins
