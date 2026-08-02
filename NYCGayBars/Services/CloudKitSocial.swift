@@ -44,7 +44,7 @@ struct CloudKitSocial {
     static let requestSubID = "sub-friendrequest-incoming-v2"
     static let legacyRequestSubID = "sub-friendrequest-incoming"
     static let friendshipSubID = "sub-friendship-incoming"
-    private static let checkInSubPrefix = "sub-checkin-"
+    static let checkInSubPrefix = "sub-checkin-"
     static func checkInSubID(friendID: String) -> String { checkInSubPrefix + friendID }
 
     static let checkInCategory = "FRIEND_CHECKIN"
@@ -368,22 +368,27 @@ struct CloudKitSocial {
         _ = try await db.modifySubscriptions(saving: toSave, deleting: toDelete)
     }
 
-    /// Alert push when a friend shares a check-in addressed to me:
-    /// "<name> is at <bar>". Scoped to recipientID so records addressed to
-    /// other friends can never fire it.
+    /// Generic alert push when a friend shares a check-in addressed to me.
+    /// `CheckInV2` records are opaque HPKE envelopes — no author name or bar
+    /// name to put in the alert or `desiredKeys` — so the copy is fixed and
+    /// friends learn the details only by opening the app.
+    static func checkInNotificationInfo() -> CKSubscription.NotificationInfo {
+        let info = CKSubscription.NotificationInfo()
+        info.alertLocalizationKey = "FRIEND_CHECKIN_GENERIC_ALERT"
+        info.soundName = "default"
+        info.category = checkInCategory
+        return info
+    }
+
+    /// Alert push when a friend shares a check-in addressed to me. Scoped to
+    /// recipientID so records addressed to other friends can never fire it.
     private func checkInSubscription(friendID: String, userID: String) -> CKQuerySubscription {
-        let sub = CKQuerySubscription(recordType: RT.legacyCheckIn,
+        let sub = CKQuerySubscription(recordType: RT.checkInV2,
                                       predicate: NSPredicate(format: "authorID == %@ AND recipientID == %@",
                                                              friendID, userID),
                                       subscriptionID: Self.checkInSubID(friendID: friendID),
                                       options: .firesOnRecordCreation)
-        let info = CKSubscription.NotificationInfo()
-        info.alertLocalizationKey = "FRIEND_CHECKIN_ALERT"
-        info.alertLocalizationArgs = ["authorName", "barName"]
-        info.soundName = "default"
-        info.desiredKeys = ["barId", "authorName", "barName"]
-        info.category = Self.checkInCategory
-        sub.notificationInfo = info
+        sub.notificationInfo = Self.checkInNotificationInfo()
         return sub
     }
 

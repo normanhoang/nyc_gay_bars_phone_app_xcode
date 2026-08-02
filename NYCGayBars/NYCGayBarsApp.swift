@@ -32,21 +32,18 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         return [.banner, .sound]
     }
 
-    /// Tap on a friend push: "<name> is at <bar>" opens that bar's detail sheet;
-    /// a friend request switches to the Friends tab.
+    /// Tap on a friend push: both a friend request and a check-in alert
+    /// switch to the Friends tab — check-in records are opaque HPKE envelopes
+    /// now, so there's no bar/author payload left to deep-link straight to a
+    /// bar sheet.
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse) async {
         let userInfo = response.notification.request.content.userInfo
         let note = CKNotification(fromRemoteNotificationDictionary: userInfo)
-        if note?.subscriptionID == CloudKitSocial.requestSubID {
+        if let subscriptionID = note?.subscriptionID,
+           subscriptionID == CloudKitSocial.requestSubID
+               || subscriptionID.hasPrefix(CloudKitSocial.checkInSubPrefix) {
             SocialStore.shared.focusFriendsTab = true
-        }
-        // Navigate from the payload immediately; the refresh below can spend
-        // seconds retrying against CloudKit consistency.
-        if let q = note as? CKQueryNotification,
-           let barId = q.recordFields?["barId"] as? String,
-           AppData.barsById[barId] != nil {
-            SocialStore.shared.deepLinkBarId = barId
         }
         await SocialStore.shared.handleRemoteNotification(userInfo)
     }

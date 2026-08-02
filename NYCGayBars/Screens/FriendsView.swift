@@ -31,6 +31,8 @@ struct FriendsView: View {
     @State private var deleteGroupTarget: FriendGroup?
     // Own check-in pending removal (confirmation dialog).
     @State private var removeCheckInTarget: FriendCheckIn?
+    // Check-in encryption key reset (confirmation dialog).
+    @State private var showKeyResetConfirm = false
 
     var body: some View {
         Group {
@@ -109,7 +111,7 @@ struct FriendsView: View {
                     valueProp("qrcode", "Private code, no accounts",
                               "Add friends with a code or QR — there's no directory to be found in.")
                     valueProp("wineglass", "Share only when you tap",
-                              "Logging drinks never notifies anyone — “Share with friends” is its own button.")
+                              "Logging drinks never notifies anyone — “Share with friends” is its own button, and what you send is end-to-end encrypted for the friends you pick.")
                     valueProp("clock.arrow.circlepath", "Check-ins expire",
                               "Friends see them for 3 hours; they're deleted after 6.")
 
@@ -216,6 +218,18 @@ struct FriendsView: View {
                 if let info = social.infoMessage {
                     infoBanner(info).padding(.bottom, 12)
                 }
+                if social.checkInSecurityState == .syncing {
+                    infoBanner("Your Friends security key is syncing from iCloud. Friend management still works.")
+                        .padding(.bottom, 12)
+                } else if social.checkInSecurityState == .resetRequired {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Your Friends security key couldn't be recovered.")
+                            .font(.scaled(14, weight: .semibold)).foregroundStyle(.white)
+                        Button("Reset security key") { showKeyResetConfirm = true }
+                            .font(.scaled(14, weight: .bold)).foregroundStyle(Palette.primary)
+                    }
+                    .padding(12).contentPanel().padding(.bottom, 12)
+                }
 
                 if !social.incomingRequests.isEmpty {
                     VStack(spacing: 8) {
@@ -247,7 +261,7 @@ struct FriendsView: View {
                     .padding(.bottom, 8)
                 friendsSection
 
-                Text("Check-ins share only your display name and the bar. Friends see them for 3 hours; they're deleted after 6. Remove yours anytime from Tonight.")
+                Text("Check-ins are end-to-end encrypted — only your display name and the bar reach the friends you've selected. They're visible for 3 hours and deleted after 6. Remove yours anytime from Tonight.")
                     .font(.scaled(12)).foregroundStyle(Palette.gray500)
                     .padding(.top, 16)
             }
@@ -283,6 +297,16 @@ struct FriendsView: View {
             Button("Cancel", role: .cancel) {}
         } message: { checkIn in
             Text("Friends will stop seeing you at \(checkIn.barName).")
+        }
+        .confirmationDialog("Reset Friends security key?",
+                            isPresented: $showKeyResetConfirm,
+                            titleVisibility: .visible) {
+            Button("Reset security key", role: .destructive) {
+                Task { await social.resetCheckInKey() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Active check-ins sent to the old key may become unreadable. Your friendships and local history won't be deleted.")
         }
     }
 

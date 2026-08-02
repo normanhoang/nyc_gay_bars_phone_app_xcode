@@ -33,4 +33,11 @@ final class CloudKitSocialRecordTests: XCTestCase {
         XCTAssertTrue(CloudKitSocial.creatorMatchesV2(
             creatorID: "__defaultOwner__", claimedID: "a"))
     }
+
+    func testCheckInNotificationCarriesNoPlaintextDesiredFields() {
+        let info = CloudKitSocial.checkInNotificationInfo()
+        XCTAssertEqual(info.alertLocalizationKey, "FRIEND_CHECKIN_GENERIC_ALERT")
+        XCTAssertNil(info.alertLocalizationArgs)
+        XCTAssertNil(info.desiredKeys)
+    }
 }
