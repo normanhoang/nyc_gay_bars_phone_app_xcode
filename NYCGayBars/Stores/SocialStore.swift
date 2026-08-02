@@ -67,6 +67,12 @@ final class SocialStore: ObservableObject {
     /// The local device's active check-in encryption keypair, resolved by
     /// `prepareCheckInKey`. Nil until `checkInSecurityState` is `.ready`.
     private var checkInKey: SocialKeyMaterial?
+    /// True while `prepareCheckInKey`'s full wait/retry loop or
+    /// `resetCheckInKey()` is running. `refreshCheckInKeyIfNeeded` (called
+    /// from `performRefresh()`) checks this so a manual refresh can never
+    /// race a `start()`-triggered bootstrap — refresh() is already
+    /// single-flight against itself, but `start()` doesn't go through it.
+    private var checkInKeyBusy = false
     /// When each friend first looked like a removal candidate — debounces the
     /// mirror-removal so a fresh acceptance's consistency blip isn't acted on.
     private var removalCandidateSince: [String: Date] = [:]
@@ -203,6 +209,11 @@ final class SocialStore: ObservableObject {
     private func performRefresh() async {
         guard let me = userID, onboarded else { return }
         do {
+            // Recover a key that finished Keychain-syncing after start()
+            // already gave up waiting — a single re-read, not the full loop.
+            if checkInSecurityState != .ready {
+                try await refreshCheckInKeyIfNeeded(userID: me, profile: profile)
+            }
             // The four base queries are independent — fetch concurrently.
             async let incomingFetch = ck.incomingRequests(userID: me)
             async let outgoingFetch = ck.outgoingRequests(userID: me)
@@ -788,6 +799,8 @@ final class SocialStore: ObservableObject {
     /// profile key that doesn't match a local key — `resetCheckInKey()` is the
     /// only path that does that, and only on explicit user action.
     private func prepareCheckInKey(userID: String, profile current: FriendProfile?) async throws {
+        checkInKeyBusy = true
+        defer { checkInKeyBusy = false }
         let started = Date()
         var attempts = 0
         while true {
@@ -797,25 +810,12 @@ final class SocialStore: ObservableObject {
             case .generate:
                 let key = SocialKeyMaterial.generate()
                 try keyStore.save(key, userID: userID)
-                checkInKey = key
-                checkInSecurityState = .ready
-                if current != nil {
-                    profile = try await ck.updateProfileKey(userID: userID,
-                                                            identity: key.publicIdentity)
-                    persistProfile()
-                }
-                try pruneNoncurrentKeys(userID: userID, currentKeyID: key.keyID)
+                try await applyResolvedCheckInKey(key, userID: userID, shouldPublish: current != nil)
                 return
             case .publish(let keyID), .ready(let keyID):
                 guard let key = localKeys.first(where: { $0.keyID == keyID }) else { continue }
-                checkInKey = key
-                checkInSecurityState = .ready
-                if current?.checkInKeyID == nil, current != nil {
-                    profile = try await ck.updateProfileKey(userID: userID,
-                                                            identity: key.publicIdentity)
-                    persistProfile()
-                }
-                try pruneNoncurrentKeys(userID: userID, currentKeyID: keyID)
+                try await applyResolvedCheckInKey(key, userID: userID,
+                                                  shouldPublish: current != nil && current?.checkInKeyID == nil)
                 return
             case .waitForSync:
                 attempts += 1
@@ -828,6 +828,49 @@ final class SocialStore: ObservableObject {
                 try await Task.sleep(nanoseconds: attempts == 1 ? 2_000_000_000 : 4_000_000_000)
             }
         }
+    }
+
+    /// Refresh-triggered re-check of the local key against the profile's
+    /// published key: a single read, no waiting — attempt counting and the
+    /// eventual `.resetRequired` threshold stay owned by `prepareCheckInKey`
+    /// (called from `start()`). Lets a pull-to-refresh (or any other manual
+    /// `refresh()`) recover a key that finished Keychain-syncing after
+    /// `start()` already gave up waiting, without blocking the refresh on a
+    /// multi-second retry loop. No-ops while `prepareCheckInKey` or
+    /// `resetCheckInKey()` is already running, so the two can never race each
+    /// other or double-publish.
+    private func refreshCheckInKeyIfNeeded(userID: String, profile current: FriendProfile?) async throws {
+        guard !checkInKeyBusy else { return }
+        checkInKeyBusy = true
+        defer { checkInKeyBusy = false }
+        let localKeys = try keyStore.keys(userID: userID)
+        switch SocialKeyResolution.resolve(profileKeyID: current?.checkInKeyID, localKeys: localKeys) {
+        case .generate:
+            let key = SocialKeyMaterial.generate()
+            try keyStore.save(key, userID: userID)
+            try await applyResolvedCheckInKey(key, userID: userID, shouldPublish: current != nil)
+        case .publish(let keyID), .ready(let keyID):
+            guard let key = localKeys.first(where: { $0.keyID == keyID }) else { return }
+            try await applyResolvedCheckInKey(key, userID: userID,
+                                              shouldPublish: current != nil && current?.checkInKeyID == nil)
+        case .waitForSync:
+            checkInSecurityState = .syncing
+        }
+    }
+
+    /// Marks `key` current/ready, publishes it to the profile when
+    /// `shouldPublish` (the profile doesn't have a key yet), and prunes other
+    /// local keys. Shared by `prepareCheckInKey`'s full loop and
+    /// `refreshCheckInKeyIfNeeded`'s single read.
+    private func applyResolvedCheckInKey(_ key: SocialKeyMaterial, userID: String,
+                                         shouldPublish: Bool) async throws {
+        checkInKey = key
+        checkInSecurityState = .ready
+        if shouldPublish {
+            profile = try await ck.updateProfileKey(userID: userID, identity: key.publicIdentity)
+            persistProfile()
+        }
+        try pruneNoncurrentKeys(userID: userID, currentKeyID: key.keyID)
     }
 
     /// After a key becomes ready, retire every other still-active local key so
@@ -852,7 +895,9 @@ final class SocialStore: ObservableObject {
     /// The only mismatch-recovery path — `prepareCheckInKey` never rewrites a
     /// profile key on its own.
     func resetCheckInKey() async {
-        guard let me = userID else { return }
+        guard let me = userID, !checkInKeyBusy else { return }
+        checkInKeyBusy = true
+        defer { checkInKeyBusy = false }
         do {
             if let previous = checkInKey {
                 try keyStore.save(previous.retired(at: Date()), userID: me)
