@@ -163,7 +163,7 @@ Whether you're a local completist or visiting for Pride, NYC Gay Bars makes expl
     <ul>
       <li><b>Name</b> — the display name chosen for Friends</li>
       <li><b>User ID</b> — the CloudKit user identifier / invite code</li>
-      <li><b>Other User Content</b> — shared check-ins (display name + bar + time, sent only to selected friends; auto-deleted within ~24h)</li>
+      <li><b>Other User Content</b> — shared check-ins (display name + bar, sent only to selected friends; auto-deleted within ~6h). The content is encrypted on the sender's device per recipient and decrypted only on that friend's device — Apple/iCloud never sees the plaintext name or bar, only routing metadata (sender, recipient, send time) needed for delivery. Declare the data type as collected regardless — CloudKit still stores and transmits it, encrypted or not.</li>
       <li>Location is still used only on-device to show distance/sort bars — never transmitted, so <b>not "collected"</b>; do not list it.</li>
       <li>Tracking: <b>No</b>.</li>
     </ul>
@@ -191,15 +191,16 @@ Alcohol content: the app is a bar directory and personal drink journal. It does 
   </div>
   <p class="hint">Click the box to copy the review notes.</p>
 
-  <h2>Export Compliance <span class="badge ok">handled</span></h2>
+  <h2>Export Compliance <span class="badge warn">rerun before this release</span></h2>
   <div class="card">
-    <p style="margin:0"><code>ITSAppUsesNonExemptEncryption = false</code> is set in Info.plist, so App Store Connect won't prompt on upload. Answer "No" if asked about non-exempt encryption.</p>
+    <p style="margin:0"><code>ITSAppUsesNonExemptEncryption = false</code> is currently set in Info.plist, carried over from before this version's Friends check-ins used CryptoKit's HPKE (authenticated public-key encryption, <code>Logic/SocialCheckInCrypto.swift</code>) to seal check-in content per recipient. Adding a new encryption algorithm/library is exactly the kind of change Apple's encryption questionnaire exists to catch, so <b>the questionnaire must be answered again from scratch on this upload</b> — don't assume the old "No" answer still applies. This page does not determine — and must not be read as determining — whether that use qualifies for an export exemption; that determination belongs to the account holder, made through App Store Connect's actual questionnaire flow (and, if it says so, the annual self-classification report). Leave <code>ITSAppUsesNonExemptEncryption</code> exactly as-is until the account holder has gone through the questionnaire and recorded Apple's determination here.</p>
   </div>
 
   <h2>Submission Checklist</h2>
   <div class="card">
     <ul>
-      <li>☐ <b>Deploy the CloudKit schema to Production first</b> (dashboard → container <code>iCloud.com.normanhoang.nycgaybars</code> → Deploy Schema Changes; indexes are manual). A production build against an undeployed schema breaks Friends silently.</li>
+      <li>☐ <b>Deploy the CloudKit schema to Production first</b> (dashboard → container <code>iCloud.com.normanhoang.nycgaybars</code> → Deploy Schema Changes; indexes are manual). A production build against an undeployed schema breaks Friends silently. This release adds the <code>CheckInV2</code> record type and revokes the legacy <code>CheckIn</code> type's write/read grants — see the exact schema, grants, and verification steps in <code>docs/cloudkit-checkin-v2-rollout.md</code> before deploying.</li>
+      <li>☐ <b>Rerun the App Store Connect encryption questionnaire</b> for this build — Friends check-ins now use CryptoKit HPKE, a new encryption algorithm, so the previous answer doesn't carry over. Do not change <code>ITSAppUsesNonExemptEncryption</code> until the account holder has gone through the questionnaire and recorded Apple's determination (see Export Compliance above).</li>
       <li>☐ Upload build 17 — the exported IPA is at <code>build/ipa/NYCGayBars.ipa</code> (signed, <code>aps-environment: production</code> verified). Upload via Xcode Organizer, Transporter, or <code>xcrun altool</code>.</li>
       <li>☐ Create the <b>1.2.0</b> version record (1.1.0 was never released; the 1.0.0 train is closed)</li>
       <li>☐ Paste name, subtitle, promo text, description, keywords (above)</li>

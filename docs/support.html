@@ -28,6 +28,12 @@
   <p><strong>Can I choose which friends see my check-ins?</strong><br>
   Yes — each friend row in the Friends tab has a <em>paper plane</em> toggle controlling whether that friend receives your shared check-ins at all. Friends' check-ins show up in the Tonight section of the Friends tab; check-ins don't send push notifications.</p>
 
+  <p><strong>Are shared check-ins encrypted?</strong><br>
+  Yes. Your display name and the bar you check into are encrypted on your device separately for each friend you share with, and only that friend's device can decrypt them. Apple iCloud still stores who a check-in is from, who it's addressed to, and when it was sent, since that routing information is what gets it delivered to the right friend.</p>
+
+  <p><strong>What does "Reset security key" in the Friends tab do?</strong><br>
+  If your device's check-in encryption key can't be recovered from iCloud (rare — usually a Keychain sync issue), the Friends tab shows a banner offering to reset it. Resetting generates a new key and republishes it, so friends encrypt to it going forward; any check-ins already sealed to the old key may become unreadable. Your friendships and on-device history aren't affected.</p>
+
   <p><strong>How long do shared check-ins last?</strong><br>
   Friends see them in the Tonight list for about 3 hours; the records are deleted entirely within about 6 hours.</p>
 
