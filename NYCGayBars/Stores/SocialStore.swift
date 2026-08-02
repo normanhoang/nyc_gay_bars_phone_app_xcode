@@ -208,12 +208,14 @@ final class SocialStore: ObservableObject {
 
     private func performRefresh() async {
         guard let me = userID, onboarded else { return }
+        // Recover a key that finished Keychain-syncing after start() already
+        // gave up waiting — a single re-read, not the full loop. Best-effort
+        // and isolated from the rest of the refresh: a Keychain/CloudKit
+        // failure here must never skip the friend/request/Tonight sync below.
+        if checkInSecurityState != .ready {
+            try? await refreshCheckInKeyIfNeeded(userID: me, profile: profile)
+        }
         do {
-            // Recover a key that finished Keychain-syncing after start()
-            // already gave up waiting — a single re-read, not the full loop.
-            if checkInSecurityState != .ready {
-                try await refreshCheckInKeyIfNeeded(userID: me, profile: profile)
-            }
             // The four base queries are independent — fetch concurrently.
             async let incomingFetch = ck.incomingRequests(userID: me)
             async let outgoingFetch = ck.outgoingRequests(userID: me)
@@ -854,7 +856,13 @@ final class SocialStore: ObservableObject {
             try await applyResolvedCheckInKey(key, userID: userID,
                                               shouldPublish: current != nil && current?.checkInKeyID == nil)
         case .waitForSync:
-            checkInSecurityState = .syncing
+            // Don't downgrade an already-terminal .resetRequired — nothing
+            // changed since prepareCheckInKey gave up, so re-resolving here
+            // would flip it straight back to .syncing before the reset
+            // button/banner could ever be shown.
+            if checkInSecurityState != .resetRequired {
+                checkInSecurityState = .syncing
+            }
         }
     }
 
