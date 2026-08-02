@@ -2,7 +2,9 @@ import CloudKit
 import Foundation
 
 /// Thin async wrapper around the CloudKit public database for the friends
-/// feature. Record types: `Profile`, `FriendRequest`, `Friendship`, `CheckIn`.
+/// feature. Record types: `Profile`, `FriendRequest`, `Friendship`,
+/// `CheckIn` (legacy plaintext, being phased out), `CheckInV2` (recipient-
+/// encrypted transport — opaque HPKE envelope fields only).
 ///
 /// Trust model (public DB, creator-only writes):
 /// - A friendship is one record per direction; each side only ever creates
@@ -17,7 +19,8 @@ import Foundation
 ///
 /// Requires queryable indexes (CloudKit dashboard) on: Profile.code,
 /// FriendRequest.fromID/toID, Friendship.ownerID/friendID,
-/// CheckIn.authorID/recipientID/ts (ts also sortable).
+/// CheckIn.authorID/recipientID/ts (ts also sortable),
+/// CheckInV2.authorID/recipientID/sentAt (sentAt also sortable).
 struct CloudKitSocial {
     static let containerID = "iCloud.com.normanhoang.nycgaybars"
 
@@ -28,7 +31,8 @@ struct CloudKitSocial {
         static let profile = "Profile"
         static let request = "FriendRequest"
         static let friendship = "Friendship"
-        static let checkIn = "CheckIn"
+        static let legacyCheckIn = "CheckIn"
+        static let checkInV2 = "CheckInV2"
     }
 
     // Deterministic IDs make subscription + friendship setup idempotent.
@@ -69,7 +73,12 @@ struct CloudKitSocial {
         }
     }
 
-    func createProfile(userID: String, displayName: String) async throws -> FriendProfile {
+    // `identity` defaults to nil so the pre-existing call site (SocialStore's
+    // onboarding, which doesn't yet generate a key — see Task 5) keeps
+    // compiling unchanged; Task 5 passes a real identity once key bootstrap
+    // lands there.
+    func createProfile(userID: String, displayName: String,
+                      identity: CheckInPublicIdentity? = nil) async throws -> FriendProfile {
         // Regenerate on the (astronomically rare) code collision so two users
         // never share an invite code — lookupProfile takes the first match.
         var code = Social.generateFriendCode()
@@ -82,6 +91,11 @@ struct CloudKitSocial {
         rec["userID"] = userID
         rec["displayName"] = displayName
         rec["code"] = code
+        if let identity {
+            rec["checkInCryptoVersion"] = identity.version
+            rec["checkInKeyID"] = identity.keyID
+            rec["checkInPublicKey"] = identity.publicKey
+        }
         return Self.profile(from: try await db.save(rec))!
     }
 
@@ -90,6 +104,17 @@ struct CloudKitSocial {
     func updateProfileName(userID: String, displayName: String) async throws -> FriendProfile {
         let rec = try await db.record(for: profileRecordID(userID))
         rec["displayName"] = displayName
+        return Self.profile(from: try await db.save(rec))!
+    }
+
+    /// Publish (or rotate to) a new check-in public key, preserving every
+    /// other profile field. Fetch-then-save, same reasoning as `updateProfileName`.
+    func updateProfileKey(userID: String,
+                          identity: CheckInPublicIdentity) async throws -> FriendProfile {
+        let rec = try await db.record(for: profileRecordID(userID))
+        rec["checkInCryptoVersion"] = identity.version
+        rec["checkInKeyID"] = identity.keyID
+        rec["checkInPublicKey"] = identity.publicKey
         return Self.profile(from: try await db.save(rec))!
     }
 
@@ -104,7 +129,7 @@ struct CloudKitSocial {
     }
 
     func renameCheckIns(authorID: String, newName: String) async throws {
-        let q = CKQuery(recordType: RT.checkIn, predicate: NSPredicate(format: "authorID == %@", authorID))
+        let q = CKQuery(recordType: RT.legacyCheckIn, predicate: NSPredicate(format: "authorID == %@", authorID))
         let recs = try await records(q)
         guard !recs.isEmpty else { return }
         for rec in recs { rec["authorName"] = newName }
@@ -214,7 +239,7 @@ struct CloudKitSocial {
                        now: Date = Date()) async throws -> (saved: [CKRecord.ID], failure: Error?) {
         guard !recipients.isEmpty else { return ([], nil) }
         let records = recipients.map { recipient in
-            let rec = CKRecord(recordType: RT.checkIn)
+            let rec = CKRecord(recordType: RT.legacyCheckIn)
             rec["authorID"] = author.id
             rec["authorName"] = author.displayName
             rec["recipientID"] = recipient
@@ -241,7 +266,7 @@ struct CloudKitSocial {
     /// Check-ins addressed to me inside the Tonight window, newest first.
     func tonightCheckIns(userID: String, now: Date = Date()) async throws -> [FriendCheckIn] {
         let cutoff = now.addingTimeInterval(-Social.tonightWindow)
-        let q = CKQuery(recordType: RT.checkIn,
+        let q = CKQuery(recordType: RT.legacyCheckIn,
                         predicate: NSPredicate(format: "recipientID == %@ AND ts > %@", userID, cutoff as NSDate))
         q.sortDescriptors = [NSSortDescriptor(key: "ts", ascending: false)]
         return try await records(q).compactMap(Self.checkIn(from:))
@@ -249,7 +274,7 @@ struct CloudKitSocial {
 
     /// Retract own check-ins addressed to one recipient (unfriend revoke).
     func deleteCheckIns(authorID: String, recipientID: String) async throws {
-        let q = CKQuery(recordType: RT.checkIn,
+        let q = CKQuery(recordType: RT.legacyCheckIn,
                         predicate: NSPredicate(format: "authorID == %@ AND recipientID == %@",
                                                authorID, recipientID))
         let sent = try await records(q).map(\.recordID)
@@ -274,7 +299,7 @@ struct CloudKitSocial {
     /// known, which needs no index at all.
     func deleteCheckIns(authorID: String, at ts: Date, attempts: Int = 4) async throws {
         let window = Social.checkInMatchWindow
-        let q = CKQuery(recordType: RT.checkIn,
+        let q = CKQuery(recordType: RT.legacyCheckIn,
                         predicate: NSPredicate(format: "authorID == %@ AND ts >= %@ AND ts <= %@",
                                                authorID,
                                                ts.addingTimeInterval(-window) as NSDate,
@@ -308,8 +333,113 @@ struct CloudKitSocial {
     /// Delete own check-in records past `Social.checkInTTL`.
     func deleteExpiredCheckIns(authorID: String, now: Date = Date()) async throws {
         let cutoff = now.addingTimeInterval(-Social.checkInTTL)
-        let q = CKQuery(recordType: RT.checkIn,
+        let q = CKQuery(recordType: RT.legacyCheckIn,
                         predicate: NSPredicate(format: "authorID == %@ AND ts < %@", authorID, cutoff as NSDate))
+        let stale = try await records(q).map(\.recordID)
+        guard !stale.isEmpty else { return }
+        _ = try await db.modifyRecords(saving: [], deleting: stale)
+    }
+
+    /// Best-effort cleanup of legacy plaintext check-ins after the cutover to
+    /// `CheckInV2`. The production schema revokes write/delete grants on the
+    /// legacy record type once the cutover ships, so callers wrap this in
+    /// `try?` rather than surfacing the resulting permission failure.
+    func deleteLegacyCheckIns(authorID: String) async throws {
+        let q = CKQuery(recordType: RT.legacyCheckIn, predicate: NSPredicate(format: "authorID == %@", authorID))
+        let recs = try await records(q).map(\.recordID)
+        guard !recs.isEmpty else { return }
+        _ = try await db.modifyRecords(saving: [], deleting: recs)
+    }
+
+    // MARK: - Check-ins (v2, recipient-encrypted)
+
+    /// Fan out opaque HPKE envelopes, one CheckInV2 record per recipient
+    /// (already including the self-addressed copy — callers build that list).
+    /// Same partial-failure contract as the legacy `createCheckIn`.
+    func createCheckIns(_ envelopes: [EncryptedCheckInEnvelope]) async throws
+        -> (saved: [CKRecord.ID], failure: Error?) {
+        guard !envelopes.isEmpty else { return ([], nil) }
+        let records = envelopes.map(Self.record(from:))
+        let (saveResults, _) = try await db.modifyRecords(saving: records, deleting: [])
+        var saved: [CKRecord.ID] = []
+        var failure: Error?
+        for (id, result) in saveResults {
+            switch result {
+            case .success: saved.append(id)
+            case .failure(let error): failure = failure ?? error
+            }
+        }
+        return (saved, failure)
+    }
+
+    /// Envelopes addressed to me inside the Tonight window, newest first.
+    /// Records whose stamped creator doesn't match their claimed `authorID`
+    /// are dropped before decoding.
+    func tonightCheckInEnvelopes(userID: String, now: Date = Date()) async throws
+        -> [EncryptedCheckInEnvelope] {
+        let cutoff = now.addingTimeInterval(-Social.tonightWindow)
+        let q = CKQuery(recordType: RT.checkInV2,
+                        predicate: NSPredicate(format: "recipientID == %@ AND sentAt > %@",
+                                               userID, cutoff as NSDate))
+        q.sortDescriptors = [NSSortDescriptor(key: "sentAt", ascending: false)]
+        return try await records(q).compactMap { rec in
+            guard Self.creatorMatchesV2(creatorID: rec.creatorUserRecordID?.recordName,
+                                        claimedID: rec["authorID"] as? String ?? "")
+            else { return nil }
+            return Self.envelope(from: rec)
+        }
+    }
+
+    /// Retract own CheckInV2 records addressed to one recipient (unfriend revoke).
+    func deleteCheckInV2(authorID: String, recipientID: String) async throws {
+        let q = CKQuery(recordType: RT.checkInV2,
+                        predicate: NSPredicate(format: "authorID == %@ AND recipientID == %@",
+                                               authorID, recipientID))
+        let sent = try await records(q).map(\.recordID)
+        guard !sent.isEmpty else { return }
+        _ = try await db.modifyRecords(saving: [], deleting: sent)
+    }
+
+    /// Timestamp-matched fallback removal for fan-outs shared in an earlier
+    /// launch, whose record names are no longer held. Same reasoning and
+    /// retry/throw contract as the legacy `deleteCheckIns(authorID:at:attempts:)`,
+    /// matched on `sentAt` instead of `ts`.
+    func deleteCheckInV2(authorID: String, at sentAt: Date, attempts: Int = 4) async throws {
+        let window = Social.checkInMatchWindow
+        let q = CKQuery(recordType: RT.checkInV2,
+                        predicate: NSPredicate(format: "authorID == %@ AND sentAt >= %@ AND sentAt <= %@",
+                                               authorID,
+                                               sentAt.addingTimeInterval(-window) as NSDate,
+                                               sentAt.addingTimeInterval(window) as NSDate))
+        for attempt in 0..<max(attempts, 1) {
+            let mine = try await records(q).map(\.recordID)
+            if !mine.isEmpty {
+                _ = try await db.modifyRecords(saving: [], deleting: mine)
+                return
+            }
+            if attempt < attempts - 1 { try await Task.sleep(nanoseconds: 1_500_000_000) }
+        }
+        throw CheckInRemovalFailed()
+    }
+
+    /// Retract a fan-out by the record names retained from its create. No
+    /// query, so it deletes correctly inside CloudKit's index lag.
+    func deleteCheckInV2(recordNames: [String]) async throws {
+        guard !recordNames.isEmpty else { return }
+        let ids = recordNames.map { CKRecord.ID(recordName: $0) }
+        let (_, deleteResults) = try await db.modifyRecords(saving: [], deleting: ids)
+        for case .failure(let error) in deleteResults.values {
+            // Already gone (TTL sweep, another device) is the outcome we wanted.
+            if (error as? CKError)?.code == .unknownItem { continue }
+            throw error
+        }
+    }
+
+    /// Delete own CheckInV2 records past `Social.checkInTTL`.
+    func deleteExpiredCheckInV2(authorID: String, now: Date = Date()) async throws {
+        let cutoff = now.addingTimeInterval(-Social.checkInTTL)
+        let q = CKQuery(recordType: RT.checkInV2,
+                        predicate: NSPredicate(format: "authorID == %@ AND sentAt < %@", authorID, cutoff as NSDate))
         let stale = try await records(q).map(\.recordID)
         guard !stale.isEmpty else { return }
         _ = try await db.modifyRecords(saving: [], deleting: stale)
@@ -347,7 +477,7 @@ struct CloudKitSocial {
     /// "<name> is at <bar>". Scoped to recipientID so records addressed to
     /// other friends can never fire it.
     private func checkInSubscription(friendID: String, userID: String) -> CKQuerySubscription {
-        let sub = CKQuerySubscription(recordType: RT.checkIn,
+        let sub = CKQuerySubscription(recordType: RT.legacyCheckIn,
                                       predicate: NSPredicate(format: "authorID == %@ AND recipientID == %@",
                                                              friendID, userID),
                                       subscriptionID: Self.checkInSubID(friendID: friendID),
@@ -419,11 +549,17 @@ struct CloudKitSocial {
         } catch let e as CKError where e.code == .serverRecordChanged {}
     }
 
-    private static func profile(from rec: CKRecord) -> FriendProfile? {
+    // `internal` (not `private`) so `@testable import` can exercise the
+    // mapping directly — see CloudKitSocialRecordTests.
+    static func profile(from rec: CKRecord) -> FriendProfile? {
         guard let userID = rec["userID"] as? String,
               let name = rec["displayName"] as? String,
               let code = rec["code"] as? String else { return nil }
-        return FriendProfile(id: userID, displayName: name, code: code)
+        return FriendProfile(
+            id: userID, displayName: name, code: code,
+            checkInCryptoVersion: rec["checkInCryptoVersion"] as? Int64,
+            checkInKeyID: rec["checkInKeyID"] as? String,
+            checkInPublicKey: rec["checkInPublicKey"] as? Data)
     }
 
     private static func request(from rec: CKRecord) -> FriendRequestItem? {
@@ -458,5 +594,52 @@ struct CloudKitSocial {
         guard Social.verifyRecordCreator else { return true }
         guard let creator = rec.creatorUserRecordID?.recordName else { return true }
         return creator == claimedID || creator == "__defaultOwner__"
+    }
+
+    /// Build a `CheckInV2` record from an opaque envelope, using its
+    /// preallocated record name and writing only the nine transport fields —
+    /// no plaintext author/bar fields ever touch the record.
+    static func record(from envelope: EncryptedCheckInEnvelope) -> CKRecord {
+        let rec = CKRecord(recordType: RT.checkInV2,
+                           recordID: .init(recordName: envelope.recordName))
+        rec["authorID"] = envelope.authorID
+        rec["recipientID"] = envelope.recipientID
+        rec["sentAt"] = envelope.sentAt
+        rec["protocolVersion"] = envelope.protocolVersion
+        rec["senderKeyID"] = envelope.senderKeyID
+        rec["senderPublicKey"] = envelope.senderPublicKey
+        rec["recipientKeyID"] = envelope.recipientKeyID
+        rec["encapsulatedKey"] = envelope.encapsulatedKey
+        rec["ciphertext"] = envelope.ciphertext
+        return rec
+    }
+
+    /// Decode a `CheckInV2` record back to its opaque envelope. Field
+    /// decoding is kept separate from the creator check (`creatorMatchesV2`)
+    /// so local records — which have no stamped creator — stay unit-testable.
+    static func envelope(from rec: CKRecord) -> EncryptedCheckInEnvelope? {
+        guard let authorID = rec["authorID"] as? String,
+              let recipientID = rec["recipientID"] as? String,
+              let sentAt = rec["sentAt"] as? Date,
+              let version = rec["protocolVersion"] as? Int64,
+              let senderKeyID = rec["senderKeyID"] as? String,
+              let senderPublicKey = rec["senderPublicKey"] as? Data,
+              let recipientKeyID = rec["recipientKeyID"] as? String,
+              let encapsulatedKey = rec["encapsulatedKey"] as? Data,
+              let ciphertext = rec["ciphertext"] as? Data else { return nil }
+        return .init(recordName: rec.recordID.recordName, authorID: authorID,
+                     recipientID: recipientID, sentAt: sentAt,
+                     protocolVersion: version, senderKeyID: senderKeyID,
+                     senderPublicKey: senderPublicKey, recipientKeyID: recipientKeyID,
+                     encapsulatedKey: encapsulatedKey, ciphertext: ciphertext)
+    }
+
+    /// Strict creator gate for `CheckInV2`: a missing creator is rejected
+    /// outright (unconditional, unlike the legacy `creatorMatches`), and
+    /// `__defaultOwner__` remains valid so a device reading back its own
+    /// just-saved record still passes.
+    static func creatorMatchesV2(creatorID: String?, claimedID: String) -> Bool {
+        guard let creatorID else { return false }
+        return creatorID == claimedID || creatorID == "__defaultOwner__"
     }
 }
