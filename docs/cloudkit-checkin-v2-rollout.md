@@ -185,13 +185,15 @@ this repository infers or asserts that determination.
 
 ## Release gate checklist
 
-- [ ] §1 — `CheckInV2` schema verified in Development, matches the block above verbatim
-- [ ] §2 — `Profile`'s three check-in key fields present
-- [ ] §3 — two-device Development test passed (all five behaviors)
-- [ ] §4 — schema deployed to Production, re-verified post-deploy
-- [ ] §5 — legacy `CheckIn` grants revoked in Production
-- [ ] §6 — administrative purge of remaining legacy `CheckIn` records done
-- [ ] §7 — anonymous read of `CheckInV2` confirmed rejected
-- [ ] §8 — authenticated non-friend fetch confirmed ciphertext-only
-- [ ] §9 — legacy `CheckIn` create confirmed rejected
+- **Status (2026-08-15):** §§1–9 completed. The signed `NYCGayBars` app (`com.normanhoang.nycgaybars`, version 1.2.0, build 19) was installed and verified on Norman’s iPhone and iPhoneA.
+
+- [x] §1 — `CheckInV2` schema verified in Development, matches the block above verbatim
+- [x] §2 — `Profile`'s three check-in key fields present
+- [x] §3 — two-device Development test passed (all five behaviors)
+- [x] §4 — schema deployed to Production, re-verified post-deploy
+- [x] §5 — legacy `CheckIn` grants revoked in Production
+- [x] §6 — administrative purge of remaining legacy `CheckIn` records done
+- [x] §7 — anonymous read of `CheckInV2` confirmed rejected
+- [x] §8 — authenticated non-friend fetch confirmed ciphertext-only
+- [x] §9 — legacy `CheckIn` create confirmed rejected
 - [ ] §10 — App Store Connect encryption questionnaire rerun; `ITSAppUsesNonExemptEncryption` decision recorded by the account holder
