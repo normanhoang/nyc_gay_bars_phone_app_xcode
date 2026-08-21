@@ -120,7 +120,7 @@ struct RootTabView: View {
     private func consumeDeepLink() {
         guard let id = social.deepLinkBarId else { return }
         social.deepLinkBarId = nil
-        if let bar = AppData.barsById[id] { deepLinkBar = bar }
+        if let bar = AppData.activeBar(id: id) { deepLinkBar = bar }
     }
 
     private struct ReconcileKey: Equatable {

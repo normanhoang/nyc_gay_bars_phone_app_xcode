@@ -163,11 +163,11 @@ Alcohol content: the app is a bar directory and personal drink journal. It does 
 ## Submission Checklist
 
 - ☐ **Deploy the CloudKit schema to Production first** (dashboard → container `iCloud.com.normanhoang.nycgaybars` → Deploy Schema Changes; indexes are manual — see FINDINGS.md). A production build against an undeployed schema breaks Friends silently.
-- ☐ Upload build 17 — the exported IPA is at `build/ipa/NYCGayBars.ipa` (signed, `aps-environment: production` verified; the `aps-environment` entitlement is configuration-conditional now, no manual flip). Upload via Xcode Organizer, Transporter, or `xcrun altool`.
+- ☐ Upload build 21 — the exported IPA is at `build/ipa/NYCGayBars.ipa` (signed, `aps-environment: production` verified; the `aps-environment` entitlement is configuration-conditional now, no manual flip). Upload via Xcode Organizer, Transporter, or `xcrun altool`.
 - ☐ Create the **1.2.0** version record (1.1.0 was never released; the 1.0.0 train is closed)
 - ☐ Paste name, subtitle, promo text, description, keywords (above)
 - ☐ Upload the 5 screenshots
 - ☐ Privacy policy + support URLs (above — already hosted on GitHub Pages)
 - ☐ Complete age rating (17+) and App Privacy (Name / User ID / Other User Content)
 - ☐ App Review Information: leave sign-in unchecked, paste the review notes (above)
-- ☐ Attach build 17, set price (Free), submit for review
+- ☐ Attach build 21, set price (Free), submit for review

@@ -511,6 +511,7 @@
     "address": "807 9th Ave, New York",
     "latitude": 40.765667,
     "longitude": -73.987443,
+    "archived": true,
     "tags": [
       "lounge",
       "cabaret"
@@ -557,6 +558,7 @@
     "address": "500 W 48th St, New York",
     "latitude": 40.763409,
     "longitude": -73.992805,
+    "archived": true,
     "tags": [
       "dance",
       "lounge"
@@ -851,7 +853,7 @@
   },
   {
     "id": "the-duplex-closed-temporarily",
-    "name": "The Duplex (Closed Temporarily)",
+    "name": "The Duplex",
     "neighborhood": "West Village",
     "address": "61 Christopher St, New York",
     "latitude": 40.733715,
@@ -962,11 +964,129 @@
     "id": "rawhide",
     "name": "Rawhide",
     "neighborhood": "Chelsea",
+    "address": "212 8th Ave, New York",
+    "latitude": 40.743758,
+    "longitude": -73.999359,
+    "archived": true,
+    "tags": [
+      "leather"
+    ]
+  },
+  {
+    "id": "bareburger-hells-kitchen",
+    "name": "Bareburger",
+    "neighborhood": "Hell's Kitchen",
+    "address": "366 W 46th St, New York",
+    "latitude": 40.7605621,
+    "longitude": -73.9903601,
+    "tags": [
+      "drag"
+    ]
+  },
+  {
+    "id": "pride-bar-and-lounge",
+    "name": "PRIDE Bar & Lounge",
+    "neighborhood": "Hell's Kitchen",
+    "address": "742 9th Ave, New York",
+    "latitude": 40.763488,
+    "longitude": -73.988709,
+    "tags": [
+      "lounge"
+    ]
+  },
+  {
+    "id": "club-rawhide",
+    "name": "Club Rawhide",
+    "neighborhood": "Chelsea",
     "address": "250 W 26th St, New York",
     "latitude": 40.74659,
     "longitude": -73.996267,
     "tags": [
       "leather"
+    ]
+  },
+  {
+    "id": "oberon",
+    "name": "Oberon",
+    "neighborhood": "Williamsburg",
+    "address": "196 N 10th St, Brooklyn",
+    "latitude": 40.7187335,
+    "longitude": -73.9549155,
+    "tags": [
+      "cocktails",
+      "dance"
+    ]
+  },
+  {
+    "id": "solera",
+    "name": "Solera",
+    "neighborhood": "Mott Haven-Port Morris",
+    "address": "125 St. Ann's Ave, Bronx",
+    "latitude": 40.804189,
+    "longitude": -73.919464,
+    "tags": [
+      "latin",
+      "dance"
+    ]
+  },
+  {
+    "id": "athena-kekes",
+    "name": "Athena Keke's",
+    "neighborhood": "Clinton Hill",
+    "address": "222 Greene Ave, Brooklyn",
+    "latitude": 40.6869581,
+    "longitude": -73.9621926,
+    "tags": [
+      "sports",
+      "lesbian"
+    ]
+  },
+  {
+    "id": "wilkas-sports-bar",
+    "name": "Wilka's Sports Bar",
+    "neighborhood": "Lower East Side",
+    "address": "241 Bowery, New York",
+    "latitude": 40.7224757,
+    "longitude": -73.9927927,
+    "tags": [
+      "sports",
+      "lesbian"
+    ]
+  },
+  {
+    "id": "love-thy-neighbor",
+    "name": "Love Thy Neighbor",
+    "neighborhood": "West Village",
+    "address": "55 Christopher St, New York",
+    "latitude": 40.7338278,
+    "longitude": -74.002252,
+    "tags": [
+      "cocktails",
+      "lounge"
+    ]
+  },
+  {
+    "id": "the-exley",
+    "name": "The Exley",
+    "neighborhood": "Williamsburg",
+    "address": "1 Jackson St, Brooklyn",
+    "latitude": 40.7161032,
+    "longitude": -73.9515122,
+    "tags": [
+      "cocktails",
+      "lounge"
+    ]
+  },
+  {
+    "id": "fairytale-lounge",
+    "name": "FairyTale Lounge",
+    "neighborhood": "Hell's Kitchen",
+    "address": "500 W 48th St, New York",
+    "latitude": 40.763409,
+    "longitude": -73.992805,
+    "tags": [
+      "dance",
+      "lounge"
     ]
   }
 ]

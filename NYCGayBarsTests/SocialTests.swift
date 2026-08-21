@@ -128,6 +128,17 @@ final class SocialTests: XCTestCase {
         XCTAssertEqual(Social.tonightFeed([bar1, bar2], now: now).map(\.id), [bar2.id, bar1.id])
     }
 
+    func testActiveVenueCheckInsExcludeArchivedBars() {
+        let now = Date()
+        let active = checkIn("a", "eagle-nyc", minutesAgo: 5, now: now)
+        let archived = checkIn("b", "bar-nine", minutesAgo: 5, now: now)
+
+        XCTAssertEqual(
+            Social.activeVenueCheckIns([active, archived], activeBarIds: AppData.activeBarIds),
+            [active]
+        )
+    }
+
     // MARK: Own check-in (self-addressed copy, removal tombstones)
 
     func testIsSameCheckInMatchesWithinWindow() {

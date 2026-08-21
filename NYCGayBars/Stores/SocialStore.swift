@@ -601,7 +601,10 @@ final class SocialStore: ObservableObject {
 
     /// Check-ins by friends only — the "who's out" surfaces (map pins, the
     /// friends-out count) exclude my own row.
-    var friendsTonight: [FriendCheckIn] { Social.friendsOnly(tonight, me: myID) }
+    var activeTonight: [FriendCheckIn] {
+        Social.activeVenueCheckIns(tonight, activeBarIds: AppData.activeBarIds)
+    }
+    var friendsTonight: [FriendCheckIn] { Social.friendsOnly(activeTonight, me: myID) }
 
     /// Share presence at a bar with send-enabled friends, one HPKE envelope
     /// sealed to each recipient's published key. Returns true on success.

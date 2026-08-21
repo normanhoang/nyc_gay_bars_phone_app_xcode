@@ -152,6 +152,13 @@ enum Social {
         return checkIns.filter { $0.authorID != me }
     }
 
+    /// Archived venue records remain resolvable for visit history, but should
+    /// never appear as current Tonight activity.
+    static func activeVenueCheckIns(_ checkIns: [FriendCheckIn],
+                                    activeBarIds: Set<String>) -> [FriendCheckIn] {
+        checkIns.filter { activeBarIds.contains($0.barId) }
+    }
+
     /// Friends whose own Friendship{them→me} record is gone and who have no
     /// request pending in either direction: they unfriended me, so my mirror
     /// record should be deleted too. A pending request marks the acceptance

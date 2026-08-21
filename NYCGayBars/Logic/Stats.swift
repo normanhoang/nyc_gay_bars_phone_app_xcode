@@ -124,7 +124,15 @@ enum Stats {
     static func computeVisitedIds(visits: [Visit], visitedBars: [String]) -> Set<String> {
         var ids = Set(visits.map { $0.barId })
         ids.formUnion(visitedBars)
-        return ids.filter { AppData.barsById[$0] != nil }
+        return ids.filter { AppData.activeBarIds.contains($0) }
+    }
+
+    /// Neighborhoods where every current bar has been visited.
+    static func completedNeighborhoods(_ visitedIds: Set<String>) -> Set<String> {
+        Set(AppData.neighborhoods.filter { neighborhood in
+            guard let bars = AppData.barsByNeighborhood[neighborhood], !bars.isEmpty else { return false }
+            return bars.allSatisfy { visitedIds.contains($0.id) }
+        })
     }
 
     /// Visited/total bar counts per neighborhood, most-complete first.
@@ -143,12 +151,12 @@ enum Stats {
         }
     }
 
-    /// Neighborhood progress grouped by borough (Manhattan, Brooklyn, Queens),
+    /// Neighborhood progress grouped by borough,
     /// with per-borough visited/total bar sums. Empty boroughs are omitted;
     /// neighborhood ordering within a borough matches neighborhoodProgress.
     static func boroughProgress(_ visitedIds: Set<String>) -> [BoroughProgress] {
         let grouped = Dictionary(grouping: neighborhoodProgress(visitedIds)) { borough($0.neighborhood) }
-        return ["Manhattan", "Brooklyn", "Queens"].compactMap { name in
+        return ["Manhattan", "Brooklyn", "Queens", "Bronx"].compactMap { name in
             guard let hoods = grouped[name] else { return nil }
             return BoroughProgress(
                 borough: name,
@@ -161,13 +169,15 @@ enum Stats {
     // MARK: - Streak helpers
 
     private static let brooklynHoods: Set = ["Williamsburg", "Bushwick", "Bed-Stuy",
-        "Prospect Heights", "Park Slope", "Carroll Gardens"]
+        "Clinton Hill", "Prospect Heights", "Park Slope", "Carroll Gardens"]
     private static let queensHoods: Set = ["Astoria", "Jackson Heights"]
+    private static let bronxHoods: Set = ["Mott Haven-Port Morris"]
 
-    /// Coarse borough for a neighborhood (Manhattan unless it's a known BK/QN one).
+    /// Coarse borough for a neighborhood (Manhattan unless explicitly classified elsewhere).
     private static func borough(_ neighborhood: String) -> String {
         brooklynHoods.contains(neighborhood) ? "Brooklyn"
-            : queensHoods.contains(neighborhood) ? "Queens" : "Manhattan"
+            : queensHoods.contains(neighborhood) ? "Queens"
+            : bronxHoods.contains(neighborhood) ? "Bronx" : "Manhattan"
     }
 
     /// The distinct visit days as sorted local-noon timestamps (ms).
@@ -241,33 +251,63 @@ enum Stats {
 
     // MARK: - Badges
 
-    /// Progress toward countable badges, keyed by badge id. Only badges with a
-    /// meaningful running count are included; binary badges are omitted.
-    static func badgeProgress(_ visits: [Visit], _ visitedIds: Set<String>) -> [String: (current: Int, target: Int)] {
+    private struct BadgeMetrics {
+        let activeVisitedIds: Set<String>
+        let activeVenueVisits: [Visit]
+        let neighborhoodsVisited: Int
+        let maxBarsInOneDay: Int
+        let maxDaysAtOneBar: Int
+        let drinkTotalsByType: [String: Int]
+        let maxShotsInOneVisit: Int
+        let maxTypesInOneVisit: Int
+        let boroughsVisited: Int
+    }
+
+    private static func badgeMetrics(_ visits: [Visit], _ visitedIds: Set<String>) -> BadgeMetrics {
+        let activeVisitedIds = visitedIds.intersection(AppData.activeBarIds)
+        let activeVenueVisits = visits.filter { AppData.activeBarIds.contains($0.barId) }
         let neighborhoodsVisited = Set(
-            visitedIds.compactMap { AppData.bar(id: $0)?.neighborhood }
+            activeVisitedIds.compactMap { AppData.activeBar(id: $0)?.neighborhood }
         ).count
 
         var barsPerDay: [String: Set<String>] = [:]
-        for v in visits { barsPerDay[v.dayKey, default: []].insert(v.barId) }
-        let maxBarsInOneDay = barsPerDay.values.map { $0.count }.max() ?? 0
-
-        var daysPerBar: [String: Int] = [:]
-        for v in visits { daysPerBar[v.barId, default: 0] += 1 }
-        let maxDaysAtOneBar = daysPerBar.values.max() ?? 0
-
-        var drinkTotalsByType: [String: Int] = [:]
-        for v in visits {
-            for d in v.drinks { drinkTotalsByType[d.type.lowercased(), default: 0] += d.count }
+        for visit in activeVenueVisits {
+            barsPerDay[visit.dayKey, default: []].insert(visit.barId)
         }
 
-        let maxShotsInOneVisit = visits.map { v in
-            v.drinks.first { $0.type.lowercased() == "shot" }?.count ?? 0
+        var daysPerBar: [String: Int] = [:]
+        for visit in activeVenueVisits { daysPerBar[visit.barId, default: 0] += 1 }
+
+        var drinkTotalsByType: [String: Int] = [:]
+        for visit in visits {
+            for drink in visit.drinks {
+                drinkTotalsByType[drink.type.lowercased(), default: 0] += drink.count
+            }
+        }
+
+        let maxShotsInOneVisit = visits.map { visit in
+            visit.drinks.first { $0.type.lowercased() == "shot" }?.count ?? 0
         }.max() ?? 0
-        let maxTypesInOneVisit = visits.map { $0.drinks.count }.max() ?? 0
         let boroughsVisited = Set(
-            visitedIds.compactMap { AppData.bar(id: $0)?.neighborhood }.map(borough)
+            activeVisitedIds.compactMap { AppData.activeBar(id: $0)?.neighborhood }.map(borough)
         ).count
+
+        return BadgeMetrics(
+            activeVisitedIds: activeVisitedIds,
+            activeVenueVisits: activeVenueVisits,
+            neighborhoodsVisited: neighborhoodsVisited,
+            maxBarsInOneDay: barsPerDay.values.map { $0.count }.max() ?? 0,
+            maxDaysAtOneBar: daysPerBar.values.max() ?? 0,
+            drinkTotalsByType: drinkTotalsByType,
+            maxShotsInOneVisit: maxShotsInOneVisit,
+            maxTypesInOneVisit: visits.map { $0.drinks.count }.max() ?? 0,
+            boroughsVisited: boroughsVisited)
+    }
+
+    /// Progress toward countable badges, keyed by badge id. Only badges with a
+    /// meaningful running count are included; binary badges are omitted.
+    static func badgeProgress(_ visits: [Visit], _ visitedIds: Set<String>) -> [String: (current: Int, target: Int)] {
+        let metrics = badgeMetrics(visits, visitedIds)
         let streak = longestDayStreak(visits)
         let drinks = totalDrinks(visits)
         let maxDrinksInOneDay = biggestNight(visits)?.total ?? 0
@@ -279,34 +319,34 @@ enum Stats {
         for n in AppData.neighborhoods {
             let bars = AppData.barsByNeighborhood[n] ?? []
             guard !bars.isEmpty else { continue }
-            let visited = bars.filter { visitedIds.contains($0.id) }.count
+            let visited = bars.filter { metrics.activeVisitedIds.contains($0.id) }.count
             let frac = Double(visited) / Double(bars.count)
             if frac > bestFrac { bestFrac = frac; bestHood = (visited, bars.count) }
         }
 
         return [
-            "sampler": (neighborhoodsVisited, 3),
-            "crawler": (maxBarsInOneDay, 3),
-            "marathon": (maxBarsInOneDay, 5),
-            "regular": (maxDaysAtOneBar, 5),
-            "old-faithful": (maxDaysAtOneBar, 10),
-            "mixologist": (drinkTotalsByType.count, 5),
-            "shots-shots-shots": (maxShotsInOneVisit, 3),
-            "variety-pack": (maxTypesInOneVisit, 4),
-            "bar-star": (visitedIds.count, 10),
-            "explorer": (visitedIds.count, 25),
-            "half-the-city": (visitedIds.count, halfTheCity),
-            "conqueror": (visitedIds.count, AppData.bars.count),
+            "sampler": (metrics.neighborhoodsVisited, 3),
+            "crawler": (metrics.maxBarsInOneDay, 3),
+            "marathon": (metrics.maxBarsInOneDay, 5),
+            "regular": (metrics.maxDaysAtOneBar, 5),
+            "old-faithful": (metrics.maxDaysAtOneBar, 10),
+            "mixologist": (metrics.drinkTotalsByType.count, 5),
+            "shots-shots-shots": (metrics.maxShotsInOneVisit, 3),
+            "variety-pack": (metrics.maxTypesInOneVisit, 4),
+            "bar-star": (metrics.activeVisitedIds.count, 10),
+            "explorer": (metrics.activeVisitedIds.count, 25),
+            "half-the-city": (metrics.activeVisitedIds.count, halfTheCity),
+            "conqueror": (metrics.activeVisitedIds.count, AppData.bars.count),
             "nifty-fifty": (drinks, 50),
             "century-club": (drinks, 100),
-            "borough-hopper": (boroughsVisited, 3),
+            "borough-hopper": (metrics.boroughsVisited, 3),
             "on-a-roll": (streak, 3),
             "full-week": (streak, 7),
             "double-digits": (maxDrinksInOneDay, 10),
-            "hophead": (drinkTotalsByType["beer"] ?? 0, 25),
-            "wine-not": (drinkTotalsByType["wine"] ?? 0, 10),
-            "shaken-stirred": (drinkTotalsByType["cocktail"] ?? 0, 25),
-            "grand-tour": (neighborhoodsVisited, AppData.neighborhoods.count),
+            "hophead": (metrics.drinkTotalsByType["beer"] ?? 0, 25),
+            "wine-not": (metrics.drinkTotalsByType["wine"] ?? 0, 10),
+            "shaken-stirred": (metrics.drinkTotalsByType["cocktail"] ?? 0, 25),
+            "grand-tour": (metrics.neighborhoodsVisited, AppData.neighborhoods.count),
             "neighborhood-hero": (bestHood.visited, bestHood.total),
         ]
     }
@@ -337,35 +377,7 @@ enum Stats {
     }
 
     static func badges(_ visits: [Visit], _ visitedIds: Set<String>) -> [Badge] {
-        let neighborhoodsVisited = Set(
-            visitedIds.compactMap { AppData.bar(id: $0)?.neighborhood }
-        ).count
-
-        var barsPerDay: [String: Set<String>] = [:]
-        for v in visits {
-            barsPerDay[v.dayKey, default: []].insert(v.barId)
-        }
-        let maxBarsInOneDay = barsPerDay.values.map { $0.count }.max() ?? 0
-
-        var daysPerBar: [String: Int] = [:]
-        for v in visits { daysPerBar[v.barId, default: 0] += 1 }
-        let maxDaysAtOneBar = daysPerBar.values.max() ?? 0
-
-        var drinkTotalsByType: [String: Int] = [:]
-        for v in visits {
-            for d in v.drinks {
-                drinkTotalsByType[d.type.lowercased(), default: 0] += d.count
-            }
-        }
-
-        let maxShotsInOneVisit = visits.map { v in
-            v.drinks.first { $0.type.lowercased() == "shot" }?.count ?? 0
-        }.max() ?? 0
-        let maxTypesInOneVisit = visits.map { $0.drinks.count }.max() ?? 0
-
-        let boroughsVisited = Set(
-            visitedIds.compactMap { AppData.bar(id: $0)?.neighborhood }.map(borough)
-        )
+        let metrics = badgeMetrics(visits, visitedIds)
 
         // Noon-stamped backdated visits can't produce early-morning hours; only
         // live after-midnight logging can.
@@ -377,12 +389,10 @@ enum Stats {
         let maxDrinksInOneDay = biggestNight(visits)?.total ?? 0
 
         var visitsByBar: [String: [Visit]] = [:]
-        for v in visits { visitsByBar[v.barId, default: []].append(v) }
+        for v in metrics.activeVenueVisits { visitsByBar[v.barId, default: []].append(v) }
         let maxRunAtOneBar = visitsByBar.values.map { longestRun(uniqueSortedDayTimes($0)) }.max() ?? 0
 
-        let hasCompleteNeighborhood = AppData.neighborhoods.contains { n in
-            (AppData.barsByNeighborhood[n] ?? []).allSatisfy { visitedIds.contains($0.id) }
-        }
+        let hasCompleteNeighborhood = !completedNeighborhoods(metrics.activeVisitedIds).isEmpty
 
         let halfTheCity = Int((Double(AppData.bars.count) / 2).rounded(.up))
 
@@ -390,31 +400,31 @@ enum Stats {
             Badge(id: "first-drink", emoji: "🍻", title: "First Drink",
                   description: "Log your first drink", earned: !visits.isEmpty),
             Badge(id: "stonewall", emoji: "🏳️‍🌈", title: "Stonewall Pilgrimage",
-                  description: "Visit The Stonewall Inn", earned: visitedIds.contains("the-stonewall-inn")),
+                  description: "Visit The Stonewall Inn", earned: metrics.activeVisitedIds.contains("the-stonewall-inn")),
             Badge(id: "sampler", emoji: "🗺️", title: "Neighborhood Sampler",
-                  description: "Visit bars in 3 neighborhoods", earned: neighborhoodsVisited >= 3),
+                  description: "Visit bars in 3 neighborhoods", earned: metrics.neighborhoodsVisited >= 3),
             Badge(id: "crawler", emoji: "🐛", title: "Bar Crawler",
-                  description: "Hit 3 bars in one day", earned: maxBarsInOneDay >= 3),
+                  description: "Hit 3 bars in one day", earned: metrics.maxBarsInOneDay >= 3),
             Badge(id: "regular", emoji: "💺", title: "Regular",
-                  description: "5 drink-days at one bar", earned: maxDaysAtOneBar >= 5),
+                  description: "5 drink-days at one bar", earned: metrics.maxDaysAtOneBar >= 5),
             Badge(id: "night-owl", emoji: "🦉", title: "Night Owl",
                   description: "Log a drink after midnight", earned: hasLateNightVisit),
             Badge(id: "on-a-roll", emoji: "🔥", title: "On a Roll",
                   description: "Drinks logged 3 days in a row", earned: streak >= 3),
             Badge(id: "mixologist", emoji: "🍹", title: "Mixologist",
-                  description: "Try 5 different drink types", earned: drinkTotalsByType.count >= 5),
+                  description: "Try 5 different drink types", earned: metrics.drinkTotalsByType.count >= 5),
             Badge(id: "shots-shots-shots", emoji: "🥃", title: "Shots Shots Shots",
-                  description: "3 shots in one visit", earned: maxShotsInOneVisit >= 3),
+                  description: "3 shots in one visit", earned: metrics.maxShotsInOneVisit >= 3),
             Badge(id: "sober-curious", emoji: "🧃", title: "Sober Curious",
-                  description: "Log a non-alcoholic drink", earned: drinkTotalsByType["non-alcoholic"] != nil),
+                  description: "Log a non-alcoholic drink", earned: metrics.drinkTotalsByType["non-alcoholic"] != nil),
             Badge(id: "bar-star", emoji: "⭐", title: "Bar Star",
-                  description: "Visit 10 different bars", earned: visitedIds.count >= 10),
+                  description: "Visit 10 different bars", earned: metrics.activeVisitedIds.count >= 10),
             Badge(id: "century-club", emoji: "💯", title: "Century Club",
                   description: "100 drinks all-time", earned: totalDrinks(visits) >= 100),
             Badge(id: "borough-hopper", emoji: "🌉", title: "Borough Hopper",
-                  description: "Visit Manhattan, Brooklyn & Queens bars", earned: boroughsVisited.count >= 3),
+                  description: "Visit Manhattan, Brooklyn & Queens bars", earned: metrics.boroughsVisited >= 3),
             Badge(id: "marathon", emoji: "🏃", title: "Marathon",
-                  description: "Hit 5 bars in one day", earned: maxBarsInOneDay >= 5),
+                  description: "Hit 5 bars in one day", earned: metrics.maxBarsInOneDay >= 5),
             Badge(id: "weekend-warrior", emoji: "🪩", title: "Weekend Warrior",
                   description: "Log drinks on a Friday and a Saturday",
                   earned: visitWeekdays.contains(5) && visitWeekdays.contains(6)),
@@ -426,30 +436,30 @@ enum Stats {
             Badge(id: "back-to-back", emoji: "🔁", title: "Back to Back",
                   description: "Same bar two days in a row", earned: maxRunAtOneBar >= 2),
             Badge(id: "old-faithful", emoji: "🪑", title: "Old Faithful",
-                  description: "10 drink-days at one bar", earned: maxDaysAtOneBar >= 10),
+                  description: "10 drink-days at one bar", earned: metrics.maxDaysAtOneBar >= 10),
             Badge(id: "double-digits", emoji: "🔟", title: "Double Digits",
                   description: "10 drinks in one day", earned: maxDrinksInOneDay >= 10),
             Badge(id: "nifty-fifty", emoji: "🏅", title: "Nifty Fifty",
                   description: "50 drinks all-time", earned: totalDrinks(visits) >= 50),
             Badge(id: "hophead", emoji: "🍺", title: "Hophead",
-                  description: "25 beers all-time", earned: (drinkTotalsByType["beer"] ?? 0) >= 25),
+                  description: "25 beers all-time", earned: (metrics.drinkTotalsByType["beer"] ?? 0) >= 25),
             Badge(id: "wine-not", emoji: "🍷", title: "Wine Not?",
-                  description: "10 wines all-time", earned: (drinkTotalsByType["wine"] ?? 0) >= 10),
+                  description: "10 wines all-time", earned: (metrics.drinkTotalsByType["wine"] ?? 0) >= 10),
             Badge(id: "shaken-stirred", emoji: "🍸", title: "Shaken & Stirred",
-                  description: "25 cocktails all-time", earned: (drinkTotalsByType["cocktail"] ?? 0) >= 25),
+                  description: "25 cocktails all-time", earned: (metrics.drinkTotalsByType["cocktail"] ?? 0) >= 25),
             Badge(id: "variety-pack", emoji: "🌈", title: "Variety Pack",
-                  description: "4 different drink types in one visit", earned: maxTypesInOneVisit >= 4),
+                  description: "4 different drink types in one visit", earned: metrics.maxTypesInOneVisit >= 4),
             Badge(id: "explorer", emoji: "🧭", title: "Explorer",
-                  description: "Visit 25 different bars", earned: visitedIds.count >= 25),
+                  description: "Visit 25 different bars", earned: metrics.activeVisitedIds.count >= 25),
             Badge(id: "half-the-city", emoji: "🗽", title: "Half the City",
-                  description: "Visit \(halfTheCity) bars", earned: visitedIds.count >= halfTheCity),
+                  description: "Visit \(halfTheCity) bars", earned: metrics.activeVisitedIds.count >= halfTheCity),
             Badge(id: "neighborhood-hero", emoji: "🏘️", title: "Neighborhood Hero",
                   description: "Visit every bar in one neighborhood", earned: hasCompleteNeighborhood),
             Badge(id: "grand-tour", emoji: "🚇", title: "Grand Tour",
                   description: "Visit a bar in every neighborhood",
-                  earned: neighborhoodsVisited == AppData.neighborhoods.count),
+                  earned: metrics.neighborhoodsVisited == AppData.neighborhoods.count),
             Badge(id: "conqueror", emoji: "👑", title: "Scene Conqueror",
-                  description: "Visit every bar in the city", earned: visitedIds.count == AppData.bars.count),
+                  description: "Visit every bar in the city", earned: metrics.activeVisitedIds.count == AppData.bars.count),
         ]
     }
 }

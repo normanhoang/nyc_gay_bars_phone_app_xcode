@@ -41,17 +41,22 @@ struct BarMapView: View {
     @State private var animTimer: Timer?
 
     var body: some View {
+        let completedNeighborhoods = Stats.completedNeighborhoods(visitedIds)
         MapReader { proxy in
             Map(position: $camera) {
                 UserAnnotation()
                 if showOutlines {
                     ForEach(AppData.neighborhoods, id: \.self) { name in
                         if let ring = AppData.neighborhoodPolygons[name] {
+                            let completed = completedNeighborhoods.contains(name)
                             MapPolygon(coordinates: ring.map {
                                 CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
                             })
-                            .foregroundStyle(Palette.primary.opacity(0.18))
-                            .stroke(Palette.primary, lineWidth: 2)
+                            .foregroundStyle((completed ? Palette.gold : Palette.primary)
+                                .opacity(completed ? 0.22 : 0.18))
+                            .stroke(completed ? Palette.gold : Palette.primary,
+                                    lineWidth: completed ? 3 : 2)
+
                         }
                     }
                 } else {

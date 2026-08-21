@@ -29,13 +29,16 @@ private struct Meta: Codable {
 /// RN app's lib/bars.ts, lib/neighborhoods.ts, lib/zips.ts (all generated). No
 /// runtime network or map API key is needed.
 enum AppData {
-    static let bars: [Bar] = load("bars")
+    private static let allBars: [Bar] = load("bars")
+    static let bars: [Bar] = allBars.filter { !$0.isArchived }
     static let neighborhoodPolygons: [String: [LatLng]] = load("neighborhoods")
     static let zipCentroids: [String: ZipCentroid] = load("zips")
 
     /// O(1) bar lookup by id.
     static let barsById: [String: Bar] =
-        Dictionary(uniqueKeysWithValues: bars.map { ($0.id, $0) })
+        Dictionary(uniqueKeysWithValues: allBars.map { ($0.id, $0) })
+    /// IDs eligible for active browsing, progress, and completion.
+    static let activeBarIds = Set(bars.map(\.id))
     /// Bars grouped by their assigned neighborhood.
     static let barsByNeighborhood: [String: [Bar]] =
         Dictionary(grouping: bars, by: \.neighborhood)
@@ -47,6 +50,9 @@ enum AppData {
     static var region: Region { meta.region }
 
     static func bar(id: String) -> Bar? { barsById[id] }
+    static func activeBar(id: String) -> Bar? {
+        activeBarIds.contains(id) ? barsById[id] : nil
+    }
 
     private static func load<T: Decodable>(_ name: String) -> T {
         guard let url = Bundle.main.url(forResource: name, withExtension: "json"),

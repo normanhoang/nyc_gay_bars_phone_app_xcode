@@ -61,7 +61,7 @@ struct ExploreView: View {
     /// Friends' active check-ins as avatar pins, one per bar (redesign 3a).
     private var friendPins: [FriendPin] {
         Dictionary(grouping: social.friendsTonight, by: \.barId).compactMap { barId, checkIns in
-            guard let bar = AppData.barsById[barId] else { return nil }
+            guard let bar = AppData.activeBar(id: barId) else { return nil }
             let names = Array(Set(checkIns.map(\.authorName))).sorted()
             return FriendPin(
                 id: barId,
@@ -118,7 +118,7 @@ struct ExploreView: View {
         }
         // Tonight "Map" chip: frame the friend's bar in map mode (redesign 4a).
         .onChange(of: tabSwipe.mapTarget) { _, target in
-            guard let id = target, let bar = AppData.barsById[id] else { return }
+            guard let id = target, let bar = AppData.activeBar(id: id) else { return }
             tabSwipe.mapTarget = nil
             mode = 0
             selectNeighborhood(bar.neighborhood)
@@ -315,6 +315,7 @@ struct ExploreView: View {
         let bars = neighborhoodBars
         let visitedCount = bars.filter { visits.visitedIds.contains($0.id) }.count
         let remaining = bars.count - visitedCount
+        let completed = !bars.isEmpty && remaining == 0
         return VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
                 Text(neighborhood)
@@ -323,11 +324,14 @@ struct ExploreView: View {
                 Text("\(visitedCount) / \(bars.count) visited")
                     .font(.scaled(12, weight: .semibold)).foregroundStyle(Palette.gray300)
             }
-            ProgressBar(progress: bars.isEmpty ? 0 : Double(visitedCount) / Double(bars.count), height: 6)
+            ProgressBar(
+                progress: bars.isEmpty ? 0 : Double(visitedCount) / Double(bars.count),
+                height: 6,
+                colors: completed ? [Palette.gold, Palette.gold] : [Palette.primary, Palette.violet])
             Text(remaining > 0
                  ? "\(remaining) to go for Neighborhood Hero 🏘️"
                  : "Neighborhood Hero earned 🏘️")
-                .font(.scaled(11)).foregroundStyle(Palette.gray400)
+                .font(.scaled(11)).foregroundStyle(completed ? Palette.gold : Palette.gray400)
         }
         .padding(12)
         .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Palette.ink.opacity(0.85)))

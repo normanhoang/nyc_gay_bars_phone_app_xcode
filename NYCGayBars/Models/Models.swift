@@ -9,6 +9,9 @@ struct Bar: Codable, Identifiable, Hashable {
     let address: String
     let latitude: Double
     let longitude: Double
+    /// Archived bars remain decodable for visit history but are not active destinations.
+    let archived: Bool?
+    var isArchived: Bool { archived == true }
     var description: String?
     /// Curated vibe tags, e.g. "dive", "drag", "leather", "piano".
     var tags: [String]?

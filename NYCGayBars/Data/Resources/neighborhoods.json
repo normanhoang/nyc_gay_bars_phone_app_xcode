@@ -1743,12 +1743,12 @@
   ],
   "Prospect Heights": [
     {
-      "latitude": 40.684043,
-      "longitude": -73.977431
+      "latitude": 40.682004,
+      "longitude": -73.968691
     },
     {
-      "latitude": 40.681105,
-      "longitude": -73.964389
+      "latitude": 40.681101,
+      "longitude": -73.964388
     },
     {
       "latitude": 40.67163,
@@ -1777,6 +1777,14 @@
     {
       "latitude": 40.684043,
       "longitude": -73.977431
+    },
+    {
+      "latitude": 40.682077,
+      "longitude": -73.968705
+    },
+    {
+      "latitude": 40.682004,
+      "longitude": -73.968691
     }
   ],
   "Carroll Gardens": [
@@ -1977,10 +1985,6 @@
       "longitude": -73.921676
     },
     {
-      "latitude": 40.707107,
-      "longitude": -73.924442
-    },
-    {
       "latitude": 40.705792,
       "longitude": -73.92598
     },
@@ -2001,7 +2005,15 @@
       "longitude": -73.941931
     },
     {
-      "latitude": 40.698188,
+      "latitude": 40.698296,
+      "longitude": -73.961046
+    },
+    {
+      "latitude": 40.698327,
+      "longitude": -73.96105
+    },
+    {
+      "latitude": 40.698191,
       "longitude": -73.961899
     },
     {
@@ -2059,10 +2071,6 @@
     {
       "latitude": 40.718755,
       "longitude": -73.965879
-    },
-    {
-      "latitude": 40.719132,
-      "longitude": -73.96663
     },
     {
       "latitude": 40.719223,
@@ -2561,18 +2569,6 @@
   ],
   "Bed-Stuy": [
     {
-      "latitude": 40.700725,
-      "longitude": -73.941931
-    },
-    {
-      "latitude": 40.680039,
-      "longitude": -73.905479
-    },
-    {
-      "latitude": 40.680039,
-      "longitude": -73.905479
-    },
-    {
       "latitude": 40.678134,
       "longitude": -73.90786
     },
@@ -2589,12 +2585,172 @@
       "longitude": -73.958292
     },
     {
-      "latitude": 40.698188,
-      "longitude": -73.961899
+      "latitude": 40.683008,
+      "longitude": -73.958916
+    },
+    {
+      "latitude": 40.683017,
+      "longitude": -73.95884
+    },
+    {
+      "latitude": 40.698296,
+      "longitude": -73.961046
     },
     {
       "latitude": 40.700725,
       "longitude": -73.941931
+    },
+    {
+      "latitude": 40.680039,
+      "longitude": -73.905479
+    },
+    {
+      "latitude": 40.678134,
+      "longitude": -73.90786
+    }
+  ],
+  "Clinton Hill": [
+    {
+      "latitude": 40.680464,
+      "longitude": -73.961347
+    },
+    {
+      "latitude": 40.682005,
+      "longitude": -73.96869
+    },
+    {
+      "latitude": 40.689506,
+      "longitude": -73.970132
+    },
+    {
+      "latitude": 40.689468,
+      "longitude": -73.969104
+    },
+    {
+      "latitude": 40.693134,
+      "longitude": -73.969831
+    },
+    {
+      "latitude": 40.69312,
+      "longitude": -73.96881
+    },
+    {
+      "latitude": 40.69608,
+      "longitude": -73.969395
+    },
+    {
+      "latitude": 40.696075,
+      "longitude": -73.964661
+    },
+    {
+      "latitude": 40.698039,
+      "longitude": -73.96284
+    },
+    {
+      "latitude": 40.698326,
+      "longitude": -73.961051
+    },
+    {
+      "latitude": 40.683018,
+      "longitude": -73.958841
+    },
+    {
+      "latitude": 40.682691,
+      "longitude": -73.961671
+    },
+    {
+      "latitude": 40.680464,
+      "longitude": -73.961347
+    }
+  ],
+  "Mott Haven-Port Morris": [
+    {
+      "latitude": 40.818013,
+      "longitude": -73.925185
+    },
+    {
+      "latitude": 40.816119,
+      "longitude": -73.926627
+    },
+    {
+      "latitude": 40.815439,
+      "longitude": -73.924
+    },
+    {
+      "latitude": 40.816698,
+      "longitude": -73.923093
+    },
+    {
+      "latitude": 40.816219,
+      "longitude": -73.921245
+    },
+    {
+      "latitude": 40.815551,
+      "longitude": -73.921584
+    },
+    {
+      "latitude": 40.814564,
+      "longitude": -73.920481
+    },
+    {
+      "latitude": 40.816066,
+      "longitude": -73.917645
+    },
+    {
+      "latitude": 40.812125,
+      "longitude": -73.90418
+    },
+    {
+      "latitude": 40.811507,
+      "longitude": -73.903417
+    },
+    {
+      "latitude": 40.804565,
+      "longitude": -73.902292
+    },
+    {
+      "latitude": 40.796624,
+      "longitude": -73.911688
+    },
+    {
+      "latitude": 40.798985,
+      "longitude": -73.919032
+    },
+    {
+      "latitude": 40.802373,
+      "longitude": -73.922927
+    },
+    {
+      "latitude": 40.802696,
+      "longitude": -73.927628
+    },
+    {
+      "latitude": 40.803989,
+      "longitude": -73.927645
+    },
+    {
+      "latitude": 40.804104,
+      "longitude": -73.928726
+    },
+    {
+      "latitude": 40.808823,
+      "longitude": -73.932527
+    },
+    {
+      "latitude": 40.814152,
+      "longitude": -73.932423
+    },
+    {
+      "latitude": 40.813248,
+      "longitude": -73.930278
+    },
+    {
+      "latitude": 40.81856,
+      "longitude": -73.927317
+    },
+    {
+      "latitude": 40.818013,
+      "longitude": -73.925185
     }
   ]
 }

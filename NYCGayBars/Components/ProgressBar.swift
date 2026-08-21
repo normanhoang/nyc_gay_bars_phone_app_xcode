@@ -6,6 +6,7 @@ struct ProgressBar: View {
     var progress: Double
     var delay: Double = 0
     var height: CGFloat = 8
+    var colors: [Color] = [Palette.primary, Palette.violet]
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var w: Double = 0
@@ -16,7 +17,7 @@ struct ProgressBar: View {
                 Capsule().fill(Color.white.opacity(0.10))
                 Capsule()
                     .fill(LinearGradient(
-                        colors: [Palette.primary, Palette.violet],
+                        colors: colors,
                         startPoint: .leading, endPoint: .trailing))
                     .frame(width: geo.size.width * max(0, min(1, w)))
             }

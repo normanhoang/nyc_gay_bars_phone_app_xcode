@@ -1,6 +1,74 @@
 import XCTest
 @testable import NYCGayBars
 
+final class AppDataTests: XCTestCase {
+    func testArchivedBarsResolveForHistoryButStayOutOfActiveRoster() {
+        let archivedIds: Set<String> = ["bar-nine", "adonis-lounge", "rawhide"]
+
+        for id in archivedIds {
+            XCTAssertEqual(AppData.bar(id: id)?.isArchived, true)
+            XCTAssertNil(AppData.activeBar(id: id))
+        }
+        XCTAssertTrue(archivedIds.isDisjoint(with: Set(AppData.bars.map(\.id))))
+
+        let historicalVisit = Visit(
+            id: "archived-visit", barId: "bar-nine", date: "2026-01-10T17:00:00Z",
+            drinks: [], note: nil)
+        XCTAssertEqual(AppData.bar(id: historicalVisit.barId)?.name, "Bar Nine")
+        XCTAssertFalse(Stats.computeVisitedIds(
+            visits: [historicalVisit], visitedBars: ["adonis-lounge", "rawhide"]
+        ).contains(where: archivedIds.contains))
+    }
+
+    func testApprovedRosterChangesAreActive() {
+        let expected: [String: (name: String, neighborhood: String, address: String)] = [
+            "club-rawhide": ("Club Rawhide", "Chelsea", "250 W 26th St, New York"),
+            "oberon": ("Oberon", "Williamsburg", "196 N 10th St, Brooklyn"),
+            "solera": ("Solera", "Mott Haven-Port Morris", "125 St. Ann's Ave, Bronx"),
+            "athena-kekes": ("Athena Keke's", "Clinton Hill", "222 Greene Ave, Brooklyn"),
+            "wilkas-sports-bar": ("Wilka's Sports Bar", "Lower East Side", "241 Bowery, New York"),
+            "love-thy-neighbor": ("Love Thy Neighbor", "West Village", "55 Christopher St, New York"),
+            "the-exley": ("The Exley", "Williamsburg", "1 Jackson St, Brooklyn"),
+            "fairytale-lounge": ("FairyTale Lounge", "Hell's Kitchen", "500 W 48th St, New York"),
+        ]
+
+        for (id, value) in expected {
+            let bar = AppData.bars.first { $0.id == id }
+            XCTAssertEqual(bar?.name, value.name, id)
+            XCTAssertEqual(bar?.neighborhood, value.neighborhood, id)
+            XCTAssertEqual(bar?.address, value.address, id)
+            XCTAssertEqual(bar?.isArchived, false, id)
+        }
+        XCTAssertEqual(AppData.bar(id: "the-duplex-closed-temporarily")?.name, "The Duplex")
+
+        let historicRawhide = AppData.bar(id: "rawhide")
+        XCTAssertEqual(historicRawhide?.address, "212 8th Ave, New York")
+        XCTAssertNotEqual(historicRawhide?.address, AppData.bar(id: "club-rawhide")?.address)
+    }
+
+    func testBareburgerHellKitchenIsAvailableToExplore() {
+        let bar = AppData.activeBar(id: "bareburger-hells-kitchen")
+
+        XCTAssertEqual(bar?.name, "Bareburger")
+        XCTAssertEqual(bar?.neighborhood, "Hell's Kitchen")
+        XCTAssertEqual(bar?.address, "366 W 46th St, New York")
+        XCTAssertEqual(bar?.latitude, 40.7605621)
+        XCTAssertEqual(bar?.longitude, -73.9903601)
+        XCTAssertEqual(bar?.tags, ["drag"])
+    }
+
+    func testPrideBarAndLoungeIsAvailableToExplore() {
+        let bar = AppData.activeBar(id: "pride-bar-and-lounge")
+
+        XCTAssertEqual(bar?.name, "PRIDE Bar & Lounge")
+        XCTAssertEqual(bar?.neighborhood, "Hell's Kitchen")
+        XCTAssertEqual(bar?.address, "742 9th Ave, New York")
+        XCTAssertEqual(bar?.latitude, 40.763488)
+        XCTAssertEqual(bar?.longitude, -73.988709)
+        XCTAssertEqual(bar?.tags, ["lounge"])
+    }
+}
+
 final class GeoTests: XCTestCase {
     func testDistanceRoughlyMatches() {
         let eagle = AppData.bar(id: "eagle-nyc")!
@@ -36,6 +104,24 @@ final class GeoTests: XCTestCase {
     func testFullyVisibleAtlantic() {
         let r = Region(latitude: 30, longitude: -50, latitudeDelta: 0.2, longitudeDelta: 0.2)
         XCTAssertEqual(Geo.fullyVisibleNeighborhoods(r), 0)
+    }
+
+    func testNewNeighborhoodsHaveMapOutlines() {
+        for neighborhood in ["Clinton Hill", "Mott Haven-Port Morris"] {
+            XCTAssertGreaterThanOrEqual(
+                AppData.neighborhoodPolygons[neighborhood]?.count ?? 0, 3, neighborhood)
+        }
+    }
+
+    func testNewNeighborhoodOutlinesDoNotOverlapExistingNeighborhoods() {
+        for name in ["Clinton Hill", "Mott Haven-Port Morris"] {
+            let ring = AppData.neighborhoodPolygons[name]!
+            for (otherName, otherRing) in AppData.neighborhoodPolygons where otherName != name {
+                XCTAssertFalse(
+                    polygonsOverlap(ring, otherRing),
+                    "\(name) overlaps \(otherName)")
+            }
+        }
     }
 
     func testDerivedDistancesAndProximity() {
@@ -78,6 +164,51 @@ final class GeoTests: XCTestCase {
         XCTAssertEqual(Geo.neighborhoodForZip("11201"), "Carroll Gardens")
         XCTAssertEqual(Geo.neighborhoodForZip("11101"), "Astoria")
         XCTAssertNil(Geo.neighborhoodForZip("90210"))
+    }
+
+    private func polygonsOverlap(_ a: [LatLng], _ b: [LatLng]) -> Bool {
+        for i in a.indices {
+            let aNext = a[(i + 1) % a.count]
+            for j in b.indices where segmentsProperlyIntersect(a[i], aNext, b[j], b[(j + 1) % b.count]) {
+                return true
+            }
+        }
+        return a.contains { strictlyInside($0, b) } || b.contains { strictlyInside($0, a) }
+    }
+
+    private func segmentsProperlyIntersect(_ a: LatLng, _ b: LatLng,
+                                           _ c: LatLng, _ d: LatLng) -> Bool {
+        let abC = cross(a, b, c)
+        let abD = cross(a, b, d)
+        let cdA = cross(c, d, a)
+        let cdB = cross(c, d, b)
+        return abC * abD < -1e-18 && cdA * cdB < -1e-18
+    }
+
+    private func strictlyInside(_ point: LatLng, _ ring: [LatLng]) -> Bool {
+        var inside = false
+        for i in ring.indices {
+            let a = ring[i]
+            let b = ring[(i + 1) % ring.count]
+            if abs(cross(a, b, point)) < 1e-12,
+               point.longitude >= min(a.longitude, b.longitude) - 1e-12,
+               point.longitude <= max(a.longitude, b.longitude) + 1e-12,
+               point.latitude >= min(a.latitude, b.latitude) - 1e-12,
+               point.latitude <= max(a.latitude, b.latitude) + 1e-12 {
+                return false
+            }
+            if (a.latitude > point.latitude) != (b.latitude > point.latitude) {
+                let longitude = (b.longitude - a.longitude)
+                    * (point.latitude - a.latitude) / (b.latitude - a.latitude) + a.longitude
+                if point.longitude < longitude { inside.toggle() }
+            }
+        }
+        return inside
+    }
+
+    private func cross(_ a: LatLng, _ b: LatLng, _ c: LatLng) -> Double {
+        (b.longitude - a.longitude) * (c.latitude - a.latitude)
+            - (b.latitude - a.latitude) * (c.longitude - a.longitude)
     }
 }
 
@@ -194,7 +325,7 @@ final class StatsTests: XCTestCase {
 
     func testBoroughProgress() {
         let boroughs = Stats.boroughProgress([])
-        XCTAssertEqual(boroughs.map(\.borough), ["Manhattan", "Brooklyn", "Queens"])
+        XCTAssertEqual(boroughs.map(\.borough), ["Manhattan", "Brooklyn", "Queens", "Bronx"])
         for b in boroughs {
             XCTAssertEqual(b.total, b.neighborhoods.reduce(0) { $0 + $1.total })
             XCTAssertEqual(b.visited, 0)
@@ -204,6 +335,15 @@ final class StatsTests: XCTestCase {
         XCTAssertTrue(brooklyn.neighborhoods.contains { $0.neighborhood == "Williamsburg" })
         let queens = boroughs.first { $0.borough == "Queens" }!
         XCTAssertTrue(queens.neighborhoods.contains { $0.neighborhood == "Astoria" })
+    }
+
+    func testBronxProgressIncludesSolera() {
+        let boroughs = Stats.boroughProgress(["solera"])
+        let bronx = boroughs.first { $0.borough == "Bronx" }
+
+        XCTAssertEqual(bronx?.visited, 1)
+        XCTAssertEqual(bronx?.total, 1)
+        XCTAssertEqual(bronx?.neighborhoods.map(\.neighborhood), ["Mott Haven-Port Morris"])
     }
 
     func testBoroughProgressCountsVisited() {
@@ -267,6 +407,19 @@ final class StatsTests: XCTestCase {
         XCTAssertEqual(ranked.first?.visited, 1)
     }
 
+    func testCompletedNeighborhoodsRequiresEveryCurrentBar() {
+        let astoriaIds = AppData.barsByNeighborhood["Astoria"]!.map(\.id)
+
+        XCTAssertFalse(Stats.completedNeighborhoods(Set(astoriaIds.dropLast())).contains("Astoria"))
+        XCTAssertEqual(Stats.completedNeighborhoods(Set(astoriaIds)), ["Astoria"])
+    }
+
+    func testCompletedNeighborhoodsIncludesOneBarNeighborhoods() {
+        let bedStuyId = AppData.barsByNeighborhood["Bed-Stuy"]!.first!.id
+
+        XCTAssertEqual(Stats.completedNeighborhoods([bedStuyId]), ["Bed-Stuy"])
+    }
+
     func testBadgeProgressCounts() {
         let vs = [
             visit("eagle-nyc", "2026-5-10", [("Beer", 2)]),
@@ -280,6 +433,26 @@ final class StatsTests: XCTestCase {
         XCTAssertEqual(p["mixologist"]?.current, 2)      // distinct types
         XCTAssertEqual(p["conqueror"]?.target, AppData.bars.count)
         XCTAssertEqual(p["grand-tour"]?.target, AppData.neighborhoods.count)
+    }
+
+    func testArchivedVisitsDoNotCountTowardVenueBadges() {
+        let archivedVisits = (1...10).map {
+            visit("rawhide", "2026-5-\($0)", [("Beer", 1)])
+        } + [
+            visit("bar-nine", "2026-5-1", [("Beer", 1)]),
+            visit("adonis-lounge", "2026-5-1", [("Beer", 1)]),
+        ]
+
+        let progress = Stats.badgeProgress(archivedVisits, ["rawhide", "bar-nine", "adonis-lounge"])
+        XCTAssertEqual(progress["crawler"]?.current, 0)
+        XCTAssertEqual(progress["regular"]?.current, 0)
+        XCTAssertEqual(progress["bar-star"]?.current, 0)
+
+        let badges = Stats.badges(archivedVisits, ["rawhide", "bar-nine", "adonis-lounge"])
+        XCTAssertFalse(badges.first { $0.id == "crawler" }!.earned)
+        XCTAssertFalse(badges.first { $0.id == "regular" }!.earned)
+        XCTAssertFalse(badges.first { $0.id == "back-to-back" }!.earned)
+        XCTAssertTrue(badges.first { $0.id == "first-drink" }!.earned)
     }
 
     func testStreakAndPerTypeBadges() {
@@ -334,9 +507,10 @@ final class StatsTests: XCTestCase {
             "Midtown East": "Manhattan", "Upper East Side": "Manhattan",
             "Upper West Side": "Manhattan", "West Village": "Manhattan",
             "Williamsburg": "Brooklyn", "Bushwick": "Brooklyn", "Bed-Stuy": "Brooklyn",
-            "Prospect Heights": "Brooklyn", "Park Slope": "Brooklyn",
+            "Clinton Hill": "Brooklyn", "Prospect Heights": "Brooklyn", "Park Slope": "Brooklyn",
             "Carroll Gardens": "Brooklyn",
             "Astoria": "Queens", "Jackson Heights": "Queens",
+            "Mott Haven-Port Morris": "Bronx",
         ]
         XCTAssertEqual(Set(AppData.neighborhoods), Set(expected.keys),
                        "neighborhood set changed — update this map AND Stats.borough's sets")

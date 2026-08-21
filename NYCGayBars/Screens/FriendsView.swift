@@ -530,7 +530,7 @@ struct FriendsView: View {
 
     private var tonightSection: some View {
         Group {
-            if social.tonight.isEmpty {
+            if social.activeTonight.isEmpty {
                 Text(social.friends.isEmpty
                      ? "Add friends to see who's out tonight."
                      : "No friends out right now.")
@@ -543,7 +543,7 @@ struct FriendsView: View {
                 // while the page is visible.
                 TimelineView(.periodic(from: .now, by: 60)) { context in
                     VStack(spacing: 8) {
-                        ForEach(social.tonight) { tonightCard($0, now: context.date) }
+                        ForEach(social.activeTonight) { tonightCard($0, now: context.date) }
                     }
                 }
             }
@@ -557,10 +557,10 @@ struct FriendsView: View {
     private func tonightCard(_ checkIn: FriendCheckIn, now: Date) -> some View {
         let minutes = max(0, Int(now.timeIntervalSince(checkIn.date) / 60))
         let age = minutes < 60 ? "\(minutes) min" : "\(minutes / 60) h"
-        let neighborhood = AppData.barsById[checkIn.barId]?.neighborhood
+        let neighborhood = AppData.activeBar(id: checkIn.barId)?.neighborhood
         let isMe = checkIn.authorID == social.myID
         return Button {
-            if let bar = AppData.barsById[checkIn.barId] { selectedBar = bar }
+            if let bar = AppData.activeBar(id: checkIn.barId) { selectedBar = bar }
         } label: {
             HStack(spacing: 12) {
                 avatar(checkIn.authorName, size: 40)
