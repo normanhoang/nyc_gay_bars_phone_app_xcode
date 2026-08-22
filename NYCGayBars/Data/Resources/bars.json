@@ -306,6 +306,7 @@
     "address": "605 W 48th Street, New York",
     "latitude": 40.764739,
     "longitude": -73.995652,
+    "archived": true,
     "tags": [
       "drag",
       "cabaret"
@@ -451,6 +452,7 @@
     "address": "2376 Clayton Powell Jr Blvd, New York",
     "latitude": 40.817764,
     "longitude": -73.941988,
+    "archived": true,
     "tags": [
       "lounge",
       "cocktails"
@@ -487,6 +489,7 @@
     "address": "302 W 52nd St, New York",
     "latitude": 40.76354,
     "longitude": -73.98535,
+    "archived": true,
     "tags": [
       "piano",
       "cabaret"
@@ -607,6 +610,7 @@
     "address": "34-20 Broadway",
     "latitude": 40.760373,
     "longitude": -73.922446,
+    "archived": true,
     "tags": [
       "dive"
     ]
@@ -840,8 +844,8 @@
     ]
   },
   {
-    "id": "mb-bar-boutique-closed-temporarily",
-    "name": "MB Bar Boutique (Closed Temporarily)",
+    "id": "mb-bar-boutique",
+    "name": "MB Bar Boutique",
     "neighborhood": "Jackson Heights",
     "address": "40-08 74th Street, Jackson Heights",
     "latitude": 40.7466,
@@ -930,6 +934,7 @@
     "address": "105 W 28th St, New York",
     "latitude": 40.746158,
     "longitude": -73.990659,
+    "archived": true,
     "tags": [
       "cocktails",
       "lounge"
@@ -1060,6 +1065,7 @@
     "address": "55 Christopher St, New York",
     "latitude": 40.7338278,
     "longitude": -74.002252,
+    "archived": true,
     "tags": [
       "cocktails",
       "lounge"
@@ -1087,6 +1093,30 @@
     "tags": [
       "dance",
       "lounge"
+    ]
+  },
+  {
+    "id": "sandy-jacks",
+    "name": "Sandy Jack's",
+    "neighborhood": "Park Slope",
+    "address": "683 5th Ave, Brooklyn",
+    "latitude": 40.6615142,
+    "longitude": -73.9929723,
+    "tags": [
+      "dive",
+      "cocktails"
+    ]
+  },
+  {
+    "id": "true-colors",
+    "name": "True Colors",
+    "neighborhood": "Jackson Heights",
+    "address": "79-15 Roosevelt Ave, Jackson Heights",
+    "latitude": 40.747349,
+    "longitude": -73.886392,
+    "tags": [
+      "latin",
+      "dance"
     ]
   }
 ]

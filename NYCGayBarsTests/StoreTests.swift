@@ -52,6 +52,35 @@ final class StoreTests: XCTestCase {
         XCTAssertEqual(store.visits.map(\.id), ["good"])
     }
 
+    func testRenamedBarIdMigratedOnHydrate() {
+        let old = "mb-bar-boutique-closed-temporarily"
+        let json = """
+        [{"id":"v1","barId":"\(old)","date":"\(DayKey.iso(Date()))","drinks":[{"type":"Beer","count":2}]}]
+        """
+        defaults.set(Data(json.utf8), forKey: "@gaybars/visits")
+        defaults.set(try! JSONEncoder().encode([old, "eagle-nyc"]), forKey: "@gaybars/visited")
+
+        let store = VisitsStore(defaults: defaults)
+        XCTAssertEqual(store.visits.map(\.barId), ["mb-bar-boutique"])
+        XCTAssertEqual(store.visits.first?.drinkTotal, 2)
+        XCTAssertEqual(store.visitedBars, ["mb-bar-boutique", "eagle-nyc"])
+        XCTAssertTrue(store.visitedIds.contains("mb-bar-boutique"))
+        XCTAssertFalse(store.visitedIds.contains(old))
+
+        // The rewrite must be persisted, not just applied in memory.
+        let reloaded = VisitsStore(defaults: defaults)
+        XCTAssertEqual(reloaded.visits.map(\.barId), ["mb-bar-boutique"])
+        XCTAssertEqual(reloaded.visitedBars, ["mb-bar-boutique", "eagle-nyc"])
+    }
+
+    func testRenameMigrationDedupesAgainstExistingNewId() {
+        let old = "mb-bar-boutique-closed-temporarily"
+        defaults.set(try! JSONEncoder().encode(["mb-bar-boutique", old]), forKey: "@gaybars/visited")
+
+        let store = VisitsStore(defaults: defaults)
+        XCTAssertEqual(store.visitedBars, ["mb-bar-boutique"])
+    }
+
     // MARK: BadgesStore toast timing
 
     func testLaterUnlockDoesNotExtendCurrentToast() {

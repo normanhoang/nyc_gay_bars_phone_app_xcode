@@ -3,7 +3,9 @@ import XCTest
 
 final class AppDataTests: XCTestCase {
     func testArchivedBarsResolveForHistoryButStayOutOfActiveRoster() {
-        let archivedIds: Set<String> = ["bar-nine", "adonis-lounge", "rawhide"]
+        let archivedIds: Set<String> = ["bar-nine", "adonis-lounge", "rawhide",
+            "so-sos-neighborhood-piano-bar", "hk-hall", "the-fleur-room",
+            "alibi-lounge", "love-thy-neighbor", "the-highwater"]
 
         for id in archivedIds {
             XCTAssertEqual(AppData.bar(id: id)?.isArchived, true)
@@ -27,9 +29,10 @@ final class AppDataTests: XCTestCase {
             "solera": ("Solera", "Mott Haven-Port Morris", "125 St. Ann's Ave, Bronx"),
             "athena-kekes": ("Athena Keke's", "Clinton Hill", "222 Greene Ave, Brooklyn"),
             "wilkas-sports-bar": ("Wilka's Sports Bar", "Lower East Side", "241 Bowery, New York"),
-            "love-thy-neighbor": ("Love Thy Neighbor", "West Village", "55 Christopher St, New York"),
             "the-exley": ("The Exley", "Williamsburg", "1 Jackson St, Brooklyn"),
             "fairytale-lounge": ("FairyTale Lounge", "Hell's Kitchen", "500 W 48th St, New York"),
+            "sandy-jacks": ("Sandy Jack's", "Park Slope", "683 5th Ave, Brooklyn"),
+            "true-colors": ("True Colors", "Jackson Heights", "79-15 Roosevelt Ave, Jackson Heights"),
         ]
 
         for (id, value) in expected {
@@ -40,6 +43,8 @@ final class AppDataTests: XCTestCase {
             XCTAssertEqual(bar?.isArchived, false, id)
         }
         XCTAssertEqual(AppData.bar(id: "the-duplex-closed-temporarily")?.name, "The Duplex")
+        XCTAssertEqual(AppData.activeBar(id: "mb-bar-boutique")?.name, "MB Bar Boutique")
+        XCTAssertNil(AppData.bar(id: "mb-bar-boutique-closed-temporarily"))
 
         let historicRawhide = AppData.bar(id: "rawhide")
         XCTAssertEqual(historicRawhide?.address, "212 8th Ave, New York")

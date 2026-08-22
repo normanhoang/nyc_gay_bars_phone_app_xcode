@@ -25,6 +25,7 @@ final class VisitsStore: ObservableObject {
         // whole history.
         visits = (decode([Lossy<Visit>].self, Self.visitsKey) ?? []).compactMap(\.value)
         visitedBars = decode([String].self, Self.visitedKey) ?? []
+        migrateRenamedBarIds()
         refreshVisitedIds()
         hydrated = true
     }
@@ -52,6 +53,37 @@ final class VisitsStore: ObservableObject {
     private func saveVisited() {
         if let data = try? JSONEncoder().encode(visitedBars) {
             defaults.set(data, forKey: Self.visitedKey)
+        }
+    }
+
+    // MARK: - Migrations
+
+    /// Bar ids renamed in the bundled dataset. Stored visits and "been here"
+    /// marks keep the old id, so they are rewritten once on hydrate.
+    private static let renamedBarIds = ["mb-bar-boutique-closed-temporarily": "mb-bar-boutique"]
+
+    /// Rewrites any stored bar id that was renamed in bars.json, persisting
+    /// only the keys that actually changed.
+    private func migrateRenamedBarIds() {
+        let renames = Self.renamedBarIds
+        let staleVisits = visits.contains { renames[$0.barId] != nil }
+        let staleMarks = visitedBars.contains { renames[$0] != nil }
+        guard staleVisits || staleMarks else { return }
+
+        if staleVisits {
+            visits = visits.map { visit in
+                guard let newId = renames[visit.barId] else { return visit }
+                return Visit(id: visit.id, barId: newId, date: visit.date,
+                             drinks: visit.drinks, note: visit.note)
+            }
+            saveVisits()
+        }
+        if staleMarks {
+            // A rename can collide with an already-present new id; keep first.
+            var seen = Set<String>()
+            visitedBars = visitedBars.map { renames[$0] ?? $0 }
+                .filter { seen.insert($0).inserted }
+            saveVisited()
         }
     }
 
