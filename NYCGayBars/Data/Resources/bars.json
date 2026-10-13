@@ -744,6 +744,7 @@
     "address": "253 Bushwick Ave, Brooklyn",
     "latitude": 40.707324,
     "longitude": -73.939705,
+    "archived": true,
     "tags": [
       "dive",
       "dance"
@@ -1179,6 +1180,18 @@
     "tags": [
       "cocktails",
       "lesbian"
+    ]
+  },
+  {
+    "id": "no-bar",
+    "name": "No Bar",
+    "neighborhood": "East Village",
+    "address": "25 Cooper Square, New York",
+    "latitude": 40.727834,
+    "longitude": -73.99074,
+    "tags": [
+      "cocktails",
+      "drag"
     ]
   }
 ]

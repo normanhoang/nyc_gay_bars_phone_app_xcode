@@ -6,7 +6,7 @@ final class AppDataTests: XCTestCase {
         let archivedIds: Set<String> = ["bar-nine", "adonis-lounge", "rawhide",
             "so-sos-neighborhood-piano-bar", "hk-hall", "the-fleur-room",
             "alibi-lounge", "love-thy-neighbor", "the-highwater",
-            "the-rosemont", "vv-bar-kitchen"]
+            "the-rosemont", "vv-bar-kitchen", "pink-metal"]
 
         for id in archivedIds {
             XCTAssertEqual(AppData.bar(id: id)?.isArchived, true)
@@ -39,6 +39,7 @@ final class AppDataTests: XCTestCase {
             "blazers-sports-bar": ("Blazers Sports Bar", "Williamsburg", "308 Bedford Ave, Brooklyn"),
             "purgatory": ("Purgatory", "Bushwick", "675 Central Ave, Brooklyn"),
             "ligaw": ("Ligaw", "Lower East Side", "87 Ludlow St, New York"),
+            "no-bar": ("No Bar", "East Village", "25 Cooper Square, New York"),
         ]
 
         for (id, value) in expected {
