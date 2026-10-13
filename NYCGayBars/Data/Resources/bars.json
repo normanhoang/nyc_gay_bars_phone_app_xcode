@@ -527,6 +527,7 @@
     "address": "325 W 51st St, New York",
     "latitude": 40.763387,
     "longitude": -73.986609,
+    "archived": true,
     "tags": [
       "cocktails",
       "lounge"
@@ -646,6 +647,7 @@
     "address": "63 Montrose Ave",
     "latitude": 40.706976,
     "longitude": -73.947465,
+    "archived": true,
     "tags": [
       "dive",
       "dance",
@@ -1117,6 +1119,66 @@
     "tags": [
       "latin",
       "dance"
+    ]
+  },
+  {
+    "id": "gladys-books-and-wine",
+    "name": "Gladys Books & Wine",
+    "neighborhood": "Bed-Stuy",
+    "address": "306 Malcolm X Blvd, Brooklyn",
+    "latitude": 40.682376,
+    "longitude": -73.929179,
+    "tags": [
+      "lesbian",
+      "lounge"
+    ]
+  },
+  {
+    "id": "saint-james-libations",
+    "name": "Saint James Libations",
+    "neighborhood": "Bushwick",
+    "address": "269 Stanhope St, Brooklyn",
+    "latitude": 40.701737,
+    "longitude": -73.919561,
+    "tags": [
+      "cocktails",
+      "lounge"
+    ]
+  },
+  {
+    "id": "blazers-sports-bar",
+    "name": "Blazers Sports Bar",
+    "neighborhood": "Williamsburg",
+    "address": "308 Bedford Ave, Brooklyn",
+    "latitude": 40.713885,
+    "longitude": -73.961947,
+    "tags": [
+      "sports",
+      "lesbian"
+    ]
+  },
+  {
+    "id": "purgatory",
+    "name": "Purgatory",
+    "neighborhood": "Bushwick",
+    "address": "675 Central Ave, Brooklyn",
+    "latitude": 40.687234,
+    "longitude": -73.905739,
+    "tags": [
+      "drag",
+      "karaoke"
+    ]
+  },
+  {
+    "id": "ligaw",
+    "name": "Ligaw",
+    "neighborhood": "Lower East Side",
+    "address": "87 Ludlow St, New York",
+    "latitude": 40.718339,
+    "longitude": -73.989478,
+    "tags": [
+      "cocktails",
+      "lesbian"
     ]
   }
 ]

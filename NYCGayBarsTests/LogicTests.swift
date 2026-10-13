@@ -5,7 +5,8 @@ final class AppDataTests: XCTestCase {
     func testArchivedBarsResolveForHistoryButStayOutOfActiveRoster() {
         let archivedIds: Set<String> = ["bar-nine", "adonis-lounge", "rawhide",
             "so-sos-neighborhood-piano-bar", "hk-hall", "the-fleur-room",
-            "alibi-lounge", "love-thy-neighbor", "the-highwater"]
+            "alibi-lounge", "love-thy-neighbor", "the-highwater",
+            "the-rosemont", "vv-bar-kitchen"]
 
         for id in archivedIds {
             XCTAssertEqual(AppData.bar(id: id)?.isArchived, true)
@@ -33,6 +34,11 @@ final class AppDataTests: XCTestCase {
             "fairytale-lounge": ("FairyTale Lounge", "Hell's Kitchen", "500 W 48th St, New York"),
             "sandy-jacks": ("Sandy Jack's", "Park Slope", "683 5th Ave, Brooklyn"),
             "true-colors": ("True Colors", "Jackson Heights", "79-15 Roosevelt Ave, Jackson Heights"),
+            "gladys-books-and-wine": ("Gladys Books & Wine", "Bed-Stuy", "306 Malcolm X Blvd, Brooklyn"),
+            "saint-james-libations": ("Saint James Libations", "Bushwick", "269 Stanhope St, Brooklyn"),
+            "blazers-sports-bar": ("Blazers Sports Bar", "Williamsburg", "308 Bedford Ave, Brooklyn"),
+            "purgatory": ("Purgatory", "Bushwick", "675 Central Ave, Brooklyn"),
+            "ligaw": ("Ligaw", "Lower East Side", "87 Ludlow St, New York"),
         ]
 
         for (id, value) in expected {
