@@ -16,11 +16,11 @@ Everything to paste into App Store Connect. Character counts shown against Apple
 | Secondary Category | Travel (optional) | — |
 | Primary Language | English (U.S.) | — |
 
-## Version — 1.2.0
+## Version — 1.3.0
 
 | Field | Value |
 |---|---|
-| Version String | `1.2.0` · Build `17` |
+| Version String | `1.3.0` · Build `23` |
 | Copyright | 2026 Norman Hoang |
 
 **Promotional Text** (170 max, 152):
@@ -28,6 +28,21 @@ Everything to paste into App Store Connect. Character counts shown against Apple
 > Your pocket map to every gay bar in NYC. Check in, log the night, earn badges, and watch your nightlife stats come alive — 100% private, all on your device.
 
 ## What's New in This Version (4000 max)
+
+**1.3.0** — update notes (applies if 1.2.0 shipped; if 1.2.0 never went live, use the 1.2.0 text further below instead).
+
+```
+Fresher bar list, steadier Friends.
+
+• Updated bar roster — new spots added and closed ones retired, so the map matches the city
+• Friends is more reliable — accepting a friend request and removing a shared check-in now hold up on slow or spotty connections
+• Your existing visits and "been here" marks carry over automatically when a bar's listing changes
+• Under-the-hood fixes and polish
+
+Friends is completely optional — everything else stays 100% on your device.
+```
+
+### Previous: 1.2.0
 
 **1.1.0 was never released**, so for users this update lands against **1.0.0** (fully solo: map/list, check-ins, drink log, history, stats, badges). The text below therefore announces both Friends *and* the 1.2.0 redesign.
 
