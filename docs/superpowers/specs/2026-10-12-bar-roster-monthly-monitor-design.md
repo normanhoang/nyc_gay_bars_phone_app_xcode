@@ -30,8 +30,8 @@ America/New_York, that:
 
 1. runs a research pass over the active roster and the NYC queer-venue landscape,
 2. writes every finding, with sources, to an artifact file on the Pi,
-3. delivers **one** digest text to Norman's phone via Photon — every month, including months
-   with nothing to report,
+3. delivers the digest to Norman's phone via Photon as a short series of texts, one per item,
+   every month, including months with nothing to report,
 4. stops there. The job never touches the repo.
 
 Norman replies to the text ("1 yes, 3 no"). That reply arrives as an ordinary agent turn in
@@ -45,7 +45,7 @@ judgment is the gate on every change; the automation only does the noticing and 
 - Surface real closures of bars on the active roster, with defensible evidence and a date.
 - Surface qualifying NYC queer venues that are not on the roster yet.
 - Surface moves, renames, and stale display labels on active records.
-- Deliver a readable digest text on the first Wednesday of every month, including empty months.
+- Deliver readable digest texts on the first Wednesday of every month, including empty months.
 - Keep the false-closure rate at effectively zero, even at the cost of missing a real one.
 - Once Norman approves, land the change on `main` with no further ceremony.
 
@@ -227,54 +227,76 @@ not read them. When a first-party source is blocked, try the `agent-reach` CLI
 
 ## The message
 
-One digest text, numbered items, sections in this order.
+The digest goes out as a short series of texts, one per item, in send order (Norman's call
+on 2026-10-12: "list the bar/decision per text bubble"). The first text carries the header and
+the reply hint, each item gets its own text with its section label on top, and the last text
+carries the closing counts. Sections run in this order: CLOSE, NEEDS YOUR LOOK, ADD,
+MOVE / LABEL. Numbering runs across the whole series, so "1 yes, 3 no" resolves the same way
+it would against a single message.
+
+The iMessage sidecar has no multi-bubble send, so each text is one POST. The script
+(`bar-roster-tool.py digest send`) renders the texts, writes the number → item map to
+`last-digest.json` and sends them, all in one deterministic step. The text that went out and
+the map the reply resolves against are therefore one product. The job's own delivery target
+is `local`, so the run's receipt ("Sent 6 text(s) to photon - 4 item(s) to answer, cap 8.") lands in a
+file instead of becoming a duplicate text.
+
+Example, as rendered by `bar_roster_lib.render_bubbles()`:
 
 ```
-NYC GAY BARS ROSTER — Wed Nov 4, 6:00 PM
+--- text 1
+NYC GAY BARS ROSTER - Wed Nov 4, 6:00 PM
 
-4 items need your call. Reply like "1 yes, 2 no" — I'll do the rest.
-
+4 items need your call. Reply like "1 yes, 2 no" and I'll do the rest.
+--- text 2
 CLOSE (archive, keep row for history)
-1. VV Bar & Kitchen — Chelsea
+1. VV Bar & Kitchen - Chelsea
    W42ST + GayTravelr both list closed; venue site's last
-   event is Jun 2025. Confidence: high.
-
-NEEDS YOUR LOOK (conflicting evidence — not acted on)
-2. Alibi Lounge — Harlem
+   event is Jun 2025.
+   Confidence: high.
+--- text 3
+NEEDS YOUR LOOK (conflicting evidence, not acted on)
+2. Alibi Lounge - Harlem
    Eater venue page says permanently closed; a Jun 2024
    license renewal is the only contrary signal.
-
+--- text 4
 ADD (new record, geocoded)
-3. Dave's Lesbian Bar — 116 MacDougal St, West Village
+3. Dave's Lesbian Bar - 116 MacDougal St, West Village
    Site now lists a permanent address and hours; was
-   pop-up only in the Aug audit. Confidence: high.
-
+   pop-up only in the Aug audit.
+   Confidence: high.
+--- text 5
 MOVE / LABEL
-4. Rawhide -> Club Rawhide, 250 W 26th St
-   New operators under the old name. Confidence: high.
-
+4. Rawhide -> Club Rawhide - 250 W 26th St
+   New operators under the old name.
+   Confidence: high.
+--- text 6
 Repo untouched. 84 active bars checked, cohort 21 re-verified.
+Next check: Wed Dec 2.
 ```
 
-Rules for the text:
+Rules for the texts:
 
-- Hard cap of 8 items; the rest stay in the artifact file and the text says how many.
-- No URLs in the text — outlet names only. Full sources, with URLs and dates, go in the
+- Hard cap of 8 items; the rest stay in the artifact file and the header text says how many.
+- No URLs in the texts, outlet names only. Full sources, with URLs and dates, go in the
   artifact.
-- The closing line always states the roster size, how many bars were checked, and that the
-  repo is untouched, so an empty month and a broken month are distinguishable.
-- **The text is sent even when there is nothing to report.** `[SILENT]` is explicitly
+- The last text always states the roster size, how many bars were checked, that the repo is
+  untouched, and the next check date, so an empty month and a broken month are
+  distinguishable.
+- **The texts are sent even when there is nothing to report.** `[SILENT]` is explicitly
   forbidden in the prompt.
 
-Empty-month form:
+Empty-month form (three texts):
 
 ```
-NYC GAY BARS ROSTER — Wed Dec 2, 6:00 PM
-
-Nothing new. 84 active bars checked, cohort 21 re-verified,
-plus a sweep for unlisted venues. No closure, addition, move,
-or stale label met the evidence bar this month.
-
+--- text 1
+NYC GAY BARS ROSTER - Wed Dec 2, 6:00 PM
+--- text 2
+Nothing new. No closure, addition, move, or stale label met the
+evidence bar this month, and the sweep for unlisted venues found
+nothing qualifying.
+--- text 3
+Repo untouched. 84 active bars checked, cohort 21 re-verified.
 Next check: Wed Jan 6.
 ```
 
@@ -385,7 +407,8 @@ Norman's decisions, as he made them:
 
 - The first Wednesday of each month at 6:00 PM (originally every Wednesday; changed
   2026-10-14).
-- Delivery by Photon text, one digest with numbered items (not one text per candidate).
+- Delivery by Photon text with numbered items. Originally one digest text; changed
+  2026-10-12 to one text per item (header first, closing counts last).
 - A text arrives every month, including months with nothing new.
 - Scope includes potential additions, closures, **and** moves, renames, and stale labels.
 - Neighborhood newsletters are a desired source.
