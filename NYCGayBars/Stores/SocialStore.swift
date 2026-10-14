@@ -100,6 +100,10 @@ final class SocialStore: ObservableObject {
     /// write becomes queryable — a refresh inside CloudKit's index lag would
     /// otherwise drop the friend and resurrect the Accept row.
     private var optimisticFriends: [(profile: FriendProfile, at: Date)] = []
+    /// Friends removed this launch → when. Keeps a removed friend from being
+    /// resurrected by an in-flight refresh or a lagged own-Friendship query.
+    /// See `Social.suppressedRemovals`.
+    private var removedFriendsAt: [String: Date] = [:]
     /// Set when a friend-request notification is tapped, so RootTabView switches
     /// to the Friends tab. Reset by RootTabView after navigating.
     @Published var focusFriendsTab = false
@@ -253,6 +257,16 @@ final class SocialStore: ObservableObject {
                 deliberateRemovals.insert(id)
             }
 
+            // Friends removed moments ago that a lagged query (or the cached
+            // list) would bring back. Treated as deliberate removals so the
+            // missing-friend retention below can't hold them either.
+            removedFriendsAt = removedFriendsAt.filter {
+                Date().timeIntervalSince($0.value) < Social.friendRetentionGrace
+            }
+            let suppressed = Social.suppressedRemovals(removedFriendsAt, ownFriendDates: ownDates, now: Date())
+            ids.removeAll(where: suppressed.contains)
+            deliberateRemovals.formUnion(suppressed)
+
             // Someone I sent a request to created their Friendship{them→me}
             // *after* the request (server timestamps — a pre-existing record is
             // a relic, not consent): finish the handshake by creating the
@@ -260,7 +274,12 @@ final class SocialStore: ObservableObject {
             // requested — a stranger creating a Friendship pointing at me is
             // ignored.
             for request in Social.acceptedOutgoing(outgoing, friendedByDates: friendedByDates) {
-                try await ck.createFriendship(ownerID: me, friendID: request.toID)
+                // A lagged query can return a request this device already
+                // completed and deleted; re-creating the mirror then would
+                // delete the live record (see Social.mirrorAlreadyExists).
+                if !Social.mirrorAlreadyExists(request, ownFriendDates: ownDates) {
+                    try await ck.createFriendship(ownerID: me, friendID: request.toID)
+                }
                 try await ck.deleteRequest(recordName: request.id)
                 if !ids.contains(request.toID) { ids.append(request.toID) }
                 outgoing.removeAll { $0.id == request.id }
@@ -318,12 +337,17 @@ final class SocialStore: ObservableObject {
             async let profilesFetch = ck.profiles(userIDs: ids)
             async let tonightFetch = ck.tonightCheckInEnvelopes(userID: me)
             let fetchedProfiles = try await profilesFetch
+            // Re-read removals after the awaits: a removeFriend() that landed
+            // while this refresh was in flight must not be overwritten by the
+            // stale friend list it fetched.
+            let removedNow = Social.suppressedRemovals(removedFriendsAt, ownFriendDates: ownDates, now: Date())
             // Overlay just-accepted friends, reading optimisticFriends *after*
             // every await: an accept() that lands while this refresh's queries
             // were in flight still survives the rebuild (main-actor ordering).
-            let (mergedFriends, keepFriendIDs) = Social.mergedFriends(
+            let (merged, keepFriendIDs) = Social.mergedFriends(
                 fetched: fetchedProfiles, optimistic: optimisticFriends,
                 fetchedIDs: Set(ids), now: Date())
+            let mergedFriends = merged.filter { !removedNow.contains($0.id) }
             optimisticFriends.removeAll { !keepFriendIDs.contains($0.profile.id) }
             friends = mergedFriends.sorted {
                 $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
@@ -333,9 +357,10 @@ final class SocialStore: ObservableObject {
             persistPrefs()
             // Drop check-ins from anyone no longer a friend (their unexpired
             // records can outlive the friendship by up to the Tonight window).
-            let opened = try decryptCheckIns(try await tonightFetch, me: me, friendIDs: friendIDSet)
-            tonight = rebuildTonight(opened, friendIDs: friendIDSet, me: me)
-            try await syncSubscriptionsIfNeeded(me: me, friendIDs: ids)
+            let feedIDs = friendIDSet.subtracting(removedNow)
+            let opened = try decryptCheckIns(try await tonightFetch, me: me, friendIDs: feedIDs)
+            tonight = rebuildTonight(opened, friendIDs: feedIDs, me: me)
+            try await syncSubscriptionsIfNeeded(me: me, friendIDs: ids.filter { !removedNow.contains($0) })
         } catch {
             errorMessage = friendlyError(error)
         }
@@ -478,6 +503,17 @@ final class SocialStore: ObservableObject {
                 await accept(crossing)
                 return
             }
+            // Re-adding someone I already requested. If they accepted it, just
+            // finish the handshake — a replaced request would postdate their
+            // acceptance and never pass the gate. Otherwise replace it (fresh
+            // creationDate) so it surfaces past an earlier ignore.
+            async let existingFetch = ck.requestCreated(from: me.id, to: other.id)
+            async let theirsFetch = ck.friendshipCreated(ownerID: other.id, friendID: me.id)
+            if Social.requestAlreadyAccepted(requestCreated: try await existingFetch,
+                                             friendshipCreated: try await theirsFetch) {
+                await refresh()
+                return
+            }
             try await ck.sendRequest(from: me, to: other)
             outgoingRequests = try await ck.outgoingRequests(userID: me.id)
         } catch {
@@ -504,6 +540,9 @@ final class SocialStore: ObservableObject {
         // write becomes queryable (CloudKit index lag).
         optimisticFriends.removeAll { $0.profile.id == request.fromID }
         optimisticFriends.append((placeholder, Date()))
+        // Re-friending someone removed moments ago: their old removal must not
+        // hide the new friendship (an in-flight refresh's query predates it).
+        removedFriendsAt[request.fromID] = nil
         do {
             try await ck.createFriendship(ownerID: me, friendID: request.fromID)
         } catch {
@@ -553,6 +592,7 @@ final class SocialStore: ObservableObject {
         guard let me = userID else { return }
         do {
             try await ck.removeFriendship(ownerID: me, friendID: friend.id)
+            removedFriendsAt[friend.id] = Date()
             // Best effort: retract already-sent check-ins so nothing lingers
             // in their feed. Leftovers expire at the TTL anyway.
             try? await ck.deleteCheckInV2(authorID: me, recipientID: friend.id)
@@ -1036,6 +1076,7 @@ final class SocialStore: ObservableObject {
         prefs = SocialPrefs()
         optimisticIncoming = []
         optimisticFriends = []
+        removedFriendsAt = [:]
         removalCandidateSince = [:]
         friendMissingSince = [:]
         checkInTombstones = []

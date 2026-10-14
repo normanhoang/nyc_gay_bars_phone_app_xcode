@@ -141,12 +141,24 @@ struct CloudKitSocial {
     // MARK: - Friend requests
 
     func sendRequest(from me: FriendProfile, to other: FriendProfile) async throws {
+        // Replace any existing record so the save stamps a fresh creationDate.
+        // The name is deterministic, so saving over an existing record was
+        // swallowed as "already exists" and kept the old date — a request the
+        // recipient had ignored then stayed hidden forever (Social.isHidden).
+        // Callers check first that the existing one wasn't already accepted.
+        try await deleteRequest(from: me.id, to: other.id)
         let rec = CKRecord(recordType: RT.request,
                            recordID: .init(recordName: "request-\(me.id)-\(other.id)"))
         rec["fromID"] = me.id
         rec["fromName"] = me.displayName
         rec["toID"] = other.id
         try await saveIgnoringExisting(rec)
+    }
+
+    /// Server creationDate of my request record to a user, fetched by id (no
+    /// query, so no index lag); nil if there is none.
+    func requestCreated(from: String, to: String) async throws -> Date? {
+        try await creationDate(of: .init(recordName: "request-\(from)-\(to)"))
     }
 
     func incomingRequests(userID: String) async throws -> [FriendRequestItem] {
@@ -195,6 +207,19 @@ struct CloudKitSocial {
         do {
             try await db.deleteRecord(withID: friendshipRecordID(ownerID: ownerID, friendID: friendID))
         } catch let e as CKError where e.code == .unknownItem {}
+    }
+
+    /// Server creationDate of Friendship{owner→friend}, fetched by id; nil if absent.
+    func friendshipCreated(ownerID: String, friendID: String) async throws -> Date? {
+        try await creationDate(of: friendshipRecordID(ownerID: ownerID, friendID: friendID))
+    }
+
+    private func creationDate(of id: CKRecord.ID) async throws -> Date? {
+        do {
+            return try await db.record(for: id).creationDate
+        } catch let e as CKError where e.code == .unknownItem {
+            return nil
+        }
     }
 
     /// Users I've added (my own Friendship records), with each record's

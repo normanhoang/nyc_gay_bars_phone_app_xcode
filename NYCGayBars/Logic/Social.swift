@@ -228,6 +228,46 @@ enum Social {
         })
     }
 
+    /// The handshake for this accepted outgoing request already ran: my own
+    /// Friendship{me→them} was created after the request. Seen when a lagged
+    /// query still returns the request I deleted on that run. Re-running
+    /// `createFriendship` would delete and re-create the live mirror, making it
+    /// briefly absent from the other side's query — which feeds their
+    /// mirror-removal debounce and can cascade into a silent unfriend. Only
+    /// the request delete should be retried. A record *older* than the request
+    /// is a relic and still gets re-created (fresh creationDate).
+    static func mirrorAlreadyExists(_ request: FriendRequestItem,
+                                    ownFriendDates: [String: Date]) -> Bool {
+        guard let own = ownFriendDates[request.toID] else { return false }
+        return own > request.created
+    }
+
+    /// Friends I removed within `grace` whose own record (if a lagged query
+    /// still returns it) isn't newer than the removal: keep them out of the
+    /// friend list. Without this, a refresh in flight during the removal — or
+    /// the next one, inside CloudKit's index lag — re-adds the removed friend,
+    /// and `retainedFriendIDs` then holds them for its full grace. An own
+    /// record created after the removal means I re-friended them; let it in.
+    static func suppressedRemovals(_ removedAt: [String: Date], ownFriendDates: [String: Date],
+                                   now: Date, grace: TimeInterval = friendRetentionGrace) -> Set<String> {
+        Set(removedAt.compactMap { id, at in
+            guard now.timeIntervalSince(at) < grace else { return nil }
+            if let own = ownFriendDates[id], own > at { return nil }
+            return id
+        })
+    }
+
+    /// Re-adding someone I already requested: if their Friendship{them→me}
+    /// is newer than my existing request they accepted it, and the handshake
+    /// just needs to finish — replacing the request would give it a date newer
+    /// than their acceptance and the gate (`acceptedOutgoing`) would never
+    /// pass. Otherwise the request is pending or was ignored, and is replaced
+    /// so its fresh creationDate clears the recipient's ignore stamp.
+    static func requestAlreadyAccepted(requestCreated: Date?, friendshipCreated: Date?) -> Bool {
+        guard let requestCreated, let friendshipCreated else { return false }
+        return friendshipCreated > requestCreated
+    }
+
     /// Merge optimistically-inserted incoming requests (added from a push
     /// payload before the record is queryable) into the freshly-fetched set, so
     /// a `refresh()` that runs before CloudKit is consistent doesn't drop the
