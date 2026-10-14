@@ -61,6 +61,7 @@
 		B809A54429E2F7DDBE280087 /* BarDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D32F0B9D8891FFCD2251FCF /* BarDetailSheet.swift */; };
 		B9D7F6163BFB1020E3D5AA80 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B958682051DE0CAAEE2F37C3 /* Assets.xcassets */; };
 		C11056DE5B9E5DFEE8E02267 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69382DB16334001E4E16A08 /* HistoryView.swift */; };
+		C153FA09154F77C8E31B96AF /* FriendRaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7A2636B9E4A6D074E32FFD /* FriendRaceTests.swift */; };
 		C7E5036E981DF09D9063144B /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2ACA18741B8743721CE125 /* Typography.swift */; };
 		C98F9CD367151DD4E3DDF7BB /* DrinkLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0715C93C3976A142C4727245 /* DrinkLogger.swift */; };
 		D1198B08BF67143233BA5E3B /* SearchBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BFCDF02E2E3E27F41CB176 /* SearchBox.swift */; };
@@ -135,6 +136,7 @@
 		A3C9AEE9C76BF3770FA4BDE5 /* FilterChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterChips.swift; sourceTree = "<group>"; };
 		A4EFE178F73B08E4AD5504E0 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		A670D07D7225D888FCE247A9 /* BadgesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgesStore.swift; sourceTree = "<group>"; };
+		AF7A2636B9E4A6D074E32FFD /* FriendRaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRaceTests.swift; sourceTree = "<group>"; };
 		B2214C8409D0F4CAFB214885 /* VisitsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitsStore.swift; sourceTree = "<group>"; };
 		B5AB110A7AC0A69A887C6B98 /* BadgeToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeToast.swift; sourceTree = "<group>"; };
 		B958682051DE0CAAEE2F37C3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 			isa = PBXGroup;
 			children = (
 				930DB3C90ED856B0B6A06903 /* CloudKitSocialRecordTests.swift */,
+				AF7A2636B9E4A6D074E32FFD /* FriendRaceTests.swift */,
 				2B87A3106606958B3B5F2601 /* LogicTests.swift */,
 				8A90BCBF6803514B9A6C4B38 /* SocialCheckInCryptoTests.swift */,
 				E76021F4096761FD7850B1B9 /* SocialKeyStoreTests.swift */,
@@ -435,6 +438,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DEC13859E2EE34CF275C4595 /* CloudKitSocialRecordTests.swift in Sources */,
+				C153FA09154F77C8E31B96AF /* FriendRaceTests.swift in Sources */,
 				A2803B9F700D02937E08D806 /* LogicTests.swift in Sources */,
 				2C8AD7DF20CA65178EA1A6F3 /* SocialCheckInCryptoTests.swift in Sources */,
 				03A4C990FC6AACFB80304AC4 /* SocialKeyStoreTests.swift in Sources */,
@@ -631,7 +635,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = DZRPJF9JB6;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -645,7 +649,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.3.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -691,7 +695,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = DZRPJF9JB6;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -711,7 +715,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.3.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

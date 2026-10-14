@@ -9,8 +9,8 @@ settings:
     SWIFT_VERSION: "5.0"
     DEVELOPMENT_TEAM: DZRPJF9JB6
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: "1.2.0"
-    CURRENT_PROJECT_VERSION: "22"
+    MARKETING_VERSION: "1.3.0"
+    CURRENT_PROJECT_VERSION: "23"
 targets:
   NYCGayBars:
     type: application
