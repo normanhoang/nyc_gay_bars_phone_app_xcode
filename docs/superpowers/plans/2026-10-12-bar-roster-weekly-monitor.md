@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3 stdlib only (`/usr/bin/python3`), Hermes cron (`cronjob_manage`), Photon sidecar delivery, git fast-forward sync, XCTest/Swift data invariants enforced by a Pi-side validator.
 
-**Spec:** `docs/superpowers/specs/2026-10-12-bar-roster-weekly-monitor-design.md`
+**Spec:** `docs/superpowers/specs/2026-10-12-bar-roster-monthly-monitor-design.md`
 
 ## Global Constraints
 
