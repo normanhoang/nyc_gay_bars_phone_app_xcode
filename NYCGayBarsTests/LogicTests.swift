@@ -40,6 +40,7 @@ final class AppDataTests: XCTestCase {
             "purgatory": ("Purgatory", "Bushwick", "675 Central Ave, Brooklyn"),
             "ligaw": ("Ligaw", "Lower East Side", "87 Ludlow St, New York"),
             "no-bar": ("No Bar", "East Village", "25 Cooper Square, New York"),
+            "the-woods": ("The Woods", "Williamsburg", "48 S 4th St, Brooklyn"),
         ]
 
         for (id, value) in expected {

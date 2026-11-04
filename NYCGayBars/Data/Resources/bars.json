@@ -1193,5 +1193,17 @@
       "cocktails",
       "drag"
     ]
+  },
+  {
+    "id": "the-woods",
+    "name": "The Woods",
+    "neighborhood": "Williamsburg",
+    "address": "48 S 4th St, Brooklyn",
+    "latitude": 40.712907,
+    "longitude": -73.966318,
+    "tags": [
+      "lesbian",
+      "dance"
+    ]
   }
 ]
