@@ -16,11 +16,11 @@ Everything to paste into App Store Connect. Character counts shown against Apple
 | Secondary Category | Travel (optional) | — |
 | Primary Language | English (U.S.) | — |
 
-## Version — 1.3.0
+## Version — 1.3.1
 
 | Field | Value |
 |---|---|
-| Version String | `1.3.0` · Build `23` |
+| Version String | `1.3.1` · Build `24` |
 | Copyright | 2026 Norman Hoang |
 
 **Promotional Text** (170 max, 152):
@@ -28,6 +28,16 @@ Everything to paste into App Store Connect. Character counts shown against Apple
 > Your pocket map to every gay bar in NYC. Check in, log the night, earn badges, and watch your nightlife stats come alive — 100% private, all on your device.
 
 ## What's New in This Version (4000 max)
+
+**1.3.1** — update notes (1.3.0 shipped).
+
+```
+New on the map: The Woods.
+
+• Added The Woods in Williamsburg, home of the weekly MISSTER lesbian dance party
+```
+
+### Previous: 1.3.0
 
 **1.3.0** — update notes (applies if 1.2.0 shipped; if 1.2.0 never went live, use the 1.2.0 text further below instead).
 
