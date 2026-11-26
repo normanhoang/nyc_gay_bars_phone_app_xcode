@@ -24,7 +24,8 @@
       "piano",
       "dance",
       "drag"
-    ]
+    ],
+    "instagram": "monsterbarnyc"
   },
   {
     "id": "boxers-nyc",
@@ -78,7 +79,8 @@
       "sports",
       "dive"
     ],
-    "instagram": "gymsportsbarny"
+    "instagram": "gymsportsbarny",
+    "website": "https://www.gymsportsbar.com/nyhome.html"
   },
   {
     "id": "industry-bar",
@@ -120,7 +122,8 @@
     "tags": [
       "dive",
       "bear"
-    ]
+    ],
+    "website": "https://tys.nyc"
   },
   {
     "id": "henrietta-hudson",
@@ -250,7 +253,8 @@
       "dive",
       "bear"
     ],
-    "website": "https://www.rockbarnyc.com"
+    "website": "https://www.rockbarnyc.com",
+    "instagram": "rockbar_nyc"
   },
   {
     "id": "9th-avenue-saloon",
@@ -290,7 +294,8 @@
     "tags": [
       "latin",
       "dance"
-    ]
+    ],
+    "instagram": "friends.tavern"
   },
   {
     "id": "metropolitan",
@@ -396,7 +401,8 @@
     "tags": [
       "sports",
       "lounge"
-    ]
+    ],
+    "instagram": "atlassocialclub"
   },
   {
     "id": "icon-bar",
@@ -476,7 +482,9 @@
     "tags": [
       "country",
       "dive"
-    ]
+    ],
+    "instagram": "brandedsaloon",
+    "website": "https://www.brandedsaloon.com"
   },
   {
     "id": "good-judy",
@@ -738,7 +746,8 @@
     "longitude": -73.914144,
     "tags": [
       "dance"
-    ]
+    ],
+    "website": "https://basementny.net"
   },
   {
     "id": "flex",
@@ -750,7 +759,8 @@
     "tags": [
       "lounge",
       "drag"
-    ]
+    ],
+    "instagram": "flexnyc"
   },
   {
     "id": "diamond-dogs",
@@ -789,7 +799,8 @@
     "tags": [
       "latin",
       "drag"
-    ]
+    ],
+    "instagram": "vivabarnyc"
   },
   {
     "id": "the-dickens",
@@ -869,7 +880,9 @@
     "tags": [
       "lounge",
       "dance"
-    ]
+    ],
+    "instagram": "lambdalloungeny",
+    "website": "https://lambdaloungeny.com"
   },
   {
     "id": "cmon-everybody",
@@ -1045,7 +1058,8 @@
       "drag",
       "dive"
     ],
-    "website": "https://mickeyspillanes.com"
+    "website": "https://mickeyspillanes.com",
+    "instagram": "mickeyspillanes"
   },
   {
     "id": "the-delancey",
@@ -1108,7 +1122,8 @@
     "longitude": -73.996267,
     "tags": [
       "leather"
-    ]
+    ],
+    "instagram": "rawhide.nyc"
   },
   {
     "id": "oberon",
@@ -1133,7 +1148,8 @@
     "tags": [
       "latin",
       "dance"
-    ]
+    ],
+    "instagram": "soleranightclub"
   },
   {
     "id": "athena-kekes",
@@ -1300,6 +1316,7 @@
     "address": "25 Cooper Square, New York",
     "latitude": 40.727834,
     "longitude": -73.99074,
+    "archived": true,
     "tags": [
       "cocktails",
       "drag"
