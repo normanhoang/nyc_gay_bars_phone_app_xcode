@@ -96,20 +96,25 @@ struct ExploreView: View {
             content(d, bars)
         }
         // Quick-log FAB (redesign 1c) — nudged up when the coverage callout
-        // occupies the bottom of the map.
+        // occupies the bottom of the map. The map's near-me toggle stacks on top.
         .overlay(alignment: .bottomTrailing) {
-            Button {
-                Haptics.light()
-                showQuickLog = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.scaled(24, weight: .semibold)).foregroundStyle(.white)
-                    .frame(width: 58, height: 58)
-                    .background(Circle().fill(Palette.primary))
-                    .shadow(color: Palette.primary.opacity(0.45), radius: 10, y: 2)
+            VStack(spacing: 12) {
+                if mode == 0, let target = nearMeTarget {
+                    nearMeButton(target)
+                }
+                Button {
+                    Haptics.light()
+                    showQuickLog = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.scaled(24, weight: .semibold)).foregroundStyle(.white)
+                        .frame(width: 58, height: 58)
+                        .background(Circle().fill(Palette.primary))
+                        .shadow(color: Palette.primary.opacity(0.45), radius: 10, y: 2)
+                }
+                .buttonStyle(PressableScale())
+                .accessibilityLabel("Quick log")
             }
-            .buttonStyle(PressableScale())
-            .accessibilityLabel("Quick log")
             .padding(.trailing, 16)
             .padding(.bottom, mode == 0 && neighborhood != "All" ? 176 : 92)
         }
@@ -316,11 +321,6 @@ struct ExploreView: View {
                     coverageCallout
                 }
             }
-            .overlay(alignment: .topTrailing) {
-                if let target = nearMeTarget {
-                    nearMeButton(target, belowBanner: filteredBars.isEmpty)
-                }
-            }
         }
     }
 
@@ -361,7 +361,7 @@ struct ExploreView: View {
     }
 
     /// Toggles between the user's neighborhood and All (map mode only).
-    private func nearMeButton(_ target: String, belowBanner: Bool) -> some View {
+    private func nearMeButton(_ target: String) -> some View {
         let active = nearMeActive
         return Button {
             Haptics.light()
@@ -380,8 +380,6 @@ struct ExploreView: View {
         }
         .buttonStyle(PressableScale())
         .accessibilityLabel(active ? "Show all neighborhoods" : "Zoom to my neighborhood")
-        .padding(.top, belowBanner ? 64 : 12)
-        .padding(.trailing, 16)
     }
 
     private func openInstagram() {
