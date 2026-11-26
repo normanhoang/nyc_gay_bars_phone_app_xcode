@@ -53,6 +53,39 @@ enum Geo {
         return sqrt(sqDist(lat, lng, bar, cos)) * milesPerDegLat
     }
 
+    /// The neighborhood whose outline contains the point, if any.
+    static func neighborhood(containing lat: Double, _ lng: Double) -> String? {
+        for name in AppData.neighborhoods {
+            guard let ring = AppData.neighborhoodPolygons[name] else { continue }
+            if pointInPolygon(lat, lng, ring) { return name }
+        }
+        return nil
+    }
+
+    private static func pointInPolygon(_ lat: Double, _ lng: Double, _ ring: [LatLng]) -> Bool {
+        var inside = false
+        var j = ring.count - 1
+        for i in 0..<ring.count {
+            let xi = ring[i].longitude, yi = ring[i].latitude
+            let xj = ring[j].longitude, yj = ring[j].latitude
+            if (yi > lat) != (yj > lat),
+               lng < (xj - xi) * (lat - yi) / (yj - yi) + xi {
+                inside.toggle()
+            }
+            j = i
+        }
+        return inside
+    }
+
+    /// Neighborhood for the map's near-me button: the outline the user is in,
+    /// else the nearest bar's neighborhood — nil when no bar is within `maxKm`
+    /// (some outlines extend well past their bars).
+    static func nearMeNeighborhood(_ lat: Double, _ lng: Double, maxKm: Double = 5) -> String? {
+        let nearest = nearestBar(lat, lng)
+        guard distanceMiles(lat, lng, nearest) * 1.609344 <= maxKm else { return nil }
+        return neighborhood(containing: lat, lng) ?? nearest.neighborhood
+    }
+
     /// The bar closest to the given coordinates.
     static func nearestBar(_ latitude: Double, _ longitude: Double) -> Bar {
         let cos = Foundation.cos(latitude * .pi / 180)

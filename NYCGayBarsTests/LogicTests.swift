@@ -101,6 +101,32 @@ final class GeoTests: XCTestCase {
         XCTAssertEqual(Geo.nearestBar(s.latitude, s.longitude).id, "the-stonewall-inn")
     }
 
+    // MARK: near-me neighborhood
+
+    /// Hudson River off Chelsea — outside every polygon, ~1 km from the nearest bar.
+    private let hudson = (lat: 40.7500, lng: -74.0150)
+
+    func testNearMeInsidePolygon() {
+        let s = AppData.bar(id: "the-stonewall-inn")!
+        XCTAssertEqual(Geo.neighborhood(containing: s.latitude, s.longitude), "West Village")
+        XCTAssertEqual(Geo.nearMeNeighborhood(s.latitude, s.longitude), "West Village")
+    }
+
+    func testNearMeOutsidePolygonsFallsBackToNearestBar() {
+        XCTAssertNil(Geo.neighborhood(containing: hudson.lat, hudson.lng))
+        XCTAssertEqual(Geo.nearMeNeighborhood(hudson.lat, hudson.lng),
+                       Geo.nearestBar(hudson.lat, hudson.lng).neighborhood)
+    }
+
+    func testNearMeFarAwayIsNil() {
+        XCTAssertNil(Geo.nearMeNeighborhood(42.6526, -73.7562)) // Albany
+    }
+
+    func testNearMeCutoffBoundary() {
+        XCTAssertNil(Geo.nearMeNeighborhood(hudson.lat, hudson.lng, maxKm: 0.01))
+        XCTAssertNotNil(Geo.nearMeNeighborhood(hudson.lat, hudson.lng, maxKm: 5))
+    }
+
     func testFullyVisibleWide() {
         let r = Region(latitude: AppData.region.latitude, longitude: AppData.region.longitude,
                        latitudeDelta: 1, longitudeDelta: 1)

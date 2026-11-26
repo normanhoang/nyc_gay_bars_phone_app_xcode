@@ -77,7 +77,7 @@ struct BarMapView: View {
             .mapStyle(.standard)
             .onTapGesture { pt in
                 guard showOutlines, let coord = proxy.convert(pt, from: .local) else { return }
-                if let hood = neighborhood(containing: coord) { onSelectNeighborhood(hood) }
+                if let hood = Geo.neighborhood(containing: coord.latitude, coord.longitude) { onSelectNeighborhood(hood) }
             }
         }
         .onAppear { frame(animated: false) }
@@ -214,30 +214,5 @@ struct BarMapView: View {
                                            longitude: l(s.center.longitude, e.center.longitude)),
             span: MKCoordinateSpan(latitudeDelta: l(s.span.latitudeDelta, e.span.latitudeDelta),
                                    longitudeDelta: l(s.span.longitudeDelta, e.span.longitudeDelta)))
-    }
-
-    // MARK: - Hit testing
-
-    private func neighborhood(containing coord: CLLocationCoordinate2D) -> String? {
-        for name in AppData.neighborhoods {
-            guard let ring = AppData.neighborhoodPolygons[name] else { continue }
-            if pointInPolygon(coord, ring) { return name }
-        }
-        return nil
-    }
-
-    private func pointInPolygon(_ p: CLLocationCoordinate2D, _ ring: [LatLng]) -> Bool {
-        var inside = false
-        var j = ring.count - 1
-        for i in 0..<ring.count {
-            let xi = ring[i].longitude, yi = ring[i].latitude
-            let xj = ring[j].longitude, yj = ring[j].latitude
-            if (yi > p.latitude) != (yj > p.latitude),
-               p.longitude < (xj - xi) * (p.latitude - yi) / (yj - yi) + xi {
-                inside.toggle()
-            }
-            j = i
-        }
-        return inside
     }
 }
