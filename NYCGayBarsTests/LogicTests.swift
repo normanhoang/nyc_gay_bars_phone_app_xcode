@@ -50,6 +50,7 @@ final class AppDataTests: XCTestCase {
             XCTAssertEqual(bar?.isArchived, false, id)
         }
         XCTAssertEqual(AppData.bar(id: "the-duplex-closed-temporarily")?.name, "The Duplex")
+        XCTAssertEqual(AppData.activeBar(id: "viva-la-heights")?.name, "Viva Bar")
         XCTAssertEqual(AppData.activeBar(id: "mb-bar-boutique")?.name, "MB Bar Boutique")
         XCTAssertNil(AppData.bar(id: "mb-bar-boutique-closed-temporarily"))
 
