@@ -16,11 +16,11 @@ Everything to paste into App Store Connect. Character counts shown against Apple
 | Secondary Category | Travel (optional) | — |
 | Primary Language | English (U.S.) | — |
 
-## Version — 1.3.1
+## Version — 1.4.0
 
 | Field | Value |
 |---|---|
-| Version String | `1.3.1` · Build `24` |
+| Version String | `1.4.0` · Build `25` |
 | Copyright | 2026 Norman Hoang |
 
 **Promotional Text** (170 max, 152):
@@ -28,6 +28,22 @@ Everything to paste into App Store Connect. Character counts shown against Apple
 > Your pocket map to every gay bar in NYC. Check in, log the night, earn badges, and watch your nightlife stats come alive — 100% private, all on your device.
 
 ## What's New in This Version (4000 max)
+
+**1.4.0** — update notes (1.3.1 shipped).
+
+```
+Find tonight's party faster.
+
+• Every bar page now links to the bar's Instagram and website — check tonight's events, drag shows, and parties before you head out
+• New "near me" button on the map: one tap zooms to the neighborhood you're in, tap again to zoom back out
+• Updated bar roster — Viva La Heights is now Viva Bar, and a closed spot was retired
+• Friends is more private and more reliable: your per-friend sharing choices always stick, and old shared check-ins are cleaned up even while the app stays open
+• Under-the-hood fixes and polish
+
+Friends is completely optional — everything else stays 100% on your device.
+```
+
+### Previous: 1.3.1
 
 **1.3.1** — update notes (1.3.0 shipped).
 
@@ -84,13 +100,14 @@ Friends is completely optional — everything else stays 100% on your device.
 ```
 NYC Gay Bars is your personal guide to the city's LGBTQ+ nightlife — and a fun way to remember every night out.
 
-Browse 80+ gay bars across Manhattan, Brooklyn, and Queens on an interactive map or a searchable list. Filter by neighborhood, sort by distance, and find your next spot in seconds.
+Browse 80+ gay bars across Manhattan, Brooklyn, Queens, and the Bronx on an interactive map or a searchable list. Filter by neighborhood, sort by distance, and find your next spot in seconds.
 
 Been somewhere? Check in and log what you drank — tonight or backdated. Your history builds a personal timeline of every bar, every drink, every night.
 
 FEATURES
 • Map + list of 80+ NYC gay bars, by neighborhood
-• Sort by distance to what's closest right now
+• Sort by distance to what's closest right now, or tap "near me" to zoom to your neighborhood
+• Links to every bar's Instagram and website, so you can check tonight's events before heading out
 • One-tap check-ins and drink logging (today or any past day), from anywhere via Quick Log
 • A calendar history of your nights out, shaded by your busiest days
 • Personal stats: favorite bar, top drink, biggest night, longest streak
@@ -155,7 +172,7 @@ The optional Friends feature stores data in CloudKit, so "Data Not Collected" no
 
 - **Name** — the display name chosen for Friends
 - **User ID** — the CloudKit user identifier / invite code
-- **Other User Content** — shared check-ins (display name + bar + time, sent only to selected friends; auto-deleted within ~24h)
+- **Other User Content** — shared check-ins (display name + bar + time, sent only to selected friends; deleted from iCloud by the sender's device once ~6h old)
 - Location is still used only on-device to show distance/sort bars — never transmitted, so **not "collected"**; do not list it.
 - Tracking: **No**.
 
