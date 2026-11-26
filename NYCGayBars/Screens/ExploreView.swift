@@ -13,6 +13,9 @@ struct ExploreView: View {
     @State private var mode = 0          // 0 = Map, 1 = List
     @State private var nearest = true    // sort: Nearest vs A–Z
     @State private var neighborhood = "All"
+    /// Neighborhood the near-me button last zoomed to; the button reads active
+    /// only while that is still the selected filter.
+    @State private var nearMeHood: String?
     @State private var selectedBar: Bar?
     @State private var showQuickLog = false
     @State private var frameNonce = 0
@@ -21,6 +24,12 @@ struct ExploreView: View {
     private var coords: (lat: Double, lng: Double)? {
         location.coordinate.map { ($0.latitude, $0.longitude) }
     }
+
+    private var nearMeTarget: String? {
+        coords.flatMap { Geo.nearMeNeighborhood($0.lat, $0.lng) }
+    }
+
+    private var nearMeActive: Bool { nearMeHood != nil && neighborhood == nearMeHood }
 
     private var distances: [String: Double]? {
         coords.map { Geo.derived($0.lat, $0.lng).distances }
@@ -307,6 +316,11 @@ struct ExploreView: View {
                     coverageCallout
                 }
             }
+            .overlay(alignment: .topTrailing) {
+                if let target = nearMeTarget {
+                    nearMeButton(target, belowBanner: filteredBars.isEmpty)
+                }
+            }
         }
     }
 
@@ -344,6 +358,30 @@ struct ExploreView: View {
         if value == neighborhood { frameNonce += 1 }
         neighborhood = value
         zip.query = ""
+    }
+
+    /// Toggles between the user's neighborhood and All (map mode only).
+    private func nearMeButton(_ target: String, belowBanner: Bool) -> some View {
+        let active = nearMeActive
+        return Button {
+            Haptics.light()
+            if active {
+                selectNeighborhood("All")
+            } else {
+                nearMeHood = target
+                selectNeighborhood(target)
+            }
+        } label: {
+            Image(systemName: active ? "location.fill" : "location")
+                .font(.scaled(17, weight: .semibold))
+                .foregroundStyle(active ? Palette.primary : .white)
+                .frame(width: 44, height: 44)
+                .glassSurface(radius: 999, bordered: true)
+        }
+        .buttonStyle(PressableScale())
+        .accessibilityLabel(active ? "Show all neighborhoods" : "Zoom to my neighborhood")
+        .padding(.top, belowBanner ? 64 : 12)
+        .padding(.trailing, 16)
     }
 
     private func openInstagram() {
