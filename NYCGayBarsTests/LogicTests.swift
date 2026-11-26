@@ -619,3 +619,37 @@ final class PageTests: XCTestCase {
         XCTAssertEqual(Set(Page.allCases.map(\.icon)).count, Page.allCases.count)
     }
 }
+
+final class BarLinksTests: XCTestCase {
+    private func bar(_ extra: String) -> Bar {
+        let json = """
+        {"id":"x","name":"X","neighborhood":"Chelsea","address":"1 St","latitude":40.7,"longitude":-74.0\(extra)}
+        """
+        return try! JSONDecoder().decode(Bar.self, from: Data(json.utf8))
+    }
+
+    func testOrderAndSkipsMissing() {
+        let b = bar(#","website":"https://www.eagle-ny.com","instagram":"eaglenyc""#)
+        XCTAssertEqual(BarLinks.links(for: b).map(\.kind), [.instagram, .website])
+    }
+
+    func testInstagramURLs() {
+        let link = BarLinks.links(for: bar(#","instagram":"eaglenyc""#))[0]
+        XCTAssertEqual(link.url.absoluteString, "https://www.instagram.com/eaglenyc")
+        XCTAssertEqual(link.appURL?.absoluteString, "instagram://user?username=eaglenyc")
+    }
+
+    func testTikTokURL() {
+        let link = BarLinks.links(for: bar(#","tiktok":"somebar""#))[0]
+        XCTAssertEqual(link.url.absoluteString, "https://www.tiktok.com/@somebar")
+        XCTAssertNil(link.appURL)
+    }
+
+    func testNoLinks() {
+        XCTAssertTrue(BarLinks.links(for: bar("")).isEmpty)
+    }
+
+    func testDecodesWithoutLinkFields() {
+        XCTAssertNotNil(AppData.bar(id: "eagle-nyc"))
+    }
+}

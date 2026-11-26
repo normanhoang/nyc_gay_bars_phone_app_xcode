@@ -15,6 +15,14 @@ struct Bar: Codable, Identifiable, Hashable {
     var description: String?
     /// Curated vibe tags, e.g. "dive", "drag", "leather", "piano".
     var tags: [String]?
+    /// Instagram handle, no "@".
+    var instagram: String?
+    /// Official site, full https URL.
+    var website: String?
+    /// Facebook page URL — only set when the bar has no Instagram.
+    var facebook: String?
+    /// TikTok handle, no "@" — only set when the bar has no Instagram.
+    var tiktok: String?
 }
 
 /// A drink type and how many of it were had during a visit.

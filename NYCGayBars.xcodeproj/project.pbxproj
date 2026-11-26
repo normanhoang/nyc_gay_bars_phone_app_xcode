@@ -62,6 +62,7 @@
 		B9D7F6163BFB1020E3D5AA80 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B958682051DE0CAAEE2F37C3 /* Assets.xcassets */; };
 		C11056DE5B9E5DFEE8E02267 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69382DB16334001E4E16A08 /* HistoryView.swift */; };
 		C153FA09154F77C8E31B96AF /* FriendRaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7A2636B9E4A6D074E32FFD /* FriendRaceTests.swift */; };
+		C21C32FE61685CBC4BF0CE87 /* BarLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB95BB312B0E12122CDA287 /* BarLinks.swift */; };
 		C7E5036E981DF09D9063144B /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2ACA18741B8743721CE125 /* Typography.swift */; };
 		C98F9CD367151DD4E3DDF7BB /* DrinkLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0715C93C3976A142C4727245 /* DrinkLogger.swift */; };
 		D1198B08BF67143233BA5E3B /* SearchBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BFCDF02E2E3E27F41CB176 /* SearchBox.swift */; };
@@ -93,6 +94,7 @@
 		071553DC705E470FD992DA7C /* BadgeProgressRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeProgressRow.swift; sourceTree = "<group>"; };
 		0715C93C3976A142C4727245 /* DrinkLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkLogger.swift; sourceTree = "<group>"; };
 		0A78E2C8B08CC339744833B0 /* Stats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stats.swift; sourceTree = "<group>"; };
+		0BB95BB312B0E12122CDA287 /* BarLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarLinks.swift; sourceTree = "<group>"; };
 		0D32F0B9D8891FFCD2251FCF /* BarDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarDetailSheet.swift; sourceTree = "<group>"; };
 		0DF863A577DCE514EF60DB0C /* AppData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppData.swift; sourceTree = "<group>"; };
 		0F5CBB33EC05392CE4D02073 /* SegmentedToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentedToggle.swift; sourceTree = "<group>"; };
@@ -325,6 +327,7 @@
 		FC7CC2A9695F45A6A5477A14 /* Logic */ = {
 			isa = PBXGroup;
 			children = (
+				0BB95BB312B0E12122CDA287 /* BarLinks.swift */,
 				DCD591C8B681CE1D3C9D0D81 /* DayKey.swift */,
 				BF80EE4FDD07B59D62F75213 /* Drinks.swift */,
 				417A49560F9ECD23C5C0E133 /* Geo.swift */,
@@ -383,7 +386,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					B3442538EA9D35008C8DFEEE = {
 						DevelopmentTeam = DZRPJF9JB6;
@@ -459,6 +462,7 @@
 				E6BD532D4EFD3956D33D886B /* BadgesStore.swift in Sources */,
 				80E05000479EC8317EF07952 /* BarActionPills.swift in Sources */,
 				B809A54429E2F7DDBE280087 /* BarDetailSheet.swift in Sources */,
+				C21C32FE61685CBC4BF0CE87 /* BarLinks.swift in Sources */,
 				ADB01E5585D4CE7DECF24D53 /* BarListItem.swift in Sources */,
 				39142DEA98095B61B604EA41 /* BarMapView.swift in Sources */,
 				B0C499F91ADB94633FF9155C /* CloudKitSocial.swift in Sources */,
