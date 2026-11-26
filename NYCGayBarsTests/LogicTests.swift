@@ -453,10 +453,13 @@ final class StatsTests: XCTestCase {
         XCTAssertEqual(Stats.completedNeighborhoods(Set(astoriaIds)), ["Astoria"])
     }
 
-    func testCompletedNeighborhoodsIncludesOneBarNeighborhoods() {
-        let bedStuyId = AppData.barsByNeighborhood["Bed-Stuy"]!.first!.id
+    func testCompletedNeighborhoodsIncludesOneBarNeighborhoods() throws {
+        // Derived from data so roster additions can't silently invalidate it.
+        let (name, bars) = try XCTUnwrap(
+            AppData.barsByNeighborhood.sorted { $0.key < $1.key }.first { $0.value.count == 1 },
+            "no one-bar neighborhood in the roster")
 
-        XCTAssertEqual(Stats.completedNeighborhoods([bedStuyId]), ["Bed-Stuy"])
+        XCTAssertEqual(Stats.completedNeighborhoods([bars[0].id]), [name])
     }
 
     func testBadgeProgressCounts() {

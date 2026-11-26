@@ -83,7 +83,7 @@ These 73 entries showed current operating evidence. The confidence rating is abo
 | 55 | FLEX | High | [Official site](https://flexbar.nyc/) lists current hours and the roster address |
 | 56 | Diamond Dogs | Medium | A [current venue profile with recent reviews](https://www.restaurantji.com/ny/astoria/diamond-dogs-/) lists operating hours; no useful first-party status page was found |
 | 57 | Kween | High | [Official site](https://www.kweenastoria.com/) gives current hours and 2026 programming |
-| 58 | Viva La Heights | Medium | [Apple Maps](https://maps.apple.com/place?place-id=IFE22B14FE4ECF37C) lists current venue details; no useful first-party status page was found |
+| 58 | Viva La Heights (renamed Viva Bar, 2026-11-26) | Medium | [Apple Maps](https://maps.apple.com/place?place-id=IFE22B14FE4ECF37C) lists current venue details; no useful first-party status page was found |
 | 59 | The Dickens | High | [Official location page](https://www.thedickensnyc.com/location/the-dickens-nyc/) lists current hours and the roster address |
 | 60 | Pink Metal | High | [Official site](https://www.pinkmetalbk.com/beer-wine-mocktails) lists the venue's current menu and Bushwick location |
 | 61 | HUSH | High | [Official site](https://hushhk.com/about-us/) identifies the Hell's Kitchen venue and current operations |
