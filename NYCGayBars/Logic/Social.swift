@@ -355,6 +355,29 @@ enum Social {
         return retained
     }
 
+    /// Friend profiles for this refresh: the fetched copy where it arrived,
+    /// else the cached one. `profiles(userIDs:)` silently drops records that
+    /// fail individually, and a friend missing from the rebuilt list would have
+    /// their send/get prefs pruned — so a transient miss resets "don't share
+    /// with X" back to on. Only ids still in the friend set are kept.
+    static func backfilledProfiles(fetched: [FriendProfile], ids: Set<String>,
+                                   cached: [FriendProfile]) -> [FriendProfile] {
+        let fetchedIDs = Set(fetched.map(\.id))
+        let missing = cached.filter { ids.contains($0.id) && !fetchedIDs.contains($0.id) }
+        return fetched.filter { ids.contains($0.id) } + missing
+    }
+
+    /// Minimum gap between sweeps of my own expired check-in records. Sweeping
+    /// on refresh (not just at launch) keeps the "deleted after ~6 hours"
+    /// promise for anyone who leaves the app open; the throttle keeps the 12s
+    /// Friends poll from issuing a delete query every tick.
+    static let expirySweepInterval: TimeInterval = 10 * 60
+
+    static func expirySweepDue(lastSweep: Date?, now: Date) -> Bool {
+        guard let lastSweep else { return true }
+        return now.timeIntervalSince(lastSweep) >= expirySweepInterval
+    }
+
     static func isExpired(_ date: Date, now: Date) -> Bool {
         now.timeIntervalSince(date) > checkInTTL
     }

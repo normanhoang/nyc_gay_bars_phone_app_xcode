@@ -762,3 +762,36 @@ final class SocialTests: XCTestCase {
         XCTAssertTrue(since.isEmpty)
     }
 }
+
+final class SocialAuditFixTests: XCTestCase {
+    private func p(_ id: String) -> FriendProfile { FriendProfile(id: id, displayName: id, code: "") }
+
+    // Audit #1: a friend whose profile fetch came back short must stay in the
+    // list (from cache) so their send/get prefs aren't pruned and reset to on.
+    func testBackfilledProfilesKeepsCachedFriendMissingFromFetch() {
+        let out = Social.backfilledProfiles(fetched: [p("a")], ids: ["a", "b"], cached: [p("a"), p("b")])
+        XCTAssertEqual(Set(out.map(\.id)), ["a", "b"])
+    }
+
+    func testBackfilledProfilesPrefersFetchedCopy() {
+        let fresh = FriendProfile(id: "a", displayName: "New", code: "X")
+        let out = Social.backfilledProfiles(fetched: [fresh], ids: ["a"], cached: [p("a")])
+        XCTAssertEqual(out.map(\.displayName), ["New"])
+    }
+
+    func testBackfilledProfilesDropsNonFriends() {
+        let out = Social.backfilledProfiles(fetched: [], ids: ["a"], cached: [p("a"), p("gone")])
+        XCTAssertEqual(out.map(\.id), ["a"])
+    }
+
+    // Audit #2: expired own check-ins are swept on refresh, throttled.
+    func testExpirySweepDueWhenNeverRun() {
+        XCTAssertTrue(Social.expirySweepDue(lastSweep: nil, now: Date()))
+    }
+
+    func testExpirySweepThrottled() {
+        let now = Date()
+        XCTAssertFalse(Social.expirySweepDue(lastSweep: now.addingTimeInterval(-60), now: now))
+        XCTAssertTrue(Social.expirySweepDue(lastSweep: now.addingTimeInterval(-Social.expirySweepInterval - 1), now: now))
+    }
+}

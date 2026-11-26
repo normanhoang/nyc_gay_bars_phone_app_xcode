@@ -13,6 +13,15 @@ final class CloudKitSocialRecordTests: XCTestCase {
         XCTAssertEqual(profile.checkInKeyID, "key")
     }
 
+    // Audit #3: a Friendship record only counts if its system-stamped creator
+    // is the owner it claims (or it's my own record read back).
+    func testFriendshipCreatorMustMatchClaimedOwner() {
+        XCTAssertTrue(CloudKitSocial.friendshipCreatorValid(creatorID: "bob", ownerID: "bob"))
+        XCTAssertTrue(CloudKitSocial.friendshipCreatorValid(creatorID: "__defaultOwner__", ownerID: "me"))
+        XCTAssertFalse(CloudKitSocial.friendshipCreatorValid(creatorID: "mallory", ownerID: "bob"))
+        XCTAssertFalse(CloudKitSocial.friendshipCreatorValid(creatorID: nil, ownerID: "bob"))
+    }
+
     func testV2RecordContainsNoPlaintextPayloadFields() throws {
         let envelope = EncryptedCheckInEnvelope(
             recordName: "v2", authorID: "a", recipientID: "b", sentAt: Date(),

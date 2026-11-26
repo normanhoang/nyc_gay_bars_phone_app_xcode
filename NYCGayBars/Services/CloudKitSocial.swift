@@ -240,8 +240,23 @@ struct CloudKitSocial {
 
     private static func datedIDs(_ recs: [CKRecord], key: String) -> [String: Date] {
         Dictionary(recs.compactMap { rec in
-            (rec[key] as? String).map { ($0, rec.creationDate ?? .distantPast) }
+            // Drop forged records: ownerID is a self-declared field, so without
+            // this anyone could create Friendship{ownerID: me, friendID: them}
+            // and appear in my friend list (receiving my check-ins), or fake an
+            // acceptance / keep a removed friend alive via friendedByIDs.
+            guard friendshipCreatorValid(creatorID: rec.creatorUserRecordID?.recordName,
+                                         ownerID: rec["ownerID"] as? String ?? "") else { return nil }
+            return (rec[key] as? String).map { ($0, rec.creationDate ?? .distantPast) }
         }, uniquingKeysWith: max)
+    }
+
+    /// Creator gate for `Friendship` records, strict like `creatorMatchesV2`:
+    /// the server-stamped creator must be the claimed owner, or
+    /// `__defaultOwner__` for my own records read back. Gated by
+    /// `Social.verifyRecordCreator` alongside the request check.
+    static func friendshipCreatorValid(creatorID: String?, ownerID: String) -> Bool {
+        guard Social.verifyRecordCreator else { return true }
+        return creatorMatchesV2(creatorID: creatorID, claimedID: ownerID)
     }
 
     // MARK: - Check-ins (legacy cleanup)

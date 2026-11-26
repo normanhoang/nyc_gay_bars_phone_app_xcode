@@ -104,6 +104,8 @@ final class SocialStore: ObservableObject {
     /// resurrected by an in-flight refresh or a lagged own-Friendship query.
     /// See `Social.suppressedRemovals`.
     private var removedFriendsAt: [String: Date] = [:]
+    /// Last sweep of my own expired check-in records (see `Social.expirySweepDue`).
+    private var lastExpirySweep: Date?
     /// Set when a friend-request notification is tapped, so RootTabView switches
     /// to the Friends tab. Reset by RootTabView after navigating.
     @Published var focusFriendsTab = false
@@ -164,7 +166,6 @@ final class SocialStore: ObservableObject {
             try? await prepareCheckInKey(userID: userID!, profile: profile)
             await refresh()
             await consumePendingAddCode()
-            try? await ck.deleteExpiredCheckInV2(authorID: userID!)
             // Defense in depth: sweep any plaintext check-ins this device wrote
             // before the encrypted cutover. Nothing reads them any more, but
             // they'd otherwise sit in the public database until hand-deleted.
@@ -336,7 +337,10 @@ final class SocialStore: ObservableObject {
 
             async let profilesFetch = ck.profiles(userIDs: ids)
             async let tonightFetch = ck.tonightCheckInEnvelopes(userID: me)
-            let fetchedProfiles = try await profilesFetch
+            // Backfill from cache: a friend whose profile failed to load this
+            // time must not drop out (and have their prefs pruned below).
+            let fetchedProfiles = Social.backfilledProfiles(
+                fetched: try await profilesFetch, ids: Set(ids), cached: friends)
             // Re-read removals after the awaits: a removeFriend() that landed
             // while this refresh was in flight must not be overwritten by the
             // stale friend list it fetched.
@@ -353,7 +357,10 @@ final class SocialStore: ObservableObject {
                 $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
             }
             persistFriends()
-            prefs.prune(keeping: mergedFriends.map(\.id))
+            // Prune against the friendship set, not the profile fetch: only a
+            // real removal may clear someone's send/get prefs.
+            prefs.prune(keeping: Set(ids).union(optimisticFriends.map(\.profile.id))
+                .subtracting(removedNow).sorted())
             persistPrefs()
             // Drop check-ins from anyone no longer a friend (their unexpired
             // records can outlive the friendship by up to the Tonight window).
@@ -361,6 +368,10 @@ final class SocialStore: ObservableObject {
             let opened = try decryptCheckIns(try await tonightFetch, me: me, friendIDs: feedIDs)
             tonight = rebuildTonight(opened, friendIDs: feedIDs, me: me)
             try await syncSubscriptionsIfNeeded(me: me, friendIDs: ids.filter { !removedNow.contains($0) })
+            if Social.expirySweepDue(lastSweep: lastExpirySweep, now: Date()) {
+                lastExpirySweep = Date()
+                try? await ck.deleteExpiredCheckInV2(authorID: me)
+            }
         } catch {
             errorMessage = friendlyError(error)
         }
@@ -1083,6 +1094,7 @@ final class SocialStore: ObservableObject {
         optimisticOwnCheckIns = []
         ownFanOuts = []
         syncedSubIDs = nil
+        lastExpirySweep = nil
         // In-memory only — the old account's Keychain items are untouched so a
         // sign-back-in can still resolve them via prepareCheckInKey.
         checkInKey = nil
