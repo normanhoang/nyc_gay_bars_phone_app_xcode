@@ -76,7 +76,7 @@
 - Test: `NYCGayBarsTests/LogicTests.swift` (`BarLinksTests`)
 - Scratch (not committed): `<scratchpad>/links.json` mapping `id → {instagram?, website?, facebook?, tiktok?, confidence, note}`, and `<scratchpad>/apply_links.py`
 
-- [ ] **Step 1: Write data-integrity tests** over `AppData.allBars`:
+- [ ] **Step 1: Write data-integrity tests** over `AppData.barsById.values` (includes archived; `allBars` is private):
   - `testInstagramHandlesClean`: each non-nil `instagram` matches `^[A-Za-z0-9._]{1,30}$`.
   - `testTikTokHandlesClean`: same rule, no `@`.
   - `testWebURLsHttps`: `website`/`facebook` start with `https://` and parse as `URL`.
