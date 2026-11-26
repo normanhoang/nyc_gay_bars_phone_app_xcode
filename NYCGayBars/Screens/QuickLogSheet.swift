@@ -39,6 +39,8 @@ struct QuickLogSheet: View {
                         BarActionPills(bar: bar, day: nil,
                                        onConfirmUnvisit: { showRemoveAlert = true })
                             .padding(.top, 12)
+                        BarLinkChips(bar: bar)
+                            .padding(.top, 8)
                     }
 
                     if hasLogged, let context = sessionContext() {

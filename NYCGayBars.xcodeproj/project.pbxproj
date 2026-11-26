@@ -51,6 +51,7 @@
 		9D69762BF9C28185C0473324 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E32EF1AC4DB4BC48297EE6 /* LocationManager.swift */; };
 		A0BF6CAA8A1B4A3C1DDF557A /* CountUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213D7A49D3A0503231D58A3A /* CountUp.swift */; };
 		A2803B9F700D02937E08D806 /* LogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B87A3106606958B3B5F2601 /* LogicTests.swift */; };
+		AAC511DE761906A63DEEAF18 /* BarLinkChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A96FF9FB646442C5C7291A4 /* BarLinkChips.swift */; };
 		ABCF258231350ED7AA010B29 /* Page.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39E9BF540387EF4D64E45C98 /* Page.swift */; };
 		ABF8831B85F6EAE68F8C1479 /* SocialModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E4741C6C86AF876C868315 /* SocialModels.swift */; };
 		ADB01E5585D4CE7DECF24D53 /* BarListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0E3C68064192C81E87A4B1 /* BarListItem.swift */; };
@@ -115,6 +116,7 @@
 		4941C8CD27CD9439FEDAA200 /* NYCGayBars.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NYCGayBars.entitlements; sourceTree = "<group>"; };
 		4A489A316640E12D8D230F6B /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBar.swift; sourceTree = "<group>"; };
 		4A6C2ABE78BDC4816F37638D /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
+		4A96FF9FB646442C5C7291A4 /* BarLinkChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarLinkChips.swift; sourceTree = "<group>"; };
 		4C1C3F8CA393F03717E2B3F0 /* RecapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecapView.swift; sourceTree = "<group>"; };
 		555933B060A09C51E958783F /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
 		62E5EE1326FD313C1BAF4F87 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
@@ -293,6 +295,7 @@
 				E30AFBE2E59FDFCFCD7E8EA0 /* BadgeTile.swift */,
 				B5AB110A7AC0A69A887C6B98 /* BadgeToast.swift */,
 				3AC351E12C586F9B966A238D /* BarActionPills.swift */,
+				4A96FF9FB646442C5C7291A4 /* BarLinkChips.swift */,
 				7C0E3C68064192C81E87A4B1 /* BarListItem.swift */,
 				789FAD37EC579F1E13118A4B /* Confetti.swift */,
 				D238B7F76F5A764AEDDAF032 /* ConfirmDialog.swift */,
@@ -462,6 +465,7 @@
 				E6BD532D4EFD3956D33D886B /* BadgesStore.swift in Sources */,
 				80E05000479EC8317EF07952 /* BarActionPills.swift in Sources */,
 				B809A54429E2F7DDBE280087 /* BarDetailSheet.swift in Sources */,
+				AAC511DE761906A63DEEAF18 /* BarLinkChips.swift in Sources */,
 				C21C32FE61685CBC4BF0CE87 /* BarLinks.swift in Sources */,
 				ADB01E5585D4CE7DECF24D53 /* BarListItem.swift in Sources */,
 				39142DEA98095B61B604EA41 /* BarMapView.swift in Sources */,

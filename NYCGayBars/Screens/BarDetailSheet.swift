@@ -42,6 +42,8 @@ struct BarDetailSheet: View {
                         BarActionPills(bar: bar, day: day,
                                        onConfirmUnvisit: { showRemoveAlert = true })
                             .padding(.top, 16)
+                        BarLinkChips(bar: bar)
+                            .padding(.top, 8)
 
                         HStack(alignment: .firstTextBaseline) {
                             Text("Log a drink")
