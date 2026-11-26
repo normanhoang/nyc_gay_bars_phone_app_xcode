@@ -652,4 +652,39 @@ final class BarLinksTests: XCTestCase {
     func testDecodesWithoutLinkFields() {
         XCTAssertNotNil(AppData.bar(id: "eagle-nyc"))
     }
+
+    // MARK: bars.json link integrity
+
+    private let handle = /^[A-Za-z0-9._]{1,30}$/
+    private var everyBar: [Bar] { Array(AppData.barsById.values) }
+
+    func testInstagramHandlesClean() {
+        for b in everyBar { if let h = b.instagram { XCTAssertNotNil(h.wholeMatch(of: handle), "\(b.id): \(h)") } }
+    }
+
+    func testTikTokHandlesClean() {
+        for b in everyBar { if let h = b.tiktok { XCTAssertNotNil(h.wholeMatch(of: handle), "\(b.id): \(h)") } }
+    }
+
+    func testWebURLsHttps() {
+        for b in everyBar {
+            for s in [b.website, b.facebook].compactMap({ $0 }) {
+                XCTAssertTrue(s.hasPrefix("https://"), "\(b.id): \(s)")
+                XCTAssertNotNil(URL(string: s), "\(b.id): \(s)")
+            }
+        }
+    }
+
+    func testFallbacksOnlyWithoutInstagram() {
+        for b in everyBar where b.instagram != nil {
+            XCTAssertNil(b.facebook, b.id)
+            XCTAssertNil(b.tiktok, b.id)
+        }
+    }
+
+    func testArchivedHaveNoLinks() {
+        for b in everyBar where b.isArchived {
+            XCTAssertTrue(BarLinks.links(for: b).isEmpty, b.id)
+        }
+    }
 }
